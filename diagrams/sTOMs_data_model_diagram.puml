@@ -1,0 +1,79 @@
+@startuml Speech Therapy Office Management System (sTOMs)
+
+hide empty methods
+hide circle
+
+'---------------
+' Profiles
+'---------------
+
+class User {
+    id : uuid
+--
+    first_name : varchar(64)
+    surname : varchar(64)
+    email : varchar(255) <<Unique>>
+    password_hash : varchar(128) <<Not Null>>
+    user_type : varchar(10) [PATIENT, THERAPIST]
+    is_active : varchar
+}
+
+
+class Therapist {
+    id : uuid
+--
+    user_id : uuid <<fk>>
+    default_availability : uuid <<fk>>
+}
+
+class Patient {
+    id : uuid
+--
+    user_id : uuid <<fk>>
+}
+
+User "1" -- "1" Therapist : is_a
+User "1" -- "1" Patient : is_a
+
+
+'---------------
+' Therapy and Scheduling
+'---------------
+
+class AppointmentTypes {
+    id : uuid
+--
+    name : varchar(100)
+    duration_time_minutes : int
+    price : numeric(5,2)
+
+
+}
+
+class TherapistAvailability {
+    id : uuid
+--
+    therapist_id : uuid <<fk>>
+    availability : json
+}
+
+
+class Appointment {
+    id : uuid
+--
+    patient_id : uuid <<fk>>
+    therapist_id : uuid <<fk>>
+    appointment_type_id : uuid <<fk>>
+    start_time : timestamp
+    end_time : timestamp
+    status : varchar(10) [SCHEDULED, CONFIRMED, COMPLETED, CANCELED]
+    notes : text <<NULLable>>
+}
+
+Patient "1" -- "0..*" Appointment : books
+Therapist "1" -- "0..*" Appointment : conducts
+AppointmentTypes "1" -- "0..*" Appointment : defines_appointment_type
+
+
+@enduml
+
