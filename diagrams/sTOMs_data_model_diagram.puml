@@ -3,6 +3,9 @@
 hide empty methods
 hide circle
 
+
+
+
 '---------------
 ' Profiles
 '---------------
@@ -86,6 +89,7 @@ class Appointment {
 note left of Appointment
 Wizyty mogą być rezerwowane na czas nieokreślony,
 oznacza to, że wpisy do tabeli Appointmet generowane będą leniwie
+według ustawień systemu
 endnote
 
 class AppointmentSeries {
