@@ -12,10 +12,10 @@ class User {
 --
     first_name : varchar(64)
     surname : varchar(64)
-    email : varchar(255) <<UNIQUE>>
-    password_hash : varchar(128) <<NOT NULL>>
-    user_type : varchar(10) [PATIENT, THERAPIST]
-    is_active : varchar
+    email : varchar(256) <<UNIQUE>>
+    phone_number : text
+    password_hash : varchar(64)
+    is_active : bool
 }
 
 
@@ -23,17 +23,28 @@ class Therapist {
     id : uuid
 --
     user_id : uuid <<FK>>
-    default_availability : uuid <<FK>>
+    localization : varchar(258)
 }
+note left of Therapist::localization
+Każdy terapeuta ma przydzielony własny gabinet
+endnote
 
 class Patient {
     id : uuid
 --
     user_id : uuid <<FK>>
+    name : varchar(64)
+    surname : varchar(64) 
+    birthday : date
 }
+note right
+Jeden użytkownik może mieć przypisanych wielu pacjentów
+opcja ta przydatna jest dla rodziców chcących zapisać 
+więcej niż jedno dziecko na zajęcia.
+endnote
 
 User "1" -- "1" Therapist : is_a
-User "1" -- "1" Patient : is_a
+User "1" -- "1..*" Patient : controls
 
 
 '---------------
@@ -46,14 +57,20 @@ class AppointmentTypes {
     name : varchar(100)
     duration_time_minutes : int
     price : numeric(5,2)
+    is_periodic : boolean
 }
 
-class TherapistAvailability {
+class AvailabilityBlock {
     id : uuid
 --
     therapist_id : uuid <<FK>>
-    availability : json
+    day_of_week : int [0-6] <<NULLable>>
+    specific_date : date <<NULLable>>
+    start_time : time
+    end_time : time
+    is_exclusion : boolean <<DEFAULT: false>>
 }
+note bottom: Jedna tabela na grafik bazowy (day_of_week)\ni na urlopy/zmiany (specific_date + is_exclusion).
 
 
 class Appointment {
@@ -61,16 +78,39 @@ class Appointment {
 --
     patient_id : uuid <<FK>>
     therapist_id : uuid <<FK>>
+    appointment_series_id : uuid <<FK>>
+    appointment_date : date
+    status : enum [SCHEDULED, COMPLETED, CANCELED]
+    notes : text <<NULLable>>
+}
+note left of Appointment
+Wizyty mogą być rezerwowane na czas nieokreślony,
+oznacza to, że wpisy do tabeli Appointmet generowane będą leniwie
+endnote
+
+class AppointmentSeries {
+    id : uuid
+--
+    therapist_id : uuid <<FK>>
+    patient_id : uuid <<FK>>
     appointment_type_id : uuid <<FK>>
     start_time : timestamp
     end_time : timestamp
-    status : varchar(10) [SCHEDULED, CONFIRMED, COMPLETED, CANCELED]
-    notes : text <<NULLable>>
+    recurrence : recurrence_field 
 }
+note right of AppointmentSeries::recurrence
+recurrence_field odnosi się do atrybutu RecurrenceField
+udostępnianego przez bibliotekę django-recurrence
+która ułatwia pracę z powtarzającymi się datami
+endnote
 
-Patient "1" -- "0..*" Appointment : books
-Therapist "1" -- "0..*" Appointment : conducts
-AppointmentTypes "1" -- "0..*" Appointment : defines type
+Therapist "1" -- "0..*" AvailabilityBlock : specifies availability
+Patient "1" -- "0..*" Appointment
+Therapist "1" -- "0..*" Appointment
+Patient "1" -- "0..*" AppointmentSeries : books
+Therapist "1" -- "0..*" AppointmentSeries : conducts
+AppointmentTypes "1" -- "0..*" AppointmentSeries : defines type
+AppointmentSeries "1" -- "1..*" Appointment : composed of
 
 
 '---------------
@@ -84,14 +124,13 @@ class Exercise {
     description : text
     media_url : url
     created_by_id : uuid <<FK>>
-
 }
 
 
 class Assignment {
     id : uuid
 --
-    client_id : uuid <<FK>>
+    patient_id : uuid <<FK>>
     therapist_id : uuid <<FK>>
     custom_instructions : text
     due_date : date
