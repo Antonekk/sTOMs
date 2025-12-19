@@ -12,8 +12,8 @@ class User {
 --
     first_name : varchar(64)
     surname : varchar(64)
-    email : varchar(255) <<Unique>>
-    password_hash : varchar(128) <<Not Null>>
+    email : varchar(255) <<UNIQUE>>
+    password_hash : varchar(128) <<NOT NULL>>
     user_type : varchar(10) [PATIENT, THERAPIST]
     is_active : varchar
 }
@@ -22,14 +22,14 @@ class User {
 class Therapist {
     id : uuid
 --
-    user_id : uuid <<fk>>
-    default_availability : uuid <<fk>>
+    user_id : uuid <<FK>>
+    default_availability : uuid <<FK>>
 }
 
 class Patient {
     id : uuid
 --
-    user_id : uuid <<fk>>
+    user_id : uuid <<FK>>
 }
 
 User "1" -- "1" Therapist : is_a
@@ -46,14 +46,12 @@ class AppointmentTypes {
     name : varchar(100)
     duration_time_minutes : int
     price : numeric(5,2)
-
-
 }
 
 class TherapistAvailability {
     id : uuid
 --
-    therapist_id : uuid <<fk>>
+    therapist_id : uuid <<FK>>
     availability : json
 }
 
@@ -61,9 +59,9 @@ class TherapistAvailability {
 class Appointment {
     id : uuid
 --
-    patient_id : uuid <<fk>>
-    therapist_id : uuid <<fk>>
-    appointment_type_id : uuid <<fk>>
+    patient_id : uuid <<FK>>
+    therapist_id : uuid <<FK>>
+    appointment_type_id : uuid <<FK>>
     start_time : timestamp
     end_time : timestamp
     status : varchar(10) [SCHEDULED, CONFIRMED, COMPLETED, CANCELED]
@@ -72,8 +70,49 @@ class Appointment {
 
 Patient "1" -- "0..*" Appointment : books
 Therapist "1" -- "0..*" Appointment : conducts
-AppointmentTypes "1" -- "0..*" Appointment : defines_appointment_type
+AppointmentTypes "1" -- "0..*" Appointment : defines type
 
+
+'---------------
+' Home Assignments
+'---------------
+
+class Exercise {
+    id : uuid
+--
+    title : varchar(255)
+    description : text
+    media_url : url
+    created_by_id : uuid <<FK>>
+
+}
+
+
+class Assignment {
+    id : uuid
+--
+    client_id : uuid <<FK>>
+    therapist_id : uuid <<FK>>
+    custom_instructions : text
+    due_date : date
+}
+
+class AssignmentExercise {
+    id : uuid
+--
+    assignment_id : uuid <<FK>>
+    exercise_id : uuid <<FK>>
+    sequence_order : int
+    custom_instructions : text <<NULLable>>
+    sets_reps : varchar(50) <<NULLable>>
+    is_completed : boolean
+
+}
+
+Therapist "1" -- "0..*" Assignment : creates
+Patient "1" -- "0..*" Assignment : receives
+
+Assignment "1" *-- "1..*" AssignmentExercise : composed_of
+Exercise "1" -- "0..*" AssignmentExercise : included_in
 
 @enduml
-
