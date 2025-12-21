@@ -18,6 +18,7 @@ class User {
     email : varchar(256) <<UNIQUE>>
     phone_number : text
     password_hash : varchar(64)
+    role : enum [KLIENT, TERAPEUTA]
     is_active : bool
 }
 
@@ -26,7 +27,7 @@ class Therapist {
     id : uuid
 --
     user_id : uuid <<FK>>
-    localization : varchar(258)
+    office_id : uuid <<FK>>
 }
 note left of Therapist::localization
 Każdy terapeuta ma przydzielony własny gabinet
@@ -49,6 +50,35 @@ endnote
 User "1" -- "1" Therapist : is_a
 User "1" -- "1..*" Patient : controls
 
+
+'---------------
+' Offices
+'---------------
+
+class Office {
+    id : uuid
+--
+    localization : varchar(128)
+    room : varchar(32)
+}
+
+Therapist "1" -- "1" Office : operates_in
+
+'---------------
+' Notifications
+'---------------
+
+
+class Notification{
+    id : uuid
+--
+    name : varchar(128)
+    description : text
+    creation_date : date
+    is_read : boolean
+}
+
+User "1" -- "0..*" Notification : receives
 
 '---------------
 ' Therapy and Scheduling
