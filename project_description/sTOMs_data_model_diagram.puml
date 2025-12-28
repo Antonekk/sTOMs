@@ -19,7 +19,8 @@ class User {
     phone_number : text
     password_hash : varchar(64)
     role : enum [KLIENT, TERAPEUTA]
-    is_active : bool
+    is_verified : boolean
+    is_active : boolean
 }
 
 
@@ -29,7 +30,7 @@ class Therapist {
     user_id : uuid <<FK>>
     office_id : uuid <<FK>>
 }
-note left of Therapist::localization
+note left of Therapist
 Każdy terapeuta ma przydzielony własny gabinet
 endnote
 
@@ -84,14 +85,6 @@ User "1" -- "0..*" Notification : receives
 ' Therapy and Scheduling
 '---------------
 
-class AppointmentTypes {
-    id : uuid
---
-    name : varchar(100)
-    duration_time_minutes : int
-    price : numeric(5,2)
-    is_periodic : boolean
-}
 
 class AvailabilityBlock {
     id : uuid
@@ -101,9 +94,40 @@ class AvailabilityBlock {
     specific_date : date <<NULLable>>
     start_time : time
     end_time : time
-    is_exclusion : boolean <<DEFAULT: false>>
+    type : enum [BASE, INCLUSION, EXCLUSION]
 }
-note bottom: Jedna tabela na grafik bazowy (day_of_week)\ni na urlopy/zmiany (specific_date + is_exclusion).
+note bottom
+Jedna tabela na grafik bazowy (BASE + day_of_week)
+i na urlopy/zmiany (INCLUSION/EXCLUSION + specific_date).
+endnote
+
+class AppointmentTypes {
+    id : uuid
+--
+    name : varchar(100)
+    duration_time_minutes : int
+    price : numeric(5,2)
+    is_periodic : boolean
+}
+
+
+
+class AppointmentSeries {
+    id : uuid
+--
+    therapist_id : uuid <<FK>>
+    patient_id : uuid <<FK>>
+    appointment_type_id : uuid <<FK>>
+    start_time : time
+    end_time : times
+    recurrence : recurrence_field
+    status : [ACTIVE, ENDED, CANCELED]
+}
+note right of AppointmentSeries::recurrence
+recurrence_field odnosi się do atrybutu RecurrenceField
+udostępnianego przez bibliotekę django-recurrence
+która ułatwia pracę z powtarzającymi się datami
+endnote
 
 
 class Appointment {
@@ -114,28 +138,13 @@ class Appointment {
     appointment_series_id : uuid <<FK>>
     appointment_date : date
     status : enum [SCHEDULED, COMPLETED, CANCELED]
+    final_price : numeric(5,2)
     notes : text <<NULLable>>
 }
 note left of Appointment
 Wizyty mogą być rezerwowane na czas nieokreślony,
 oznacza to, że wpisy do tabeli Appointmet generowane będą leniwie
 według ustawień systemu
-endnote
-
-class AppointmentSeries {
-    id : uuid
---
-    therapist_id : uuid <<FK>>
-    patient_id : uuid <<FK>>
-    appointment_type_id : uuid <<FK>>
-    start_time : timestamp
-    end_time : timestamp
-    recurrence : recurrence_field 
-}
-note right of AppointmentSeries::recurrence
-recurrence_field odnosi się do atrybutu RecurrenceField
-udostępnianego przez bibliotekę django-recurrence
-która ułatwia pracę z powtarzającymi się datami
 endnote
 
 Therapist "1" -- "0..*" AvailabilityBlock : specifies availability
@@ -155,37 +164,26 @@ class Exercise {
     id : uuid
 --
     title : varchar(255)
-    description : text
-    media_url : url
+    instructions : text
     created_by_id : uuid <<FK>>
 }
 
 
-class Assignment {
-    id : uuid
---
-    patient_id : uuid <<FK>>
-    therapist_id : uuid <<FK>>
-    custom_instructions : text
-    due_date : date
-}
 
-class AssignmentExercise {
+class Homework {
     id : uuid
 --
-    assignment_id : uuid <<FK>>
     exercise_id : uuid <<FK>>
-    sequence_order : int
-    custom_instructions : text <<NULLable>>
-    sets_reps : varchar(50) <<NULLable>>
+    patient_id : uuid <<FK>>
+    therapist_id : uuid<<FK>>
+    exercise_id : uuid<<FK>>
     is_completed : boolean
+    completion_timestamp : datetime
 
 }
 
-Therapist "1" -- "0..*" Assignment : creates
-Patient "1" -- "0..*" Assignment : receives
-
-Assignment "1" *-- "1..*" AssignmentExercise : composed_of
-Exercise "1" -- "0..*" AssignmentExercise : included_in
+Therapist "1" -- "0..*" Homework : creates
+Patient "1" -- "0..*" Homework : receives
+Exercise "1" -- "0..*" Homework : includes
 
 @enduml
