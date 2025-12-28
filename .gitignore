@@ -4,7 +4,7 @@ logs
 **/*.backup.*
 **/*.back.*
 
-**/venv
+**/*venv
 
 node_modules
 bower_components
@@ -29,6 +29,7 @@ media
 # <django-project-name>/staticfiles/
 
 .vscode/*
+**/.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json

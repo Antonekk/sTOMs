@@ -1,0 +1,30 @@
+
+services:
+  mock-api:
+    build: ./mock-backend
+    container_name: mock-backend
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./mock-backend:/app
+    command: python app.py
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: yarn dev
+
+  storybook:
+    build: ./frontend
+    container_name: storybook
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: yarn storybook
