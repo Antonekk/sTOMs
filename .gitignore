@@ -4,6 +4,8 @@ logs
 **/*.backup.*
 **/*.back.*
 
+**/venv
+
 node_modules
 bower_components
 
