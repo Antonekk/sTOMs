@@ -20,8 +20,8 @@ export default function Template({
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center' }}>
-        <div className="demo-logo" />
+      <Header style={{ display: 'flex', alignItems: 'center', columnGap: "25px"}}>
+        <img src="/sTOMs_logo.svg" alt="sTOMs Logo"/>
         <Menu
           theme="dark"
           mode="horizontal"

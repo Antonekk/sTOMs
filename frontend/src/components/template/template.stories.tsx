@@ -14,7 +14,7 @@ export const TemplatesData = {
   menu_items : items,
 };
 
-const meta = {
+const meta : Meta<typeof Template> = {
   component: Template,
   title: 'Template',
   tags: ['autodocs'],
@@ -23,7 +23,7 @@ const meta = {
   args: {
     ...TemplatesData,
   },
-} satisfies Meta<typeof Template>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
