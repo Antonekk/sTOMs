@@ -1,5 +1,16 @@
 
 services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    command: python manage.py runserver 0.0.0.0:8000
+
   mock-api:
     build: ./mock-backend
     container_name: mock-backend

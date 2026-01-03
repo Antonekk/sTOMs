@@ -5,6 +5,9 @@ const meta: Meta<typeof SignUpForm> = {
   title: "Forms/SignUpForm",
   component: SignUpForm,
   tags: ['autodocs'],
+  argTypes: {
+    onSubmit: { action: "submit" },
+  },
 };
 
 export default meta;
