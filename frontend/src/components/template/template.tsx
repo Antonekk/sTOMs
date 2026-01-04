@@ -1,5 +1,5 @@
 import React from 'react';
-import {Layout, Menu, theme } from 'antd';
+import {Layout, Menu } from 'antd';
 import type { ItemType } from 'antd/es/menu/interface';
 
 const { Header, Content, Footer } = Layout;
@@ -14,9 +14,6 @@ export default function Template({
   menu_items,
   children,
 }: TemplateProps) {
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -30,17 +27,10 @@ export default function Template({
           style={{ flex: 1, minWidth: 0 }}
         />
       </Header>
-      <Content style={{ padding: '24px 48px' }}>
-        <div
-          style={{
-            background: colorBgContainer,
-            height: "100vh",
-            padding: 24,
-            borderRadius: borderRadiusLG,
-          }}
-        >
+      <Content style={{ padding: '24px 12px' }}>
+        
           {children}
-        </div>
+
       </Content>
       <Footer style={{ textAlign: 'center' }}>
         sTOMs ©{new Date().getFullYear()} Created by Antoni Strasz
