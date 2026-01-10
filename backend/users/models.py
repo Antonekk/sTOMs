@@ -38,3 +38,21 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class Patient(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="patients")
+    first_name = models.CharField(_("first name"), max_length=64)
+    last_name = models.CharField(_("last name"), max_length=64)
+    date_of_birth = models.DateField()
+    
+    class Meta:
+        verbose_name = _("patient")
+        verbose_name_plural = _("patients")
+        
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
