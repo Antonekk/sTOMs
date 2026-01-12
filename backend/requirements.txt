@@ -8,3 +8,5 @@ sqlparse
 psycopg2-binary
 python-dotenv
 python-decouple
+drf-spectacular
+djoser
