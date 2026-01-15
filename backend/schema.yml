@@ -4,9 +4,96 @@ info:
   version: 1.0.0
   description: Speech therapy office management system
 paths:
+  /api/jwt/create/:
+    post:
+      operationId: jwt_create_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/jwt/refresh/:
+    post:
+      operationId: jwt_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/jwt/verify/:
+    post:
+      operationId: jwt_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
   /api/schema/:
     get:
-      operationId: api_schema_retrieve
+      operationId: schema_retrieve
       description: |-
         OpenApi3 schema for this API. Format can be selected via content negotiation.
 
@@ -126,7 +213,7 @@ paths:
           - zh-hans
           - zh-hant
       tags:
-      - api
+      - schema
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -151,98 +238,11 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
-  /auth/jwt/create/:
-    post:
-      operationId: auth_jwt_create_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenObtainPair'
-          description: ''
-  /auth/jwt/refresh/:
-    post:
-      operationId: auth_jwt_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenRefresh'
-          description: ''
-  /auth/jwt/verify/:
-    post:
-      operationId: auth_jwt_verify_create
-      description: |-
-        Takes a token and indicates if it is valid.  This view provides no
-        information about a token's fitness for a particular use.
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenVerify'
-          description: ''
-  /auth/users/:
+  /api/users/:
     get:
-      operationId: auth_users_list
+      operationId: users_list
       tags:
-      - auth
+      - users
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -253,23 +253,23 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: '#/components/schemas/AppUser'
           description: ''
     post:
-      operationId: auth_users_create
+      operationId: users_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreatePasswordRetype'
+              $ref: '#/components/schemas/AppUserCreatePasswordRetype'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserCreatePasswordRetype'
+              $ref: '#/components/schemas/AppUserCreatePasswordRetype'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserCreatePasswordRetype'
+              $ref: '#/components/schemas/AppUserCreatePasswordRetype'
         required: true
       security:
       - jwtAuth: []
@@ -280,21 +280,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserCreatePasswordRetype'
+                $ref: '#/components/schemas/AppUserCreatePasswordRetype'
           description: ''
-  /auth/users/{id}/:
+  /api/users/{id}/:
     get:
-      operationId: auth_users_retrieve
+      operationId: users_retrieve
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this user.
+        description: A UUID string identifying this użytkownik.
         required: true
       tags:
-      - auth
+      - users
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -303,31 +303,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     put:
-      operationId: auth_users_update
+      operationId: users_update
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this user.
+        description: A UUID string identifying this użytkownik.
         required: true
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
         required: true
       security:
       - jwtAuth: []
@@ -337,31 +337,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     patch:
-      operationId: auth_users_partial_update
+      operationId: users_partial_update
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this user.
+        description: A UUID string identifying this użytkownik.
         required: true
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -370,31 +370,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     delete:
-      operationId: auth_users_destroy
+      operationId: users_destroy
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this user.
+        description: A UUID string identifying this użytkownik.
         required: true
       tags:
-      - auth
+      - users
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /auth/users/activation/:
+  /api/users/activation/:
     post:
-      operationId: auth_users_activation_create
+      operationId: users_activation_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -418,11 +418,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Activation'
           description: ''
-  /auth/users/me/:
+  /api/users/me/:
     get:
-      operationId: auth_users_me_retrieve
+      operationId: users_me_retrieve
       tags:
-      - auth
+      - users
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -431,23 +431,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     put:
-      operationId: auth_users_me_update
+      operationId: users_me_update
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/AppUser'
         required: true
       security:
       - jwtAuth: []
@@ -457,23 +457,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     patch:
-      operationId: auth_users_me_partial_update
+      operationId: users_me_partial_update
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedAppUser'
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -482,23 +482,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AppUser'
           description: ''
     delete:
-      operationId: auth_users_me_destroy
+      operationId: users_me_destroy
       tags:
-      - auth
+      - users
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /auth/users/resend_activation/:
+  /api/users/resend_activation/:
     post:
-      operationId: auth_users_resend_activation_create
+      operationId: users_resend_activation_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -522,11 +522,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /auth/users/reset_email/:
+  /api/users/reset_email/:
     post:
-      operationId: auth_users_reset_email_create
+      operationId: users_reset_email_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -550,11 +550,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /auth/users/reset_email_confirm/:
+  /api/users/reset_email_confirm/:
     post:
-      operationId: auth_users_reset_email_confirm_create
+      operationId: users_reset_email_confirm_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -578,11 +578,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsernameResetConfirm'
           description: ''
-  /auth/users/reset_password/:
+  /api/users/reset_password/:
     post:
-      operationId: auth_users_reset_password_create
+      operationId: users_reset_password_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -606,11 +606,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /auth/users/reset_password_confirm/:
+  /api/users/reset_password_confirm/:
     post:
-      operationId: auth_users_reset_password_confirm_create
+      operationId: users_reset_password_confirm_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -634,11 +634,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/PasswordResetConfirmRetype'
           description: ''
-  /auth/users/set_email/:
+  /api/users/set_email/:
     post:
-      operationId: auth_users_set_email_create
+      operationId: users_set_email_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -661,11 +661,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SetUsername'
           description: ''
-  /auth/users/set_password/:
+  /api/users/set_password/:
     post:
-      operationId: auth_users_set_password_create
+      operationId: users_set_password_create
       tags:
-      - auth
+      - users
       requestBody:
         content:
           application/json:
@@ -700,6 +700,84 @@ components:
       required:
       - token
       - uid
+    AppUser:
+      type: object
+      properties:
+        phone_number:
+          type: string
+          pattern: ^(?:\+48)?\d{9}$
+          maxLength: 15
+        first_name:
+          type: string
+          title: Imię
+          maxLength: 64
+        last_name:
+          type: string
+          title: Nazwisko
+          maxLength: 64
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Adres e-mail
+        patients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
+          readOnly: true
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      - patients
+      - phone_number
+    AppUserCreatePasswordRetype:
+      type: object
+      properties:
+        phone_number:
+          type: string
+          pattern: ^(?:\+48)?\d{9}$
+          maxLength: 15
+        first_name:
+          type: string
+          title: Imię
+          maxLength: 64
+        last_name:
+          type: string
+          title: Nazwisko
+          maxLength: 64
+        email:
+          type: string
+          format: email
+          title: Adres e-mail
+          maxLength: 254
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        password:
+          type: string
+          writeOnly: true
+        date_of_birth:
+          type: string
+          format: date
+          writeOnly: true
+        re_password:
+          type: string
+      required:
+      - date_of_birth
+      - email
+      - first_name
+      - id
+      - last_name
+      - password
+      - phone_number
+      - re_password
     PasswordResetConfirmRetype:
       type: object
       properties:
@@ -716,7 +794,7 @@ components:
       - re_new_password
       - token
       - uid
-    PatchedUser:
+    PatchedAppUser:
       type: object
       properties:
         phone_number:
@@ -725,9 +803,11 @@ components:
           maxLength: 15
         first_name:
           type: string
+          title: Imię
           maxLength: 64
         last_name:
           type: string
+          title: Nazwisko
           maxLength: 64
         id:
           type: string
@@ -737,7 +817,30 @@ components:
           type: string
           format: email
           readOnly: true
-          title: Email address
+          title: Adres e-mail
+        patients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
+          readOnly: true
+    Patient:
+      type: object
+      properties:
+        first_name:
+          type: string
+          title: Imię
+          maxLength: 64
+        last_name:
+          type: string
+          title: Nazwisko
+          maxLength: 64
+        date_of_birth:
+          type: string
+          format: date
+      required:
+      - date_of_birth
+      - first_name
+      - last_name
     SendEmailReset:
       type: object
       properties:
@@ -767,7 +870,7 @@ components:
         new_email:
           type: string
           format: email
-          title: Email address
+          title: Adres e-mail
           maxLength: 254
       required:
       - current_password
@@ -812,76 +915,13 @@ components:
           writeOnly: true
       required:
       - token
-    User:
-      type: object
-      properties:
-        phone_number:
-          type: string
-          pattern: ^(?:\+48)?\d{9}$
-          maxLength: 15
-        first_name:
-          type: string
-          maxLength: 64
-        last_name:
-          type: string
-          maxLength: 64
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        email:
-          type: string
-          format: email
-          readOnly: true
-          title: Email address
-      required:
-      - email
-      - first_name
-      - id
-      - last_name
-      - phone_number
-    UserCreatePasswordRetype:
-      type: object
-      properties:
-        phone_number:
-          type: string
-          pattern: ^(?:\+48)?\d{9}$
-          maxLength: 15
-        first_name:
-          type: string
-          maxLength: 64
-        last_name:
-          type: string
-          maxLength: 64
-        email:
-          type: string
-          format: email
-          title: Email address
-          maxLength: 254
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        password:
-          type: string
-          writeOnly: true
-        re_password:
-          type: string
-      required:
-      - email
-      - first_name
-      - id
-      - last_name
-      - password
-      - phone_number
-      - re_password
     UsernameResetConfirm:
       type: object
       properties:
         new_email:
           type: string
           format: email
-          title: Email address
+          title: Adres e-mail
           maxLength: 254
       required:
       - new_email
