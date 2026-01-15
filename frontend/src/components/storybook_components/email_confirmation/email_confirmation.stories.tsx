@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { EmailConfirmation } from './email_confirmation.tsx';
-import { ConfigProvider } from 'antd';
 
 const meta: Meta<typeof EmailConfirmation> = {
     component: EmailConfirmation,
