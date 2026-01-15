@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .managers import AppUserManager
 
-phone_validator = RegexValidator(r"^(?:\+48)?\d{9}$", "Invalid phone number")
+phone_validator = RegexValidator(r"^(?:\+48)?\d{9}$", _("Invalid phone number"))
 
 
 class AppUser(AbstractBaseUser, PermissionsMixin):

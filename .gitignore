@@ -6,6 +6,7 @@ logs
 
 **/*venv
 .env
+**/*env
 
 node_modules
 bower_components

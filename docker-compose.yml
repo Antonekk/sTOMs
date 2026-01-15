@@ -3,26 +3,33 @@ services:
   backend:
     build: ./backend
     container_name: backend
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     env_file:
       - .env
-    command: python manage.py runserver 0.0.0.0:8000
+      - docker/backend.dev.env
+    depends_on:
+      - db
 
-  mock-api:
-    build: ./mock-backend
-    container_name: mock-backend
+  db:
+    image: postgres:16
+    env_file: docker/postgres.dev.env
+    restart: always
+    container_name: db
     ports:
-      - "8001:8000"
+      - "5432:5432"
     volumes:
-      - ./mock-backend:/app
-    command: python app.py
+      - postgres_data:/var/lib/postgresql/data
+
 
   frontend:
     build: ./frontend
     container_name: frontend
+    restart: always
     ports:
       - "5173:5173"
     volumes:
@@ -39,3 +46,6 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: yarn storybook
+
+volumes:
+  postgres_data:

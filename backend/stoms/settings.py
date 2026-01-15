@@ -56,17 +56,24 @@ SIMPLE_JWT = {
 }
 
 DJOSER = {
-    "TOKEN_MODEL": None,
+    "LOGIN_FIELD": "email",
+    "PASSWORD_RESET_CONFIRM_URL": "/haslo/reset/potwierdz/{uid}/{token}",
+    "EMAIL_FRONTEND_PROTOCOL": "http",
+    "EMAIL_FRONTEND_DOMAIN": "localhost:5173",
+    "EMAIL_FRONTEND_SITE_NAME": "sTOMs",
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "PASSWORD_RESET_CONFIRM_RETYPE": True,
-    "SET_PASWORD_RETYPE": True,
+    "ACTIVATION_URL": "/aktywacja/{uid}/{token}",
     "USER_CREATE_PASSWORD_RETYPE": True,
     "SET_PASSWORD_RETYPE": True,
-    "LOGIN_FIELD": "email",
-    "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_RETYPE": True,
+    "TOKEN_MODEL": None,
+    "SERIALIZERS": {
+        "user": "users.serializers.AppUserSerializer",
+        "user_create_password_retype": "users.serializers.AppUserCreatePasswordRetypeSerializer",
+        "current_user": "users.serializers.AppUserSerializer",
+    },
     # other settings
 }
 
@@ -179,9 +186,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "pl"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Warsaw"
 
 USE_I18N = True
 
