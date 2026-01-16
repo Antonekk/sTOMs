@@ -1,15 +1,15 @@
 import React from "react";
-import {Card, Form, Input, Button} from 'antd';
-import FormItem from "antd/es/form/FormItem";
+import {Card, Form, Input, Button, DatePicker} from 'antd';
 
 
 export interface SignUpFormValues {
-    name: string;
-    surname: string;
+    first_name: string;
+    last_name: string;
     email: string;
     phone_number: string;
     password: string;
-    repeat_password: string;
+    date_of_birth: string;
+    re_password: string;
 }
 
 export interface SignUpFormProps {
@@ -26,7 +26,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
     };
 
     return (
-    <Card title="Rejestracja" style={{ maxWidth: 600 }}>
+    <Card title="Rejestracja" style={{ width: '100%', maxWidth: 600 }}>
         <Form
             form={form}
             name="registration_form"
@@ -35,7 +35,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
         >
             <Form.Item
                 label="Imię"
-                name="name"
+                name="first_name"
                 rules={[
                     {
                         required: true,
@@ -47,7 +47,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
             </Form.Item>
             <Form.Item
                 label="Nazwisko"
-                name="surname"
+                name="last_name"
                 rules={[
                     {
                         required: true,
@@ -75,7 +75,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                 <Input />
             </Form.Item>
 
-            <FormItem
+            <Form.Item
                 label="Numer telefonu"
                 name="phone_number"
                 rules={[
@@ -83,12 +83,29 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                         required: true,
                         message: 'Podaj swój numer telefonu',
                     },
+                    {
+                        pattern: /^(?:\+48)?\d{9}$/,
+                        message: 'Podaj poprawny numer telefonu',
+                    },
                 ]}
             >
                 <Input />
-            </FormItem>
+            </Form.Item>
 
-            <FormItem
+            <Form.Item
+                label="Data urodzenia"
+                name="date_of_birth"
+                rules={[
+                    {
+                        required: true,
+                        message: 'Podaj swoją datę urodzenia',
+                    },
+                ]}
+            >
+                <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+
+            <Form.Item
                 label="Hasło"
                 name="password"
                 rules={[
@@ -99,11 +116,11 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                 ]}
             >
                 <Input.Password />
-            </FormItem>
+            </Form.Item>
 
-            <FormItem
+            <Form.Item
                 label="Powtórz hasło"
-                name="repeat_password"
+                name="re_password"
                 dependencies={['password']}
                 hasFeedback
                 rules={[
@@ -111,8 +128,8 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                         required: true,
                         message: 'Powtórz swoje hasło',
                     },
-                    ({ getFieldValue }) => ({
-                        validator(_, value) {
+                    ({ getFieldValue }: { getFieldValue: (name: string) => string }) => ({
+                        validator(_: unknown, value: string) {
                             if (!value || getFieldValue('password') === value) {
                                 return Promise.resolve();
                             }
@@ -122,13 +139,13 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                 ]}
             >
                 <Input.Password />
-            </FormItem>
+            </Form.Item>
 
-            <FormItem>
+            <Form.Item>
                 <Button type="primary" htmlType="submit">
                     Zarejestruj się
                 </Button>
-            </FormItem>
+            </Form.Item>
 
         </Form>
     </Card>
