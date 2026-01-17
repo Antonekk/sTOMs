@@ -1,5 +1,6 @@
 import React from "react";
 import {Card, Form, Input, Button, DatePicker} from 'antd';
+import type { Dayjs } from 'dayjs';
 
 
 export interface SignUpFormValues {
@@ -8,12 +9,12 @@ export interface SignUpFormValues {
     email: string;
     phone_number: string;
     password: string;
-    date_of_birth: string;
+    date_of_birth: Dayjs;
     re_password: string;
 }
 
 export interface SignUpFormProps {
-    onSubmit: (values: SignUpFormValues) => void;
+    onSubmit: (values: SignUpFormValues) => void | Promise<void>;
 }
 
 
@@ -22,7 +23,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
     const [form] = Form.useForm<SignUpFormValues>();
 
     const onFinish = (values: SignUpFormValues) => {
-        onSubmit(values);
+        void onSubmit(values);
     };
 
     return (

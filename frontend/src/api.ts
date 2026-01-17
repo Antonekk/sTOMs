@@ -19,4 +19,29 @@ api.interceptors.request.use(
     }
 );
 
+// Remove in prod
+axios.interceptors.request.use(
+  config => {
+    console.log('Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
+axios.interceptors.response.use(
+  response => {
+    console.log('Response:', response);
+    return response;
+  },
+  error => {
+    console.error('Response error:', error.response || error);
+    return Promise.reject(error);
+  }
+);
+
 export default api;
