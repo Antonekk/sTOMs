@@ -2,13 +2,17 @@ import { Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useState, useEffect } from "react";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants";
-import api from "../api"
+import api from "../api/api"
 import {AuthLoading} from "./storybook_components/auth_loading/auth_loading"
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
 }
 
+interface JwtPayload {
+  exp: number;
+  access: string;
+}
 
 // This component is used for rendering protected routes. If it is unable to authenticate, ProtectedRoute redirects to login page
 const ProtectedRoute : React.FC<ProtectedRouteProps> = ({ children }) => {
@@ -26,7 +30,7 @@ const ProtectedRoute : React.FC<ProtectedRouteProps> = ({ children }) => {
     const refreshToken = async () => {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
         try{
-            const res = await api.post<{ access: string }>("/api/token/refresh", {refresh: refreshToken});
+            const res = await api.post<JwtPayload>("/api/token/refresh", {refresh: refreshToken});
 
             if(res.status === 200){
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
@@ -48,7 +52,7 @@ const ProtectedRoute : React.FC<ProtectedRouteProps> = ({ children }) => {
             return;
         }
 
-        const decoded = jwtDecode<{ exp: number }>(token);
+        const decoded = jwtDecode<JwtPayload>(token);
         const tokenExpirationDate = decoded.exp;
         const now = Date.now() / 1000;
 

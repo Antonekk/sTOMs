@@ -5,7 +5,7 @@ import axios from "axios";
 import { SignUpForm } from "../components/storybook_components/sign_up_form/sign_up_form";
 import type { SignUpFormValues } from "../components/storybook_components/sign_up_form/sign_up_form";
 import Template from "../components/storybook_components/template/template"
-import api from "../api";
+import api from "../api/api";
 
 
 // This component handles user registration
@@ -16,7 +16,7 @@ const Register: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const onSubmit = async (values: SignUpFormValues) =>{
-         if (submitting) return;
+        if (submitting) return;
         setSubmitting(true);
         setError(null);
 

@@ -4,7 +4,7 @@ import { Spin } from 'antd';
 
 export const AuthLoading: React.FC = () => {
     return (
-        <Spin indicator={<LoadingOutlined spin />} fullscreen />
+        <Spin size="large"indicator={<LoadingOutlined spin />} fullscreen />
     )
 }
 
