@@ -5,7 +5,9 @@ import axios from "axios";
 import { SignUpForm } from "../components/storybook_components/sign_up_form/sign_up_form";
 import type { SignUpFormValues } from "../components/storybook_components/sign_up_form/sign_up_form";
 import Template from "../components/storybook_components/template/template"
-import api from "../api/api";
+import {register} from "../api/auth";
+
+
 
 
 // This component handles user registration
@@ -27,7 +29,7 @@ const Register: React.FC = () => {
                 ...values,
                 date_of_birth: values.date_of_birth.format('YYYY-MM-DD')
             };
-            await api.post("/api/users/", data);
+            await register(data);
             void navigate("/login");
         }
         catch (err){

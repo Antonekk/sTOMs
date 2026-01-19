@@ -30,8 +30,8 @@ export interface RegisterData{
 }
 
 export interface ActivateData{
-    uid: string;
-    token: string;
+    uid?: string;
+    token?: string;
 }
 
 
