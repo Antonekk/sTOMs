@@ -57,14 +57,14 @@ SIMPLE_JWT = {
 
 DJOSER = {
     "LOGIN_FIELD": "email",
-    "PASSWORD_RESET_CONFIRM_URL": "/haslo/reset/potwierdz/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "haslo/reset/potwierdz/{uid}/{token}",
     "EMAIL_FRONTEND_PROTOCOL": "http",
     "EMAIL_FRONTEND_DOMAIN": "localhost:5173",
     "EMAIL_FRONTEND_SITE_NAME": "sTOMs",
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "ACTIVATION_URL": "/aktywacja/{uid}/{token}",
+    "ACTIVATION_URL": "aktywacja/{uid}/{token}",
     "USER_CREATE_PASSWORD_RETYPE": True,
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
@@ -114,6 +114,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "djoser",
     "users",
+    "scheduling",
 ]
 
 MIDDLEWARE = [

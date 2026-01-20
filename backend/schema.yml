@@ -729,6 +729,8 @@ components:
           items:
             $ref: '#/components/schemas/Patient'
           readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
       required:
       - email
       - first_name
@@ -823,6 +825,8 @@ components:
           items:
             $ref: '#/components/schemas/Patient'
           readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
     Patient:
       type: object
       properties:
@@ -841,6 +845,16 @@ components:
       - date_of_birth
       - first_name
       - last_name
+    RoleEnum:
+      enum:
+      - ADMIN
+      - CLIENT
+      - THERAPIST
+      type: string
+      description: |-
+        * `ADMIN` - Admin
+        * `CLIENT` - Client
+        * `THERAPIST` - Therapist
     SendEmailReset:
       type: object
       properties:

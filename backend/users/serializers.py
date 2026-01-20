@@ -18,7 +18,7 @@ class AppUserSerializer(UserSerializer):
     patients = PatientSerializer(many=True, read_only=True)
 
     class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + ("patients",)
+        fields = UserSerializer.Meta.fields + ("patients", "role")
 
 
 class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
