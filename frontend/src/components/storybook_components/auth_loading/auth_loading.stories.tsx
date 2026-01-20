@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { AuthLoading } from './auth_loading';
+import AuthLoading from './auth_loading';
 
 const meta = {
     title: 'Components/AuthLoading',

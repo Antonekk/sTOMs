@@ -4,6 +4,10 @@ import ActivateAccount from "./account_activation";
 const meta: Meta<typeof ActivateAccount> = {
   component: ActivateAccount,
   title: "Auth/Aktywacja Konta",
+  tags: ['autodocs'],
+  argTypes: {
+    onClick: { action: "click" },
+  },
 };
 
 export default meta;

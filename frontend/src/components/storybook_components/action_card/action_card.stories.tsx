@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PlusOutlined, BellFilled, FileTextOutlined } from '@ant-design/icons';
 import { theme } from 'antd';
 
-import { ActionCard } from './action_card.tsx';
+import ActionCard from './action_card.tsx';
 
 const { useToken } = theme;
 

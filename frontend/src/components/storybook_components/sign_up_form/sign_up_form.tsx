@@ -18,7 +18,7 @@ export interface SignUpFormProps {
 }
 
 
-export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
 
     const [form] = Form.useForm<SignUpFormValues>();
 
@@ -161,3 +161,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
     </Card>
     );
 }
+
+
+export default SignUpForm

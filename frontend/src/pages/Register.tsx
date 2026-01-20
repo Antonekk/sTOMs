@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flex, Alert } from "antd";
 import axios from "axios";
-import { SignUpForm } from "../components/storybook_components/sign_up_form/sign_up_form";
+import SignUpForm from "../components/storybook_components/sign_up_form/sign_up_form";
 import type { SignUpFormValues } from "../components/storybook_components/sign_up_form/sign_up_form";
-import Template from "../components/storybook_components/template/template"
 import {register} from "../api/auth";
 
 

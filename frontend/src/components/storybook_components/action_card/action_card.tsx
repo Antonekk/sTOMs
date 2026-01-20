@@ -15,7 +15,7 @@ interface ActionCardProps {
     onButtonClick?: () => void;
 }
 
-export const ActionCard: React.FC<ActionCardProps> = ({
+const ActionCard: React.FC<ActionCardProps> = ({
     icon,
     iconBgColor,
     title,
@@ -55,3 +55,5 @@ export const ActionCard: React.FC<ActionCardProps> = ({
         </Card>
     );
 }
+
+export default ActionCard;

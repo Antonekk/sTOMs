@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SmileOutlined, UserOutlined } from '@ant-design/icons';
 import { theme } from 'antd';
 
-import { WelcomeCard } from './welcome_card.tsx';
+import WelcomeCard from './welcome_card.tsx';
 
 const { useToken } = theme;
 

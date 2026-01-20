@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import SignUpForm from "./sign_up_form";
+import LoginForm from "./login_form";
 
-const meta: Meta<typeof SignUpForm> = {
-  title: "Forms/SignUpForm",
-  component: SignUpForm,
+const meta: Meta<typeof LoginForm> = {
+  title: "Forms/LoginForm",
+  component: LoginForm,
   tags: ['autodocs'],
   argTypes: {
     onSubmit: { action: "submit" },
@@ -12,7 +12,7 @@ const meta: Meta<typeof SignUpForm> = {
 
 export default meta;
 
-type Story = StoryObj<typeof SignUpForm>;
+type Story = StoryObj<typeof LoginForm>;
 
 export const Default: Story = {
   args: {

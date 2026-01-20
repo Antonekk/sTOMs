@@ -43,9 +43,15 @@ export const AuthenticationProvider: React.FC< {children: React.ReactNode}> = ({
     }, []);
 
     const login = async (login_params: LoginData) => {
-        const {data} = await loginAPI(login_params);
-        setTokens(data.access, data.refresh);
-        await populateUser();
+        try{
+            const {data} = await loginAPI(login_params);
+            setTokens(data.access, data.refresh);
+            await populateUser();
+        } catch (err){
+            clearTokens();
+            setUser(null);
+            throw err;
+        }
     };
 
     const logout = () => {

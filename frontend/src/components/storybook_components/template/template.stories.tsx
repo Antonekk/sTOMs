@@ -5,7 +5,7 @@ import Template from './template.tsx';
 
 
 const meta: Meta<typeof Template> = {
-  title: "Layout/AppShell",
+  title: "Layout/Template",
   component: Template,
   tags: ['autodocs'],
 };

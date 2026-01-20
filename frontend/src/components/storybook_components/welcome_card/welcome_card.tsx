@@ -12,7 +12,7 @@ interface WelcomeCardProps {
     description?: string;
 }
 
-export const WelcomeCard: React.FC<WelcomeCardProps> = ({
+const WelcomeCard: React.FC<WelcomeCardProps> = ({
     icon,
     iconBgColor,
     title,
@@ -49,3 +49,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({
         </Card>
     );
 };
+
+
+export default WelcomeCard;
+
