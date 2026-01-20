@@ -4,6 +4,6 @@ export const AUTH_ENDPOINTS = {
     REGISTER: "/api/users/",
     LOGIN: "/api/jwt/create/",
     REFRESH: "/api/jwt/refresh/",
-    ACTIVATE: "/api/users/activate/",
+    ACTIVATE: "/api/users/activation/",
     ME: "api/users/me/",
 }

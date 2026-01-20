@@ -6,7 +6,7 @@ import AccountActivation from "../components/storybook_components/account_activa
 
 
 
-export const Activate: React.FC = () => {
+export const ActivateAccount: React.FC = () => {
     const {uid, token} = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(true);
@@ -40,10 +40,12 @@ export const Activate: React.FC = () => {
             success={success}
             title={success ? "Twoje konto zostało aktywowane!" : "Proces aktywacji nie przebiegł pomyślnie."}
             subTitle={success ? "Możesz się teraz zalogować za pomocą adresu email i hasła" : "Twój link aktywacyjny jest niepoprawny lub wygasł. Spróbuj ponownie."}
-            onClick={success ? () => {void navigate("/login")} : () => {void navigate("/register")}}
+            onClick={success ? () => {void navigate("/login")} : () => {void navigate("/rejestracja")}}
         />
 
     )
 
 
 }
+
+export default ActivateAccount;

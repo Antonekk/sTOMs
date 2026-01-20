@@ -49,14 +49,14 @@ const Register: React.FC = () => {
 
 
     return (
-        <Template>
-            <Flex justify="center" align="center" style={{ width: '100%', height: '100%' }} vertical gap="middle">
-                <div style={{ minHeight: 40 }}>
-                    {error && <Alert title={error} type="error" showIcon closable={{ closeIcon: true, onClose: () => { setError(null); } }} />}
-                </div>
-                <SignUpForm onSubmit={onSubmit} />
-            </Flex>
-        </Template>
+
+        <Flex align="center" style={{ width: '100%', height: '100%' }} vertical gap="middle">
+            <div style={{ minHeight: 40 }}>
+                {error && <Alert title={error} type="error" showIcon closable={{ closeIcon: true, onClose: () => { setError(null); } }} />}
+            </div>
+            <SignUpForm onSubmit={onSubmit} />
+        </Flex>
+
     )
 }
 

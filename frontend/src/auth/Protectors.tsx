@@ -19,6 +19,18 @@ export const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) 
     return children;
 };
 
+
+// Protect routes for non authenticated users
+export const NonAuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { loading, isAuthenticated } = useAuthentication();
+
+    if(loading){
+        return <AuthLoading></AuthLoading>
+    }
+
+    return !isAuthenticated ? children : <Navigate to="/panel" replace />;
+};
+
 // Protect routes for specific roles
 export const RoleRoute = ({ children, role }: { children: React.ReactNode, role: Role }) => {
     const { loading, isAuthenticated, checkRole } = useAuthentication();

@@ -1,5 +1,5 @@
 import React from "react";
-import {Card, Form, Input, Button, DatePicker} from 'antd';
+import {Card, Form, Input, Button, DatePicker, Space} from 'antd';
 import type { Dayjs } from 'dayjs';
 
 
@@ -23,11 +23,15 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
     const [form] = Form.useForm<SignUpFormValues>();
 
     const onFinish = (values: SignUpFormValues) => {
-        void onSubmit(values);
+        const submissionValues = {
+            ...values,
+            phone_number: `+48${values.phone_number}`,
+        };
+        void onSubmit(submissionValues);
     };
 
     return (
-    <Card title="Rejestracja" style={{ width: '100%', maxWidth: 600 }}>
+    <Card title="Rejestracja" style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
         <Form
             form={form}
             name="registration_form"
@@ -76,21 +80,26 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                 <Input />
             </Form.Item>
 
-            <Form.Item
-                label="Numer telefonu"
-                name="phone_number"
-                rules={[
-                    {
-                        required: true,
-                        message: 'Podaj swój numer telefonu',
-                    },
-                    {
-                        pattern: /^(?:\+48)?\d{9}$/,
-                        message: 'Podaj poprawny numer telefonu',
-                    },
-                ]}
-            >
-                <Input />
+            <Form.Item label="Numer telefonu" required>
+                <Space.Compact style={{ width: '100%' }}>
+                    <Input style={{ width: '60px' }} defaultValue="+48" disabled />
+                    <Form.Item
+                        name="phone_number"
+                        noStyle
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Podaj swój numer telefonu',
+                            },
+                            {
+                                pattern: /^\d{9}$/,
+                                message: 'Podaj poprawny numer telefonu (9 cyfr)',
+                            },
+                        ]}
+                    >
+                        <Input style={{ flex: 1 }} />
+                    </Form.Item>
+                </Space.Compact>
             </Form.Item>
 
             <Form.Item

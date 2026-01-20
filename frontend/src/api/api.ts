@@ -63,9 +63,9 @@ api.interceptors.response.use(
                 setAccessToken(data.access);
                 baseRequest.headers.Authorization = `Bearer ${data.access}`;
                 return await api(baseRequest);
-            } catch {
+            } catch  {
                 clearTokens();
-                window.location.href = "/login";
+                return Promise.reject(error);
             }
         }
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { clearTokens, setTokens } from "../api/token";
+import { clearTokens, getAccessToken, setTokens } from "../api/token";
 import { login as loginAPI, getMe } from "../api/auth";
 import type { User } from "../types/auth";
 import type {Role, LoginData} from "../types/auth";
@@ -23,10 +23,16 @@ export const AuthenticationProvider: React.FC< {children: React.ReactNode}> = ({
 
     const populateUser = async () => {
         try{
+            const token = getAccessToken();
+            if (!token) {
+                setLoading(false);
+                return;
+            }
             const res = await getMe();
             setUser(res.data);
         } catch{
             clearTokens();
+            setUser(null);
         } finally {
             setLoading(false);
         }

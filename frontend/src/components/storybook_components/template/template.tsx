@@ -1,30 +1,78 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {Layout, Menu } from 'antd';
-import type { ItemType } from 'antd/es/menu/interface';
+import { UserOutlined } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
 
 
 interface TemplateProps {
-    menu_items?: ItemType[] | undefined;
-    children?: React.ReactNode;
+  isAuthenticated: boolean;
+  userName?: string;
+  role?: "CLIENT" | "THERAPIST";
+  onLogoutClick?: () => void;
+  onNavigate: (path: string) => void;
+  children: ReactNode;
 };
 
 const Template: React.FC<TemplateProps> = ({
-  menu_items,
+  isAuthenticated,
+  userName,
+  role,
+  onLogoutClick,
+  onNavigate,
   children,
 }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', columnGap: "25px"}}>
+      <Header style={{ display: 'flex', alignItems: 'center', columnGap: "25px", width: "100%"}}>
         <img src="/sTOMs_logo.svg" alt="sTOMs Logo"/>
         <Menu
           theme="dark"
           mode="horizontal"
-          defaultSelectedKeys={['2']}
-          items={menu_items}
-          style={{ flex: 1, minWidth: 0 }}
-        />
+          style={{ flex: 1 }}
+        >
+          {isAuthenticated && 
+            <Menu.Item key="panel" onClick={() => {onNavigate("/")}} >
+              Panel  
+            </Menu.Item>
+          }
+          {isAuthenticated && role === "CLIENT" && 
+            <Menu.Item key="rezerwacje" onClick={() => {onNavigate("/rezerwacje")}} >
+              Rezerwacje
+            </Menu.Item>
+          }
+          {isAuthenticated && role === "CLIENT" && 
+            <Menu.Item key="wizyty" onClick={() => {onNavigate("/wizyty")}} >
+              Wizyty
+            </Menu.Item>
+          }
+          {isAuthenticated && role === "CLIENT" && 
+            <Menu.Item key="zadania" onClick={() => {onNavigate("/zadania_domowe")}} >
+              Zadania domowe
+            </Menu.Item>
+          }
+          {isAuthenticated && role === "THERAPIST" &&
+            <Menu.Item key="staly_grafik" onClick={() => {onNavigate("/staly_grafik")}} >
+              Grafik
+            </Menu.Item>
+          }
+          {isAuthenticated && (
+            <Menu.SubMenu
+              key="profile"
+              icon={<UserOutlined />}
+              title={userName ?? "Użytkownik"}
+              style={{ marginLeft: 'auto' }}
+            >
+              <Menu.Item key="profil" onClick={() => { onNavigate("/profil"); }}>
+                Profil
+              </Menu.Item>
+              <Menu.Item key="wyloguj" onClick={onLogoutClick}>
+                Wyloguj
+              </Menu.Item>
+            </Menu.SubMenu>
+          )}
+        </Menu>
+
       </Header>
       <Content style={{ padding: '24px 12px'}}>
         {children}
