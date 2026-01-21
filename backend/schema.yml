@@ -91,6 +91,90 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenVerify'
           description: ''
+  /api/localizations/:
+    get:
+      operationId: localizations_list
+      tags:
+      - localizations
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Localization'
+          description: ''
+  /api/localizations/{id}/:
+    get:
+      operationId: localizations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this localization.
+        required: true
+      tags:
+      - localizations
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Localization'
+          description: ''
+  /api/offices/:
+    get:
+      operationId: offices_list
+      tags:
+      - offices
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Office'
+          description: ''
+  /api/offices/{id}/:
+    get:
+      operationId: offices_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this office.
+        required: true
+      tags:
+      - offices
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Office'
+          description: ''
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -780,6 +864,51 @@ components:
       - password
       - phone_number
       - re_password
+    Localization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        city:
+          type: string
+          readOnly: true
+        postal_code:
+          type: string
+          readOnly: true
+        address:
+          type: string
+          readOnly: true
+        offices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Office'
+          readOnly: true
+      required:
+      - address
+      - city
+      - id
+      - name
+      - offices
+      - postal_code
+    Office:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        room_number:
+          type: string
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - room_number
     PasswordResetConfirmRetype:
       type: object
       properties:

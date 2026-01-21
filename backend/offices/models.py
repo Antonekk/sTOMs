@@ -13,6 +13,9 @@ class Localization(models.Model):
     class Meta:
         verbose_name = "localization"
         verbose_name_plural = "localizations"
+        indexes = [
+            models.Index(fields=["city"]),
+        ]
 
     def __str__(self):
         return self.name
@@ -29,6 +32,9 @@ class Office(models.Model):
         verbose_name = "office"
         verbose_name_plural = "offices"
         unique_together = ("localization", "room_number")
+        indexes = [
+            models.Index(fields=["localization"]),
+        ]
 
     def __str__(self):
         return f"{self.localization.name} {self.room_number or ''}"

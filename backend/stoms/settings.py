@@ -113,9 +113,12 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     "djoser",
+    "recurrence",
     "users",
     "scheduling",
     "offices",
+    "reservations",
+    "notifications",
 ]
 
 MIDDLEWARE = [

@@ -10,3 +10,4 @@ python-dotenv
 python-decouple
 drf-spectacular
 djoser
+django-recurrence
