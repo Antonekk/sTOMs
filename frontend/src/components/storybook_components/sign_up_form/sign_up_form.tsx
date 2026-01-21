@@ -1,6 +1,7 @@
 import React from "react";
 import {Card, Form, Input, Button, DatePicker, Space} from 'antd';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 
 
 export interface SignUpFormValues {
@@ -112,7 +113,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
                     },
                 ]}
             >
-                <DatePicker style={{ width: '100%' }} />
+                <DatePicker
+                    style={{ width: '100%' }}
+                    maxDate={dayjs().subtract(18, 'year')}
+                    minDate={dayjs().subtract(100, 'year')}
+                />
             </Form.Item>
 
             <Form.Item

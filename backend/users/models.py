@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .managers import AppUserManager
-from .validators import validate_only_letters
+from .validators import validate_only_letters, validate_patient_age
 
 phone_validator = RegexValidator(r"^(?:\+48)?\d{9}$", _("Invalid phone number"))
 
@@ -61,7 +61,7 @@ class Patient(models.Model):
     user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="patients")
     first_name = models.CharField(_("first name"), max_length=64)
     last_name = models.CharField(_("last name"), max_length=64)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(validators=[validate_patient_age])
 
     class Meta:
         verbose_name = _("patient")

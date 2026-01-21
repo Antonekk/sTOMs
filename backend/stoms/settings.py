@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "djoser",
     "users",
     "scheduling",
+    "offices",
 ]
 
 MIDDLEWARE = [
