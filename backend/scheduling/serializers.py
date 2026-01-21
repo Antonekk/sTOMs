@@ -64,4 +64,11 @@ class WeeklyScheduleSerializer(serializers.Serializer):
 class AvailabilityBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = AvailabilityBlock
-        fields = "__all__"
+        fields = (
+            "day_of_week",
+            "specific_date",
+            "start_time",
+            "end_time",
+            "availability_type",
+        )
+        read_only_fields = ["id", "therapist"]

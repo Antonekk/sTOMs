@@ -72,3 +72,17 @@ class Patient(models.Model):
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class Therapist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(
+        AppUser, on_delete=models.CASCADE, related_name="therapist"
+    )
+
+    class Meta:
+        verbose_name = _("therapist")
+        verbose_name_plural = _("therapists")
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
