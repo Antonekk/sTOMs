@@ -3,7 +3,7 @@ from django.db import transaction
 from djoser.serializers import UserCreatePasswordRetypeSerializer, UserSerializer
 from rest_framework import serializers
 
-from .models import Patient
+from .models import Patient, Therapist
 
 User = get_user_model()
 
@@ -11,7 +11,20 @@ User = get_user_model()
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ("first_name", "last_name", "date_of_birth")
+        fields = ("user", "first_name", "last_name", "date_of_birth")
+        read_only_fields = (
+            "id",
+            "user",
+        )
+
+
+class TherapistSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="user.get_full_name", read_only=True)
+
+    class Meta:
+        model = Therapist
+        fields = ("id", "full_name", "office")
+        read_only_fields = ("id", "full_name", "office")
 
 
 class AppUserSerializer(UserSerializer):
