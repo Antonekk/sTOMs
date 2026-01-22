@@ -318,6 +318,76 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/schedule/:
+    get:
+      operationId: schedule_list
+      tags:
+      - schedule
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeeklySchedule'
+          description: ''
+    post:
+      operationId: schedule_create
+      tags:
+      - schedule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeeklySchedule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WeeklySchedule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WeeklySchedule'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklySchedule'
+          description: ''
+  /api/schedule/override/:
+    post:
+      operationId: schedule_override_create
+      tags:
+      - schedule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityBlock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AvailabilityBlock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AvailabilityBlock'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityBlock'
+          description: ''
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -1047,6 +1117,39 @@ components:
       - password
       - phone_number
       - re_password
+    AvailabilityBlock:
+      type: object
+      properties:
+        day_of_week:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        specific_date:
+          type: string
+          format: date
+          nullable: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+        availability_type:
+          $ref: '#/components/schemas/AvailabilityTypeEnum'
+      required:
+      - end_time
+      - start_time
+    AvailabilityTypeEnum:
+      enum:
+      - WEEKLY
+      - INCLUSION
+      - EXCLUSION
+      type: string
+      description: |-
+        * `WEEKLY` - Weekly availability slot
+        * `INCLUSION` - Extra availability slot
+        * `EXCLUSION` - Excluded availability slot
     Localization:
       type: object
       properties:
@@ -1243,6 +1346,18 @@ components:
       - full_name
       - id
       - office
+    TimeRangeBlock:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - end_time
+      - start_time
     TokenObtainPair:
       type: object
       properties:
@@ -1293,6 +1408,21 @@ components:
           maxLength: 254
       required:
       - new_email
+    WeeklySchedule:
+      type: object
+      description: |-
+        weekly_schedule expected format:
+        - key = day of the week (0-6)
+        - value = list[TimeRangeBlock]
+      properties:
+        weekly_schedule:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/TimeRangeBlock'
+      required:
+      - weekly_schedule
   securitySchemes:
     jwtAuth:
       type: http

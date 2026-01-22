@@ -29,6 +29,8 @@ urlpatterns = [
     re_path("api/", include("djoser.urls.jwt")),
     path("api/", include("offices.urls")),
     path("api/", include("users.urls")),
+    path("api/", include("scheduling.urls")),
+    # Swagger
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
     path(
