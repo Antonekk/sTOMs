@@ -12,9 +12,9 @@ def validate_patient_age(value: date):
     age = (
         today.year - value.year - ((today.month, today.day) < (value.month, value.day))
     )
-    if age < 18:
+    if age < 0:
         raise ValidationError(
-            _("Pacjent musi mieć co najmniej 18 lat."),
+            _("Niepoprawna data urodzenia"),
             code="patient_too_young",
         )
     if age > 100:
@@ -22,6 +22,24 @@ def validate_patient_age(value: date):
             _("Pacjent nie może mieć więcej niż 100 lat."),
             code="patient_too_old",
         )
+
+
+def validate_patient_age_primary(value: date):
+    today = date.today()
+    age = (
+        today.year - value.year - ((today.month, today.day) < (value.month, value.day))
+    )
+    if age < 18:
+        raise ValidationError(
+            _("Główny pacjent musi być pełnoletni"),
+            code="patient_too_young",
+        )
+    if age > 100:
+        raise ValidationError(
+            _("Pacjent nie może mieć więcej niż 100 lat."),
+            code="patient_too_old",
+        )
+    return value
 
 
 def validate_only_letters(value: str):

@@ -4,6 +4,7 @@ from djoser.serializers import UserCreatePasswordRetypeSerializer, UserSerialize
 from rest_framework import serializers
 
 from .models import Patient, Therapist
+from .validators import validate_patient_age_primary
 
 User = get_user_model()
 
@@ -11,11 +12,37 @@ User = get_user_model()
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ("user", "first_name", "last_name", "date_of_birth")
+        fields = (
+            "id",
+            "user",
+            "first_name",
+            "last_name",
+            "date_of_birth",
+            "is_primary",
+        )
         read_only_fields = (
             "id",
             "user",
+            "is_primary",
         )
+
+
+class PatientCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "date_of_birth",
+        )
+        read_only_fields = ("id",)
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        validated_data["user"] = request.user
+        validated_data["is_primary"] = False
+        return super().create(validated_data)
 
 
 class TherapistSerializer(serializers.ModelSerializer):
@@ -41,6 +68,9 @@ class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
         model = User
         fields = UserCreatePasswordRetypeSerializer.Meta.fields + ("date_of_birth",)
 
+    def validate_date_of_birth(self, value):
+        return validate_patient_age_primary(value)
+
     # Override validation to store date_of_birth for creating Patient
     def validate(self, attrs):
         self.context["date_of_birth"] = attrs.pop("date_of_birth")
@@ -58,6 +88,7 @@ class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
             first_name=first_name,
             last_name=last_name,
             date_of_birth=self.context["date_of_birth"],
+            is_primary=True,
         )
 
         return user
