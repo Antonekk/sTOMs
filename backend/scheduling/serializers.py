@@ -65,6 +65,8 @@ class AvailabilityBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = AvailabilityBlock
         fields = (
+            "id",
+            "therapist",
             "day_of_week",
             "specific_date",
             "start_time",

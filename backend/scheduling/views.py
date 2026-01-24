@@ -1,9 +1,11 @@
 from django.db import transaction
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from users.permissions import IsTherapist
 
+from .engine import replace_weekly_schedule, validate_override
 from .models import AvailabilityBlock
 from .serializers import AvailabilityBlockSerializer, WeeklyScheduleSerializer
 
@@ -29,39 +31,52 @@ class TherapistScheduleView(GenericViewSet):
 
         return Response(response_data)
 
-    def create(self, request):
-        serializer = WeeklyScheduleSerializer(data=request.data)
+    @action(detail=False, methods=["post, put"])
+    def replace_weekly_schedule(self, request):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         therapist = request.user.therapist
+
+        replace_weekly_schedule(therapist, serializer.validated_data["weekly_schedule"])
 
         with transaction.atomic():
             AvailabilityBlock.objects.filter(
                 therapist=therapist, type=AvailabilityBlock.BlockType.WEEKLY
             ).delete()
 
-            for day_of_week, blocks in serializer.validated_data[
-                "weekly_schedule"
-            ].items():
-                for block in blocks:
-                    AvailabilityBlock.objects.create(
-                        therapist=therapist,
-                        type=AvailabilityBlock.BlockType.WEEKLY,
-                        day_of_week=day_of_week,
-                        start_time=block["start_time"],
-                        end_time=block["end_time"],
-                    )
+            blocks_to_create = [
+                AvailabilityBlock(
+                    therapist=therapist,
+                    type=AvailabilityBlock.BlockType.WEEKLY,
+                    day_of_week=day_of_week,
+                    start_time=block["start_time"],
+                    end_time=block["end_time"],
+                )
+                for day_of_week, blocks in serializer.validated_data[
+                    "weekly_schedule"
+                ].items()
+                for block in blocks
+            ]
+            AvailabilityBlock.objects.bulk_create(blocks_to_create)
         return Response(status=status.HTTP_201_CREATED)
 
 
-class TherapistScheduleOverride(GenericViewSet):
+class TherapistScheduleOverride(ModelViewSet):
     permission_classes = [IsTherapist]
     serializer_class = AvailabilityBlockSerializer
+    http_method_names = ["get", "post", "delete"]
 
-    def create(self, request):
-        serializer = AvailabilityBlockSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_queryset(self):
+        return AvailabilityBlock.objects.filter(
+            therapist=self.request.user,
+        ).exclude(availability_type=AvailabilityBlock.AvailabilityBlockType.WEEKLY)
 
-        serializer.save(therapist=request.user.therapist)
-
-        return Response(status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        block = AvailabilityBlock(
+            therapist=self.request.user,
+            **serializer.validated_data,
+        )
+        validate_override(block)
+        block.full_clean()
+        block.save()

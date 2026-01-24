@@ -200,13 +200,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientCreate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientCreate'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientCreate'
         required: true
       security:
       - jwtAuth: []
@@ -216,7 +216,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Patient'
+                $ref: '#/components/schemas/PatientCreate'
           description: ''
   /api/patients/{id}/:
     get:
@@ -561,7 +561,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this therapist.
+        description: A UUID string identifying this Terapeuta.
         required: true
       tags:
       - therapists
@@ -628,7 +628,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this użytkownik.
+        description: A UUID string identifying this Użytkownik.
         required: true
       tags:
       - users
@@ -650,7 +650,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this użytkownik.
+        description: A UUID string identifying this Użytkownik.
         required: true
       tags:
       - users
@@ -684,7 +684,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this użytkownik.
+        description: A UUID string identifying this Użytkownik.
         required: true
       tags:
       - users
@@ -717,7 +717,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this użytkownik.
+        description: A UUID string identifying this Użytkownik.
         required: true
       tags:
       - users
@@ -1042,6 +1042,7 @@ components:
       properties:
         phone_number:
           type: string
+          title: Numer telefonu
           pattern: ^(?:\+48)?\d{9}$
           maxLength: 15
         first_name:
@@ -1060,14 +1061,16 @@ components:
           type: string
           format: email
           readOnly: true
-          title: Adres e-mail
+          title: Adres email
         patients:
           type: array
           items:
             $ref: '#/components/schemas/Patient'
           readOnly: true
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Rola
       required:
       - email
       - first_name
@@ -1080,6 +1083,7 @@ components:
       properties:
         phone_number:
           type: string
+          title: Numer telefonu
           pattern: ^(?:\+48)?\d{9}$
           maxLength: 15
         first_name:
@@ -1093,7 +1097,7 @@ components:
         email:
           type: string
           format: email
-          title: Adres e-mail
+          title: Adres email
           maxLength: 254
         id:
           type: string
@@ -1216,6 +1220,7 @@ components:
       properties:
         phone_number:
           type: string
+          title: Numer telefonu
           pattern: ^(?:\+48)?\d{9}$
           maxLength: 15
         first_name:
@@ -1234,21 +1239,28 @@ components:
           type: string
           format: email
           readOnly: true
-          title: Adres e-mail
+          title: Adres email
         patients:
           type: array
           items:
             $ref: '#/components/schemas/Patient'
           readOnly: true
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: Rola
     PatchedPatient:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         user:
           type: string
           format: uuid
           readOnly: true
+          title: Użytkownik
         first_name:
           type: string
           title: Imię
@@ -1260,10 +1272,52 @@ components:
         date_of_birth:
           type: string
           format: date
+          title: Data urodzenia
+        is_primary:
+          type: boolean
+          readOnly: true
+          title: Pacjent główny
+          description: Określa czy pacjent przypisany do klienta określa samego siebie
     Patient:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
         user:
+          type: string
+          format: uuid
+          readOnly: true
+          title: Użytkownik
+        first_name:
+          type: string
+          title: Imię
+          maxLength: 64
+        last_name:
+          type: string
+          title: Nazwisko
+          maxLength: 64
+        date_of_birth:
+          type: string
+          format: date
+          title: Data urodzenia
+        is_primary:
+          type: boolean
+          readOnly: true
+          title: Pacjent główny
+          description: Określa czy pacjent przypisany do klienta określa samego siebie
+      required:
+      - date_of_birth
+      - first_name
+      - id
+      - is_primary
+      - last_name
+      - user
+    PatientCreate:
+      type: object
+      properties:
+        id:
           type: string
           format: uuid
           readOnly: true
@@ -1278,11 +1332,12 @@ components:
         date_of_birth:
           type: string
           format: date
+          title: Data urodzenia
       required:
       - date_of_birth
       - first_name
+      - id
       - last_name
-      - user
     RoleEnum:
       enum:
       - ADMIN
@@ -1291,8 +1346,8 @@ components:
       type: string
       description: |-
         * `ADMIN` - Admin
-        * `CLIENT` - Client
-        * `THERAPIST` - Therapist
+        * `CLIENT` - Klient
+        * `THERAPIST` - Terapeuta
     SendEmailReset:
       type: object
       properties:
@@ -1322,7 +1377,7 @@ components:
         new_email:
           type: string
           format: email
-          title: Adres e-mail
+          title: Adres email
           maxLength: 254
       required:
       - current_password
@@ -1404,7 +1459,7 @@ components:
         new_email:
           type: string
           format: email
-          title: Adres e-mail
+          title: Adres email
           maxLength: 254
       required:
       - new_email

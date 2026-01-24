@@ -2,13 +2,14 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class AvailabilityBlock(models.Model):
     class AvailabilityBlockType(models.TextChoices):
-        WEEKLY = "WEEKLY", "Weekly availability slot"
-        INCLUSION = "INCLUSION", "Extra availability slot"
-        EXCLUSION = "EXCLUSION", "Excluded availability slot"
+        WEEKLY = "WEEKLY", _("Blok tygodniowy")
+        INCLUSION = "INCLUSION", _("Blok dodatkowych godzin")
+        EXCLUSION = "EXCLUSION", _("Blok wyjątkowego braku godzin")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     therapist = models.ForeignKey(
@@ -33,24 +34,39 @@ class AvailabilityBlock(models.Model):
         super().clean()
 
         # Raise errors in case of invalid usage
-        if self.type == self.BlockType.WEEKLY and self.day_of_week is None:
-            raise ValidationError("WEEKLY block requires day_of_week")
-
-        if self.type != self.BlockType.WEEKLY and self.specific_date is None:
-            raise ValidationError("Override block requires specific_date")
+        if self.type == self.BlockType.WEEKLY:
+            if self.day_of_week is None:
+                raise ValidationError(_("Tygodniowy blok wymaga podania day_of_week"))
+            if not (0 <= self.day_of_week <= 6):
+                raise ValidationError(_("Nieprawidłowe użycie pola day_of_week"))
+            if self.specific_date is not None:
+                raise ValidationError(
+                    _("Blok tygodniowy nie może zawierać specific_date")
+                )
+        else:
+            if self.specific_date is None:
+                raise ValidationError(
+                    _("Blok nadpisania wymaga podania pola specific_date")
+                )
+            if self.day_of_week is not None:
+                raise ValidationError(
+                    _("Blok nadpisania nie może zawierać pola day_of_week")
+                )
 
         if self.start_time >= self.end_time:
-            raise ValidationError("Invalid time range")
+            raise ValidationError(_("Nieprawidłowy przedział czasu"))
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = "availability block"
-        verbose_name_plural = "availability blocks"
+        verbose_name = _("Blok dostępności")
+        verbose_name_plural = _("Bloki dostępności")
+        ordering = ["day_of_week", "specific_date", "start_time"]
 
         indexes = [
             models.Index(fields=["therapist", "day_of_week"]),
             models.Index(fields=["therapist", "specific_date"]),
+            models.Index(fields=["therapist", "availability_type"]),
         ]
