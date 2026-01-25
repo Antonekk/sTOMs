@@ -11,3 +11,4 @@ python-decouple
 drf-spectacular
 djoser
 django-recurrence
+django-constance[redis]

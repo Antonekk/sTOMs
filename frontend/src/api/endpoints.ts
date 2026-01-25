@@ -7,5 +7,6 @@ export const AUTH_ENDPOINTS = {
     ACTIVATE: "/api/users/activation/",
     ME: "api/users/me/",
     WEEKLY_SCHEDULE: "api/schedule/",
-    SCHEDULE_OVERRIDE: "api/schedule/override/"
+    SCHEDULE_OVERRIDE: "api/schedule/override/",
+    CONFIG: "/api/config/",
 }

@@ -1,6 +1,6 @@
 import api from "./api"
 import { AUTH_ENDPOINTS } from "./endpoints"
-import type { LoginData, LoginResponse, RegisterData, RefreshTokenData, RefreshTokenResponse ,ActivateData, User, WeeklyScheduleResponse, WeeklyScheduleRequest, ScheduleOverrideResponse, ScheduleOverrideRequest } from "../types/auth"
+import type { LoginData, LoginResponse, RegisterData, RefreshTokenData, RefreshTokenResponse ,ActivateData, User, WeeklyScheduleResponse, WeeklyScheduleRequest, ScheduleOverrideResponse, ScheduleOverrideRequest, AppConfig } from "../types/auth"
 
 
 export const register = (data: RegisterData) => api.post(AUTH_ENDPOINTS.REGISTER, data)
@@ -22,4 +22,6 @@ export const getScheduleOverrides = () => api.get<ScheduleOverrideResponse[]>(AU
 export const createScheduleOverride = (data: ScheduleOverrideRequest) => api.post<ScheduleOverrideResponse>(AUTH_ENDPOINTS.SCHEDULE_OVERRIDE, data);
 
 export const deleteScheduleOverride = (id: string) => api.delete(`${AUTH_ENDPOINTS.SCHEDULE_OVERRIDE}${id}/`);
+
+export const getConfig = () => api.get<AppConfig>(AUTH_ENDPOINTS.CONFIG);
 

@@ -362,6 +362,22 @@ paths:
                 $ref: '#/components/schemas/WeeklySchedule'
           description: ''
   /api/schedule/override/:
+    get:
+      operationId: schedule_override_list
+      tags:
+      - schedule
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityBlock'
+          description: ''
     post:
       operationId: schedule_override_create
       tags:
@@ -388,6 +404,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/AvailabilityBlock'
           description: ''
+  /api/schedule/override/{id}/:
+    get:
+      operationId: schedule_override_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - schedule
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityBlock'
+          description: ''
+    delete:
+      operationId: schedule_override_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - schedule
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -1124,11 +1177,14 @@ components:
     AvailabilityBlock:
       type: object
       properties:
-        day_of_week:
-          type: integer
-          maximum: 32767
-          minimum: 0
-          nullable: true
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        therapist:
+          type: string
+          format: uuid
+          readOnly: true
         specific_date:
           type: string
           format: date
@@ -1143,7 +1199,9 @@ components:
           $ref: '#/components/schemas/AvailabilityTypeEnum'
       required:
       - end_time
+      - id
       - start_time
+      - therapist
     AvailabilityTypeEnum:
       enum:
       - WEEKLY
@@ -1151,9 +1209,9 @@ components:
       - EXCLUSION
       type: string
       description: |-
-        * `WEEKLY` - Weekly availability slot
-        * `INCLUSION` - Extra availability slot
-        * `EXCLUSION` - Excluded availability slot
+        * `WEEKLY` - Blok tygodniowy
+        * `INCLUSION` - Blok dodatkowych godzin
+        * `EXCLUSION` - Blok wyjątkowego braku godzin
     Localization:
       type: object
       properties:

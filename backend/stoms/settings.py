@@ -78,6 +78,13 @@ DJOSER = {
 }
 
 
+CONSTANCE_BACKEND = "constance.backends.memory.MemoryBackend"
+CONSTANCE_CONFIG = {
+    "APPOINTMENT_GENERATION_DAYS": (7, "Ile dni w przód generować wizyty"),
+    "APPOINTMENT_BOOKING_DAYS": (7, "Ile dni w przód można rezerwować"),
+}
+
+
 # Spectacular settings
 SPECTACULAR_SETTINGS = {
     "TITLE": "sTOMs",
@@ -114,6 +121,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "djoser",
     "recurrence",
+    "constance",
     "users",
     "scheduling",
     "offices",

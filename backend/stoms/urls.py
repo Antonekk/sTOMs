@@ -23,7 +23,10 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from .views import ConfigView
+
 urlpatterns = [
+    path("api/config/", ConfigView.as_view(), name="config"),
     path("admin/", admin.site.urls),
     re_path("api/", include("djoser.urls")),
     re_path("api/", include("djoser.urls.jwt")),

@@ -75,3 +75,8 @@ export interface ScheduleOverrideRequest {
     end_time: string;
     availability_type: AvailabilityType;
 }
+
+export interface AppConfig {
+    appointment_generation_days: number;
+    appointment_booking_days: number;
+}

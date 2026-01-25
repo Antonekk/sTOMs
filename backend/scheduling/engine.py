@@ -62,7 +62,8 @@ def exclude_from_availability_blocks(availability_blocks, exclusion_blocks):
 @transaction.atomic
 def replace_weekly_schedule(therapist, weekly_schedule):
     AvailabilityBlock.objects.filter(
-        therapist=therapist, type=AvailabilityBlock.BlockType.WEEKLY
+        therapist=therapist,
+        availability_type=AvailabilityBlock.AvailabilityBlockType.WEEKLY,
     ).delete()
 
     blocks = []
@@ -70,7 +71,7 @@ def replace_weekly_schedule(therapist, weekly_schedule):
         blocks.append(
             AvailabilityBlock(
                 therapist=therapist,
-                availability_type=AvailabilityBlock.BlockType.WEEKLY,
+                availability_type=AvailabilityBlock.AvailabilityBlockType.WEEKLY,
                 day_of_week=block["day_of_week"],
                 start_time=block["start_time"],
                 end_time=block["end_time"],
@@ -78,18 +79,6 @@ def replace_weekly_schedule(therapist, weekly_schedule):
         )
     AvailabilityBlock.objects.bulk_create(blocks)
     return blocks
-
-
-def create_override_availability_block(therapist, override_block):
-    block = AvailabilityBlock(
-        therapist=therapist,
-        availability_type=override_block["availability_type"],
-        specific_date=override_block["specific_date"],
-        start_time=override_block["start_time"],
-        end_time=override_block["end_time"],
-    )
-    block.save()
-    return block
 
 
 # Validates exclusion rules
@@ -121,10 +110,9 @@ def validate_inclusion(therapist, date, start, end):
         day_of_week=date.weekday(),
     )
 
-    if not weekly_blocks.exists():
-        raise ValidationError(_("Nie można dodać rozszerzenia bez bazowego grafiku"))
-
-    if not any(start < w.start_time or end > w.end_time for w in weekly_blocks):
+    if weekly_blocks.exists() and not any(
+        start < w.start_time or end > w.end_time for w in weekly_blocks
+    ):
         raise ValidationError(_("Rozszerzenie musi rozszerzać bazowy grafik"))
 
     inclusion_blocks = AvailabilityBlock.objects.filter(

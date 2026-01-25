@@ -34,7 +34,7 @@ class AvailabilityBlock(models.Model):
         super().clean()
 
         # Raise errors in case of invalid usage
-        if self.type == self.BlockType.WEEKLY:
+        if self.availability_type == self.AvailabilityBlockType.WEEKLY:
             if self.day_of_week is None:
                 raise ValidationError(_("Tygodniowy blok wymaga podania day_of_week"))
             if not (0 <= self.day_of_week <= 6):

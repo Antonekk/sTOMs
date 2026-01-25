@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from recurrence.fields import RecurrenceField
 from users.models import Patient, Therapist
 
@@ -13,8 +14,8 @@ class AppointmentType(models.Model):
     is_periodic = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = "appointment type"
-        verbose_name_plural = "appointment types"
+        verbose_name = _("Rodzaj wizyty")
+        verbose_name_plural = _("Rodzaje wizyt")
 
     def __str__(self):
         return self.name
@@ -22,9 +23,9 @@ class AppointmentType(models.Model):
 
 class AppointmentSeries(models.Model):
     class Status(models.TextChoices):
-        ACTIVE = "ACTIVE"
-        ENDED = "ENDED"
-        CANCELED = "CANCELED"
+        ACTIVE = "ACTIVE", _("Aktywna")
+        ENDED = "ENDED", _("Zakończona")
+        CANCELED = "CANCELED", ("Anulowana")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -56,9 +57,9 @@ class AppointmentSeries(models.Model):
 
 class Appointment(models.Model):
     class Status(models.TextChoices):
-        SCHEDULED = "SCHEDULED"
-        COMPLETED = "COMPLETED"
-        CANCELED = "CANCELED"
+        SCHEDULED = "SCHEDULED", _("Zaplanowana")
+        COMPLETED = "COMPLETED", _("Zakończona")
+        CANCELED = "CANCELED", _("Anulowana")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
