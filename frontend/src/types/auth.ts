@@ -44,3 +44,34 @@ export interface User{
     phone_number: string;
     role: Role;
 }
+
+export interface TimeBlock {
+    start_time: string;
+    end_time: string;
+}
+
+export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6";
+
+export type WeeklyScheduleResponse = Partial<Record<DayOfWeek, TimeBlock[]>>;
+
+export interface WeeklyScheduleRequest {
+    weekly_schedule: Partial<Record<DayOfWeek, TimeBlock[]>>;
+}
+
+export type AvailabilityType = "INCLUSION" | "EXCLUSION";
+
+export interface ScheduleOverrideResponse {
+    id: string;
+    therapist: string;
+    specific_date: string;
+    start_time: string;
+    end_time: string;
+    availability_type: AvailabilityType;
+}
+
+export interface ScheduleOverrideRequest {
+    specific_date: string;
+    start_time: string;
+    end_time: string;
+    availability_type: AvailabilityType;
+}

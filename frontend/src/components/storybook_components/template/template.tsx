@@ -56,6 +56,11 @@ const Template: React.FC<TemplateProps> = ({
               Grafik
             </Menu.Item>
           }
+          {isAuthenticated && role === "THERAPIST" &&
+            <Menu.Item key="wyjatki" onClick={() => {onNavigate("/wyjatki")}} >
+              Wyjątki
+            </Menu.Item>
+          }
           {isAuthenticated && (
             <Menu.SubMenu
               key="profile"

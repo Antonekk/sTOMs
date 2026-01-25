@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuthentication } from "./AuthProvider";
 import type { Role } from "../types/auth";
-import AuthLoading from "../components/storybook_components/auth_loading/auth_loading";
+import Loading from "../components/storybook_components/loading/loading";
 
 
 // Protect routes for authenticated users
@@ -9,7 +9,7 @@ export const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) 
     const { loading, isAuthenticated } = useAuthentication();
 
     if(loading){
-        return <AuthLoading></AuthLoading>
+        return <Loading></Loading>
     }
 
     if (!isAuthenticated) {
@@ -25,7 +25,7 @@ export const NonAuthenticatedRoute = ({ children }: { children: React.ReactNode 
     const { loading, isAuthenticated } = useAuthentication();
 
     if(loading){
-        return <AuthLoading></AuthLoading>
+        return <Loading></Loading>
     }
 
     return !isAuthenticated ? children : <Navigate to="/panel" replace />;
@@ -36,7 +36,7 @@ export const RoleRoute = ({ children, role }: { children: React.ReactNode, role:
     const { loading, isAuthenticated, checkRole } = useAuthentication();
 
     if(loading){
-        return <AuthLoading></AuthLoading>
+        return <Loading></Loading>
     }
 
     if (!checkRole(role) && !isAuthenticated) {

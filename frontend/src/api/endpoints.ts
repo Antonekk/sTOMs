@@ -6,4 +6,6 @@ export const AUTH_ENDPOINTS = {
     REFRESH: "/api/jwt/refresh/",
     ACTIVATE: "/api/users/activation/",
     ME: "api/users/me/",
+    WEEKLY_SCHEDULE: "api/schedule/",
+    SCHEDULE_OVERRIDE: "api/schedule/override/"
 }

@@ -1,7 +1,7 @@
 import {useParams, useNavigate} from "react-router-dom"
 import { useEffect, useState} from "react"
 import {activate} from "../api/auth"
-import Loading from "../components/storybook_components/auth_loading/auth_loading"
+import Loading from "../components/storybook_components/loading/loading"
 import AccountActivation from "../components/storybook_components/account_activation/account_activation"
 
 
