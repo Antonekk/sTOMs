@@ -3,6 +3,7 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from reservations.filters import filter_appointments_for_day
 
 from .filters import get_override_availability_blocks, get_weekly_availability_blocks
 from .models import AvailabilityBlock
@@ -171,20 +172,31 @@ def generate_daily_availability_blocks(therapist, date):
     exclusion_blocks = [
         {
             "start_time": block.start_time,
-            "end_time": block.end,
+            "end_time": block.end_time,
         }
         for block in override_blocks
         if block.availability_type == AvailabilityBlock.AvailabilityBlockType.EXCLUSION
     ]
 
+    appointment_blocks = [
+        {
+            "start_time": appointment.appointment_series.start_time,
+            "end_time": appointment.appointment_series.end_time,
+        }
+        for appointment in filter_appointments_for_day(therapist, date)
+    ]
+
     # This is actually faster than merge with assumption that lists contain < around 10000 elements which in this case will be sufficient
+    exclusion_blocks = sorted(
+        exclusion_blocks + appointment_blocks, key=lambda x: x["start_time"]
+    )
+
     availability_blocks = sorted(
         weekly_blocks + inclusion_blocks, key=lambda x: x["start_time"]
     )
+
     availability_blocks = exclude_from_availability_blocks(
         availability_blocks, exclusion_blocks
     )
-
-    # TODO: Add appointment exclusion
 
     return availability_blocks

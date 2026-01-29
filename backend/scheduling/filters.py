@@ -10,6 +10,16 @@ def get_weekly_availability_blocks(therapist, day_of_week):
     ).order_by("start_time")
 
 
+def filter_weekly_availability_blocks(therapist, day_of_week, start_time, end_time):
+    return AvailabilityBlock.objects.filter(
+        therapist=therapist,
+        day_of_week=day_of_week,
+        start_time__lt=end_time,
+        end_time__gt=start_time,
+        availability_type=AvailabilityBlock.AvailabilityBlockType.WEEKLY,
+    )
+
+
 # Get all availability override blocks for specified date
 def get_override_availability_blocks(therapist, specific_date):
     return AvailabilityBlock.objects.filter(

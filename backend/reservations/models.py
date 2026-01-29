@@ -2,7 +2,6 @@ import uuid
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from recurrence.fields import RecurrenceField
 from users.models import Patient, Therapist
 
 
@@ -42,7 +41,8 @@ class AppointmentSeries(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
 
-    recurrence = RecurrenceField()
+    start_date = models.DateField()
+    is_weekly = models.BooleanField(default=False)
 
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.ACTIVE

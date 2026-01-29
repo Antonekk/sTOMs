@@ -8,9 +8,9 @@ interface ConfigContextType {
     loading: boolean;
 }
 
-export const ConfigContext = createContext<ConfigContextType | null>(null);
+export const AppConfigContext = createContext<ConfigContextType | null>(null);
 
-export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [config, setConfig] = useState<AppConfig | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -30,14 +30,14 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, []);
 
     return (
-        <ConfigContext.Provider value={{ config, loading }}>
+        <AppConfigContext.Provider value={{ config, loading }}>
             {children}
-        </ConfigContext.Provider>
+        </AppConfigContext.Provider>
     );
 };
 
-export const useConfig = () => {
-    const context = useContext(ConfigContext);
+export const useAppConfig = () => {
+    const context = useContext(AppConfigContext);
     if (!context) {
         throw new Error("useConfig must be used within a ConfigProvider");
     }

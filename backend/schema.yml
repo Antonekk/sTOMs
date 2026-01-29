@@ -4,6 +4,352 @@ info:
   version: 1.0.0
   description: Speech therapy office management system
 paths:
+  /api/appointment-series/:
+    get:
+      operationId: appointment_series_list
+      tags:
+      - appointment-series
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentSeries'
+          description: ''
+    post:
+      operationId: appointment_series_create
+      tags:
+      - appointment-series
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeries'
+          description: ''
+  /api/appointment-series/{id}/:
+    get:
+      operationId: appointment_series_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this appointment series.
+        required: true
+      tags:
+      - appointment-series
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeries'
+          description: ''
+    put:
+      operationId: appointment_series_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this appointment series.
+        required: true
+      tags:
+      - appointment-series
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeries'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeries'
+          description: ''
+    patch:
+      operationId: appointment_series_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this appointment series.
+        required: true
+      tags:
+      - appointment-series
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentSeries'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentSeries'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentSeries'
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeries'
+          description: ''
+    delete:
+      operationId: appointment_series_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this appointment series.
+        required: true
+      tags:
+      - appointment-series
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/appointment-types/:
+    get:
+      operationId: appointment_types_list
+      tags:
+      - appointment-types
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentType'
+          description: ''
+  /api/appointment-types/{id}/:
+    get:
+      operationId: appointment_types_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Rodzaj wizyty.
+        required: true
+      tags:
+      - appointment-types
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentType'
+          description: ''
+  /api/appointments/:
+    get:
+      operationId: appointments_list
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentList'
+          description: ''
+    post:
+      operationId: appointments_create
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/appointments/{id}/:
+    get:
+      operationId: appointments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    put:
+      operationId: appointments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    patch:
+      operationId: appointments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    delete:
+      operationId: appointments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - appointments
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/config/:
+    get:
+      operationId: config_retrieve
+      tags:
+      - config
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
   /api/jwt/create/:
     post:
       operationId: jwt_create_create
@@ -1174,6 +1520,162 @@ components:
       - password
       - phone_number
       - re_password
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_series:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentSeries'
+          readOnly: true
+        appointment_series_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/Status9c9Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        notes:
+          type: string
+      required:
+      - appointment_date
+      - appointment_series
+      - appointment_series_id
+      - final_price
+      - id
+    AppointmentList:
+      type: object
+      description: Lighter serializer for list views without nested appointment_series
+        details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_series_id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/Status9c9Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        notes:
+          type: string
+      required:
+      - appointment_date
+      - appointment_series_id
+      - final_price
+      - id
+    AppointmentSeries:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        therapist:
+          allOf:
+          - $ref: '#/components/schemas/Therapist'
+          readOnly: true
+        patient:
+          allOf:
+          - $ref: '#/components/schemas/Patient'
+          readOnly: true
+        appointment_type:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentType'
+          readOnly: true
+        therapist_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        patient_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        appointment_type_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+        start_date:
+          type: string
+          format: date
+        is_weekly:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/AppointmentSeriesStatusEnum'
+        creation_timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - appointment_type
+      - appointment_type_id
+      - creation_timestamp
+      - end_time
+      - id
+      - patient
+      - patient_id
+      - start_date
+      - start_time
+      - therapist
+      - therapist_id
+    AppointmentSeriesStatusEnum:
+      enum:
+      - ACTIVE
+      - ENDED
+      - CANCELED
+      type: string
+      description: |-
+        * `ACTIVE` - Aktywna
+        * `ENDED` - Zakończona
+        * `CANCELED` - Anulowana
+    AppointmentType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 128
+        duration_time_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        is_periodic:
+          type: boolean
+      required:
+      - duration_time_minutes
+      - id
+      - name
+      - price
     AvailabilityBlock:
       type: object
       properties:
@@ -1307,6 +1809,80 @@ components:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           title: Rola
+    PatchedAppointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_series:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentSeries'
+          readOnly: true
+        appointment_series_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/Status9c9Enum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        notes:
+          type: string
+    PatchedAppointmentSeries:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        therapist:
+          allOf:
+          - $ref: '#/components/schemas/Therapist'
+          readOnly: true
+        patient:
+          allOf:
+          - $ref: '#/components/schemas/Patient'
+          readOnly: true
+        appointment_type:
+          allOf:
+          - $ref: '#/components/schemas/AppointmentType'
+          readOnly: true
+        therapist_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        patient_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        appointment_type_id:
+          type: string
+          format: uuid
+          writeOnly: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+        start_date:
+          type: string
+          format: date
+        is_weekly:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/AppointmentSeriesStatusEnum'
+        creation_timestamp:
+          type: string
+          format: date-time
+          readOnly: true
     PatchedPatient:
       type: object
       properties:
@@ -1440,6 +2016,16 @@ components:
       required:
       - current_password
       - new_email
+    Status9c9Enum:
+      enum:
+      - SCHEDULED
+      - COMPLETED
+      - CANCELED
+      type: string
+      description: |-
+        * `SCHEDULED` - Zaplanowana
+        * `COMPLETED` - Zakończona
+        * `CANCELED` - Anulowana
     Therapist:
       type: object
       properties:
