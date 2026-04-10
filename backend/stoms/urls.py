@@ -32,6 +32,8 @@ urlpatterns = [
     re_path("api/", include("djoser.urls.jwt")),
     path("api/", include("offices.urls")),
     path("api/", include("users.urls")),
+    path("api/", include("patients.urls")),
+    path("api/", include("therapist_availability.urls")),
     path("api/", include("scheduling.urls")),
     path("api/", include("reservations.urls")),
     # Swagger

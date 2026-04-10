@@ -123,6 +123,8 @@ INSTALLED_APPS = [
     "recurrence",
     "constance",
     "users",
+    "patients",
+    "therapist_availability",
     "scheduling",
     "offices",
     "reservations",

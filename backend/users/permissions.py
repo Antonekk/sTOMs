@@ -41,9 +41,17 @@ class TherapistPermissions(BasePermission):
 
 class IsTherapist(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "THERAPIST"
+        return (
+            request.user.is_authenticated
+            and request.user.role == AppUser.Role.THERAPIST
+        )
 
 
 class IsClient(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "CLIENT"
+        return request.user.is_authenticated and request.user.role == AppUser.Role.CLIENT
+
+
+class IsAdminUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_staff

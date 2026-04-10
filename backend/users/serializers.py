@@ -3,55 +3,12 @@ from django.db import transaction
 from djoser.serializers import UserCreatePasswordRetypeSerializer, UserSerializer
 from rest_framework import serializers
 
-from .models import Patient, Therapist
+from patients.models import Patient
+from patients.serializers import PatientSerializer
+
 from .validators import validate_patient_age_primary
 
 User = get_user_model()
-
-
-class PatientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Patient
-        fields = (
-            "id",
-            "user",
-            "first_name",
-            "last_name",
-            "date_of_birth",
-            "is_primary",
-        )
-        read_only_fields = (
-            "id",
-            "user",
-            "is_primary",
-        )
-
-
-class PatientCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Patient
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "date_of_birth",
-        )
-        read_only_fields = ("id",)
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        validated_data["user"] = request.user
-        validated_data["is_primary"] = False
-        return super().create(validated_data)
-
-
-class TherapistSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source="user.get_full_name", read_only=True)
-
-    class Meta:
-        model = Therapist
-        fields = ("id", "full_name", "office")
-        read_only_fields = ("id", "full_name", "office")
 
 
 class AppUserSerializer(UserSerializer):

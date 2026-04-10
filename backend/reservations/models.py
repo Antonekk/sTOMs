@@ -2,7 +2,8 @@ import uuid
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from users.models import Patient, Therapist
+from patients.models import Patient
+from therapist_availability.models import Therapist
 
 
 class AppointmentType(models.Model):

@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
+from patients.models import Patient
 
-from .models import AppUser, Patient
+from .models import AppUser
 
 
 class PatientInline(admin.TabularInline):
@@ -103,23 +104,3 @@ class AppUserAdmin(BaseUserAdmin):
 
     filter_horizontal = ("groups", "user_permissions")
 
-
-@admin.register(Patient)
-class PatientAdmin(admin.ModelAdmin):
-    list_display = (
-        "first_name",
-        "last_name",
-        "user",
-        "date_of_birth",
-    )
-
-    list_filter = ("date_of_birth",)
-
-    search_fields = (
-        "first_name",
-        "last_name",
-        "user__email",
-        "user__phone_number",
-    )
-
-    ordering = ("last_name", "first_name")
