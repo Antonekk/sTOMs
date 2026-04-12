@@ -9,6 +9,7 @@ import {AuthenticatedRoute, RoleRoute, NonAuthenticatedRoute} from "../auth/Prot
 import Layout from "../layouts/Layout";
 import type React from "react";
 import ScheduleOverrides from "../pages/ScheduleOverrides"
+import Profile from "../pages/Profile";
 
 
 // Clear local storage before registering to avoid sending pre-existing tokens
@@ -57,6 +58,15 @@ const Router: React.FC = () => {
                         element={
                             <AuthenticatedRoute>
                                 <Home />
+                            </AuthenticatedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/profil"
+                        element={
+                            <AuthenticatedRoute>
+                                <Profile />
                             </AuthenticatedRoute>
                         }
                     />

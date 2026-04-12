@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { useState, useEffect } from "react";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants";
 import api from "../api/api"
-import {AuthLoading} from "./storybook_components/auth_loading/auth_loading"
+import Loading from "../components/storybook_components/loading/loading";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -65,7 +65,7 @@ const ProtectedRoute : React.FC<ProtectedRouteProps> = ({ children }) => {
 
     // Render loading screen if authentication is in process
     if(isAuthorized === null){
-        return <AuthLoading></AuthLoading>
+        return <Loading />
     }
 
     // Render children if authentication is successful else navigate to login page

@@ -1,4 +1,4 @@
-export type Role = "CLIENT" | "THERAPIST"
+export type Role = "ADMIN" | "CLIENT" | "THERAPIST"
 
 export interface LoginData{
     email: string;
@@ -36,6 +36,15 @@ export interface ActivateData{
 
 
 
+export interface Patient {
+    id: string;
+    user: string;
+    first_name: string;
+    last_name: string;
+    date_of_birth: string;
+    is_primary: boolean;
+}
+
 export interface User{
     id: string
     first_name: string;
@@ -43,6 +52,7 @@ export interface User{
     email: string;
     phone_number: string;
     role: Role;
+    patients: Patient[];
 }
 
 export interface TimeBlock {

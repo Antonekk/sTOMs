@@ -1,6 +1,7 @@
 import React, { type ReactNode } from 'react';
 import {Layout, Menu } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import type { Role } from '../../../types/auth';
 
 const { Header, Content, Footer } = Layout;
 
@@ -8,7 +9,7 @@ const { Header, Content, Footer } = Layout;
 interface TemplateProps {
   isAuthenticated: boolean;
   userName?: string;
-  role?: "CLIENT" | "THERAPIST";
+  role?: Role;
   onLogoutClick?: () => void;
   onNavigate: (path: string) => void;
   children: ReactNode;
