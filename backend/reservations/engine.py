@@ -3,15 +3,30 @@ from datetime import date, timedelta
 from constance import config
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from scheduling.engine import generate_daily_availability_blocks
-from scheduling.filters import filter_weekly_availability_blocks
+from therapist_availability.services.availability import AvailabilityService
+from therapist_availability.utils import exclude_intervals
 
-from .filters import filter_appointmets_specific_slot
+from therapist_availability.models import AvailabilityBlock
+
+from .filters import filter_appointments_for_day, filter_appointmets_specific_slot
 
 
-# Validates if provided slot can be scheduled
+def _get_bookable_slots(therapist, appointment_date):
+    slots = AvailabilityService.get_slots(therapist, appointment_date)
+    appointment_blocks = [
+        {
+            "start_time": appointment.appointment_series.start_time,
+            "end_time": appointment.appointment_series.end_time,
+        }
+        for appointment in filter_appointments_for_day(therapist, appointment_date)
+    ]
+    return exclude_intervals(
+        slots, sorted(appointment_blocks, key=lambda item: item["start_time"])
+    )
+
+
 def check_available_slot(therapist, appointment_date, start_time, end_time):
-    blocks = generate_daily_availability_blocks(therapist, appointment_date)
+    blocks = _get_bookable_slots(therapist, appointment_date)
 
     for block in blocks:
         if start_time >= block["start_time"] and end_time <= block["end_time"]:
@@ -19,7 +34,6 @@ def check_available_slot(therapist, appointment_date, start_time, end_time):
     return False
 
 
-# Validates if specified one time appointment can be scheduled
 def validate_one_time_appointment(therapist, appointment_date, start_time, end_time):
     if (
         appointment_date
@@ -39,13 +53,18 @@ def validate_one_time_appointment(therapist, appointment_date, start_time, end_t
         raise ValidationError(_("Wybrany termin jest zajęty"))
 
 
-# Validates if specified periodic appointment can be scheduled
 def validate_periodic_appointments(therapist, start_date, start_time, end_time):
     day_of_week = start_date.weekday()
 
-    if filter_weekly_availability_blocks(
-        therapist, day_of_week, start_time, end_time
-    ).exists():
+    if (
+        AvailabilityBlock.objects.filter(
+            therapist=therapist,
+            day_of_week=day_of_week,
+            start_time__lt=end_time,
+            end_time__gt=start_time,
+            type=AvailabilityBlock.BlockType.BASE,
+        ).exists()
+    ):
         raise ValidationError(_("Wybrany termin jest zajęty"))
 
     # TODO: Validate with other periodic appontments

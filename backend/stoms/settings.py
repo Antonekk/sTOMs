@@ -82,6 +82,7 @@ CONSTANCE_BACKEND = "constance.backends.memory.MemoryBackend"
 CONSTANCE_CONFIG = {
     "APPOINTMENT_GENERATION_DAYS": (7, "Ile dni w przód generować wizyty"),
     "APPOINTMENT_BOOKING_DAYS": (7, "Ile dni w przód można rezerwować"),
+    "AVAILABILITY_MAX_RANGE_DAYS": (14, "Maksymalny zakres zapytań GET /availability"),
 }
 
 
@@ -125,7 +126,6 @@ INSTALLED_APPS = [
     "users",
     "patients",
     "therapist_availability",
-    "scheduling",
     "offices",
     "reservations",
     "notifications",
