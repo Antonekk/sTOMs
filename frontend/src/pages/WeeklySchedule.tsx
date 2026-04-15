@@ -2,47 +2,29 @@ import React, { useEffect, useState } from "react";
 import { Button, Flex, message, Space, Typography } from "antd";
 import WeeklyScheduleEditor from "../components/storybook_components/weekly_scheduler/weekly_schedule_editor";
 import type { WeeklyAvailabilityBlock } from "../components/storybook_components/weekly_scheduler/types";
-import type { DayOfWeek, TimeBlock, WeeklyScheduleRequest, WeeklyScheduleResponse } from "../types/auth";
-import { getWeeklySchedule, saveWeeklySchedule } from "../api/auth";
+import type { BaseScheduleRequest, BaseScheduleResponse } from "../types/therapistAvailability";
+import { getWeeklySchedule, saveWeeklySchedule } from "../api/therapistAvailability";
 import Loading from "../components/storybook_components/loading/loading";
 
 const { Title } = Typography;
 
+const normalizeTime = (time: string) => time.slice(0, 5);
 
-// Handles transformation between WeeklySchedule response and component block type
-const transformToBlocks = (schedule: WeeklyScheduleResponse): WeeklyAvailabilityBlock[] => {
-    const blocks: WeeklyAvailabilityBlock[] = [];
+const transformToBlocks = (schedule: BaseScheduleResponse): WeeklyAvailabilityBlock[] =>
+    schedule.blocks.map((block) => ({
+        id: crypto.randomUUID(),
+        dayOfWeek: block.day_of_week,
+        startTime: normalizeTime(block.start_time),
+        endTime: normalizeTime(block.end_time),
+    }));
 
-    Object.entries(schedule).forEach(([day, timeBlocks]) => {
-        timeBlocks.forEach((block) => {
-            blocks.push({
-                id: crypto.randomUUID(),
-                dayOfWeek: parseInt(day, 10),
-                startTime: block.start_time,
-                endTime: block.end_time,
-            });
-        });
-    });
-
-    return blocks;
-};
-
-
-// Handles transformation between component block type and WeeklySchedule response
-const transformToRequest = (blocks: WeeklyAvailabilityBlock[]): WeeklyScheduleRequest => {
-    const weeklySchedule: Partial<Record<DayOfWeek, TimeBlock[]>> = {};
-
-    blocks.forEach((block) => {
-        const day = block.dayOfWeek.toString() as DayOfWeek;
-        weeklySchedule[day] ??= [];
-        weeklySchedule[day].push({
-            start_time: block.startTime,
-            end_time: block.endTime,
-        });
-    });
-
-    return { weekly_schedule: weeklySchedule };
-};
+const transformToRequest = (blocks: WeeklyAvailabilityBlock[]): BaseScheduleRequest => ({
+    blocks: blocks.map((block) => ({
+        day_of_week: block.dayOfWeek,
+        start_time: block.startTime,
+        end_time: block.endTime,
+    })),
+});
 
 const WeeklySchedule: React.FC = () => {
     const [blocks, setBlocks] = useState<WeeklyAvailabilityBlock[]>([]);
