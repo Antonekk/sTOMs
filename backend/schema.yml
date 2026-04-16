@@ -4,6 +4,17 @@ info:
   version: 1.0.0
   description: Speech therapy office management system
 paths:
+  /api/availability:
+    get:
+      operationId: availability_retrieve
+      tags:
+      - availability
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/config/:
     get:
       operationId: config_retrieve
@@ -330,129 +341,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/schedule/:
-    get:
-      operationId: schedule_list
-      tags:
-      - schedule
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WeeklySchedule'
-          description: ''
-    post:
-      operationId: schedule_create
-      tags:
-      - schedule
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WeeklySchedule'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/WeeklySchedule'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/WeeklySchedule'
-        required: true
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WeeklySchedule'
-          description: ''
-  /api/schedule/override/:
-    get:
-      operationId: schedule_override_list
-      tags:
-      - schedule
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AvailabilityBlock'
-          description: ''
-    post:
-      operationId: schedule_override_create
-      tags:
-      - schedule
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AvailabilityBlock'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AvailabilityBlock'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AvailabilityBlock'
-        required: true
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AvailabilityBlock'
-          description: ''
-  /api/schedule/override/{id}/:
-    get:
-      operationId: schedule_override_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - schedule
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AvailabilityBlock'
-          description: ''
-    delete:
-      operationId: schedule_override_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - schedule
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -640,6 +528,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/Therapist'
           description: ''
+  /api/therapists/self/schedule:
+    get:
+      operationId: therapists_self_schedule_retrieve
+      tags:
+      - therapists
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: therapists_self_schedule_update
+      tags:
+      - therapists
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/therapists/self/schedule/override:
+    get:
+      operationId: therapists_self_schedule_override_retrieve
+      tags:
+      - therapists
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: therapists_self_schedule_override_create
+      tags:
+      - therapists
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/therapists/self/schedule/override/{block_id}:
+    delete:
+      operationId: therapists_self_schedule_override_destroy
+      parameters:
+      - in: path
+        name: block_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - therapists
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/users/:
     get:
       operationId: users_list
@@ -1186,44 +1134,6 @@ components:
       - password
       - phone_number
       - re_password
-    AvailabilityBlock:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        therapist:
-          type: string
-          format: uuid
-          readOnly: true
-        specific_date:
-          type: string
-          format: date
-          nullable: true
-        start_time:
-          type: string
-          format: time
-        end_time:
-          type: string
-          format: time
-        availability_type:
-          $ref: '#/components/schemas/AvailabilityTypeEnum'
-      required:
-      - end_time
-      - id
-      - start_time
-      - therapist
-    AvailabilityTypeEnum:
-      enum:
-      - WEEKLY
-      - INCLUSION
-      - EXCLUSION
-      type: string
-      description: |-
-        * `WEEKLY` - Blok tygodniowy
-        * `INCLUSION` - Blok dodatkowych godzin
-        * `EXCLUSION` - Blok wyjątkowego braku godzin
     Localization:
       type: object
       properties:
@@ -1471,18 +1381,6 @@ components:
       - full_name
       - id
       - office
-    TimeRangeBlock:
-      type: object
-      properties:
-        start_time:
-          type: string
-          format: time
-        end_time:
-          type: string
-          format: time
-      required:
-      - end_time
-      - start_time
     TokenObtainPair:
       type: object
       properties:
@@ -1533,21 +1431,6 @@ components:
           maxLength: 254
       required:
       - new_email
-    WeeklySchedule:
-      type: object
-      description: |-
-        weekly_schedule expected format:
-        - key = day of the week (0-6)
-        - value = list[TimeRangeBlock]
-      properties:
-        weekly_schedule:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              $ref: '#/components/schemas/TimeRangeBlock'
-      required:
-      - weekly_schedule
   securitySchemes:
     jwtAuth:
       type: http
