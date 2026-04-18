@@ -1,3 +1,6 @@
+import type { Patient } from "./patients";
+
+export type { Patient } from "./patients";
 export type Role = "ADMIN" | "CLIENT" | "THERAPIST"
 
 export interface LoginData{
@@ -35,15 +38,6 @@ export interface ActivateData{
 }
 
 
-
-export interface Patient {
-    id: string;
-    user: string;
-    first_name: string;
-    last_name: string;
-    date_of_birth: string;
-    is_primary: boolean;
-}
 
 export interface User{
     id: string

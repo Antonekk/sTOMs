@@ -223,13 +223,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatientCreate'
+              $ref: '#/components/schemas/PatientWrite'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatientCreate'
+              $ref: '#/components/schemas/PatientWrite'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatientCreate'
+              $ref: '#/components/schemas/PatientWrite'
         required: true
       security:
       - jwtAuth: []
@@ -239,7 +239,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PatientCreate'
+                $ref: '#/components/schemas/PatientWrite'
           description: ''
   /api/patients/{id}/:
     get:
@@ -276,13 +276,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientWrite'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientWrite'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Patient'
+              $ref: '#/components/schemas/PatientWrite'
         required: true
       security:
       - jwtAuth: []
@@ -292,38 +292,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Patient'
-          description: ''
-    patch:
-      operationId: patients_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Patient'
+                $ref: '#/components/schemas/PatientWrite'
           description: ''
     delete:
       operationId: patients_destroy
@@ -1076,9 +1045,7 @@ components:
           readOnly: true
           title: Adres email
         patients:
-          type: array
-          items:
-            $ref: '#/components/schemas/Patient'
+          type: string
           readOnly: true
         role:
           allOf:
@@ -1221,43 +1188,12 @@ components:
           readOnly: true
           title: Adres email
         patients:
-          type: array
-          items:
-            $ref: '#/components/schemas/Patient'
+          type: string
           readOnly: true
         role:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           title: Rola
-    PatchedPatient:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        user:
-          type: string
-          format: uuid
-          readOnly: true
-          title: Użytkownik
-        first_name:
-          type: string
-          title: Imię
-          maxLength: 64
-        last_name:
-          type: string
-          title: Nazwisko
-          maxLength: 64
-        date_of_birth:
-          type: string
-          format: date
-          title: Data urodzenia
-        is_primary:
-          type: boolean
-          readOnly: true
-          title: Pacjent główny
-          description: Określa czy pacjent przypisany do klienta określa samego siebie
     Patient:
       type: object
       properties:
@@ -1265,42 +1201,37 @@ components:
           type: string
           format: uuid
           readOnly: true
-        user:
-          type: string
-          format: uuid
-          readOnly: true
-          title: Użytkownik
         first_name:
           type: string
+          readOnly: true
           title: Imię
-          maxLength: 64
         last_name:
           type: string
+          readOnly: true
           title: Nazwisko
-          maxLength: 64
-        date_of_birth:
+        birthday:
           type: string
           format: date
-          title: Data urodzenia
         is_primary:
           type: boolean
           readOnly: true
           title: Pacjent główny
           description: Określa czy pacjent przypisany do klienta określa samego siebie
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Aktywny
+          description: Nieaktywne profile są ukryte (soft-delete).
       required:
-      - date_of_birth
+      - birthday
       - first_name
       - id
+      - is_active
       - is_primary
       - last_name
-      - user
-    PatientCreate:
+    PatientWrite:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
         first_name:
           type: string
           title: Imię
@@ -1309,14 +1240,16 @@ components:
           type: string
           title: Nazwisko
           maxLength: 64
-        date_of_birth:
+        birthday:
           type: string
           format: date
-          title: Data urodzenia
+        is_primary:
+          type: boolean
+          readOnly: true
       required:
-      - date_of_birth
+      - birthday
       - first_name
-      - id
+      - is_primary
       - last_name
     RoleEnum:
       enum:

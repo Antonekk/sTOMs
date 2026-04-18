@@ -12,7 +12,7 @@ class PatientAdmin(admin.ModelAdmin):
         "date_of_birth",
     )
 
-    list_filter = ("date_of_birth",)
+    list_filter = ("date_of_birth", "is_active")
 
     search_fields = (
         "first_name",

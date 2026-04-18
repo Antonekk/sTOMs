@@ -6,7 +6,7 @@ from therapist_availability.utils import exclude_intervals
 
 class AvailabilityService:
     """
-    Service for managing therapist availability.
+    Service for managing therapist availability blocks.
     Provides methods for getting availability slots for a given therapist and date.
     """
 

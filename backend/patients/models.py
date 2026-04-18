@@ -12,7 +12,7 @@ class Patient(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("Użytkownik"),
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="patients",
         limit_choices_to={"role": "CLIENT"},
     )
@@ -30,6 +30,11 @@ class Patient(models.Model):
         verbose_name=_("Pacjent główny"),
         help_text=_("Określa czy pacjent przypisany do klienta określa samego siebie"),
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("Aktywny"),
+        help_text=_("Nieaktywne profile są ukryte (soft-delete)."),
+    )
 
     class Meta:
         db_table = "users_patient"
@@ -37,6 +42,9 @@ class Patient(models.Model):
         verbose_name_plural = _("Pacjenci")
         ordering = ["-is_primary", "last_name", "first_name"]
         unique_together = ["user", "first_name", "last_name", "date_of_birth"]
+        indexes = [
+            models.Index(fields=["user"]),
+        ]
 
     def __str__(self):
         return self.get_full_name()

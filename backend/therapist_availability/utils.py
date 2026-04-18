@@ -3,7 +3,7 @@ def overlaps(a_start, a_end, b_start, b_end):
 
 
 def exclude_intervals(availability_blocks, exclusion_blocks):
-    """Subtract exclusion intervals from availability intervals."""
+    """Subtract exclusion interval blocks from availability interval blocks."""
     result = []
     ptr = 0
     exclusion_blocks = sorted(exclusion_blocks, key=lambda x: x["start_time"])

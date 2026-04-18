@@ -10,6 +10,8 @@ import Layout from "../layouts/Layout";
 import type React from "react";
 import ScheduleOverrides from "../pages/ScheduleOverrides"
 import Profile from "../pages/Profile";
+import PatientNew from "../pages/PatientNew";
+import PatientEdit from "../pages/PatientEdit";
 
 
 // Clear local storage before registering to avoid sending pre-existing tokens
@@ -68,6 +70,24 @@ const Router: React.FC = () => {
                             <AuthenticatedRoute>
                                 <Profile />
                             </AuthenticatedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/pacjenci/nowy"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <PatientNew />
+                            </RoleRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/pacjenci/:id/edycja"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <PatientEdit />
+                            </RoleRoute>
                         }
                     />
 

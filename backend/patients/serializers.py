@@ -4,33 +4,33 @@ from .models import Patient
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Patient
-        fields = (
-            "id",
-            "user",
-            "first_name",
-            "last_name",
-            "date_of_birth",
-            "is_primary",
-        )
-        read_only_fields = (
-            "id",
-            "user",
-            "is_primary",
-        )
+    birthday = serializers.DateField(source="date_of_birth")
 
-
-class PatientCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = (
             "id",
             "first_name",
             "last_name",
-            "date_of_birth",
+            "birthday",
+            "is_primary",
+            "is_active",
         )
-        read_only_fields = ("id",)
+        read_only_fields = fields
+
+
+class PatientWriteSerializer(serializers.ModelSerializer):
+    birthday = serializers.DateField(source="date_of_birth")
+    is_primary = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Patient
+        fields = (
+            "first_name",
+            "last_name",
+            "birthday",
+            "is_primary",
+        )
 
     def create(self, validated_data):
         request = self.context.get("request")

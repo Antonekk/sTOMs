@@ -13,3 +13,8 @@ export const THERAPIST_AVAILABILITY_ENDPOINTS = {
     SELF_SCHEDULE: "api/therapists/self/schedule",
     SELF_SCHEDULE_OVERRIDE: "api/therapists/self/schedule/override",
 }
+
+export const PATIENT_ENDPOINTS = {
+    PATIENTS: "/api/patients/",
+    PATIENT: (id: string) => `/api/patients/${id}/`,
+}

@@ -11,6 +11,7 @@ interface AuthenticatedContextType{
     loading: boolean;
     login: (login_params: LoginData) => Promise<void>;
     logout: () => void;
+    refreshUser: () => Promise<void>;
     isAuthenticated: boolean;
     checkRole: (role: Role) => boolean;
 }
@@ -42,6 +43,16 @@ export const AuthenticationProvider: React.FC< {children: React.ReactNode}> = ({
         populateUser().catch(console.error);
     }, []);
 
+    const refreshUser = async () => {
+        const token = getAccessToken();
+        if (!token) {
+            setUser(null);
+            return;
+        }
+        const res = await getMe();
+        setUser(res.data);
+    };
+
     const login = async (login_params: LoginData) => {
         try{
             const {data} = await loginAPI(login_params);
@@ -70,6 +81,7 @@ export const AuthenticationProvider: React.FC< {children: React.ReactNode}> = ({
                 loading,
                 login,
                 logout,
+                refreshUser,
                 isAuthenticated: !!user, 
                 checkRole}}>
             {children}

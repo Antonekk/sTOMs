@@ -12,10 +12,14 @@ User = get_user_model()
 
 
 class AppUserSerializer(UserSerializer):
-    patients = PatientSerializer(many=True, read_only=True)
+    patients = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ("patients", "role")
+
+    def get_patients(self, user):
+        active_patients = user.patients.filter(is_active=True)
+        return PatientSerializer(active_patients, many=True).data
 
 
 class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
@@ -46,6 +50,7 @@ class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
             last_name=last_name,
             date_of_birth=self.context["date_of_birth"],
             is_primary=True,
+            is_active=True,
         )
 
         return user

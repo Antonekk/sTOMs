@@ -9,9 +9,17 @@ const { Text, Title } = Typography;
 
 export interface UserProfileProps {
     user: User;
+    onNavigate: (path: string) => void;
+    onDeletePatient?: (patientId: string) => Promise<void>;
+    deletingPatientId?: string | null;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ user }) => (
+const UserProfile: React.FC<UserProfileProps> = ({
+    user,
+    onNavigate,
+    onDeletePatient,
+    deletingPatientId,
+}) => (
     <Space orientation="vertical" size="large" style={{ width: "100%" }}>
         <Card>
             <Space align="center" size="middle">
@@ -26,7 +34,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => (
         </Card>
 
         <AccountDetails user={user} />
-        <PatientList patients={user.patients} />
+        {user.role === "CLIENT" && (
+            <PatientList
+                patients={user.patients}
+                onNavigate={onNavigate}
+                onDeletePatient={onDeletePatient}
+                deletingPatientId={deletingPatientId}
+            />
+        )}
     </Space>
 );
 
