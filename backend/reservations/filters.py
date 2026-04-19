@@ -1,10 +1,10 @@
 from .models import Appointment, AppointmentSeries
 
 
-def filter_appointments_for_day(therapist, date):
+def filter_appointments_for_day(therapist, appointment_date):
     return Appointment.objects.filter(
-        appointment_series__therapist=therapist,
-        appointment_date=date,
+        therapist=therapist,
+        appointment_date=appointment_date,
         appointment_series__status=AppointmentSeries.Status.ACTIVE,
         status=Appointment.Status.SCHEDULED,
     ).order_by("appointment_series__start_time")
@@ -16,9 +16,9 @@ def filter_active_appointment_series(therapist):
     )
 
 
-def filter_appointmets_specific_slot(therapist, appointment_date, start_time, end_time):
+def filter_appointments_specific_slot(therapist, appointment_date, start_time, end_time):
     return Appointment.objects.filter(
-        appointment_series__therapist=therapist,
+        therapist=therapist,
         appointment_date=appointment_date,
         status=Appointment.Status.SCHEDULED,
         appointment_series__status=AppointmentSeries.Status.ACTIVE,

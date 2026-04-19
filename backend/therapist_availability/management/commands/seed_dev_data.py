@@ -1,16 +1,18 @@
-from datetime import time
+from datetime import date, time
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from offices.models import Localization, Office
+from patients.models import Patient
 
+from reservations.models import AppointmentType
 from therapist_availability.models import AvailabilityBlock, Therapist
 from therapist_availability.services import ScheduleService
 
 User = get_user_model()
 
-DEV_PASSWORD = "devpass123"
+DEV_PASSWORD = "dev123"
 
 SCHEDULED_THERAPIST = {
     "email": "therapist.scheduled@dev.local",
@@ -26,6 +28,14 @@ EMPTY_THERAPIST = {
     "last_name": "Pusty",
 }
 
+CLIENT_WITH_PRIMARY_PATIENT = {
+    "email": "client.simple@dev.local",
+    "phone_number": "+48200000003",
+    "first_name": "Katarzyna",
+    "last_name": "Klient",
+    "date_of_birth": date(1992, 3, 20),
+}
+
 WEEKDAY_SCHEDULE = [
     {"day_of_week": day, "start_time": time(9, 0), "end_time": time(17, 0)}
     for day in range(5)
@@ -33,7 +43,10 @@ WEEKDAY_SCHEDULE = [
 
 
 class Command(BaseCommand):
-    help = "Seed development therapists (one with schedule, one without)."
+    help = (
+        "Seed development accounts: two therapists (one with schedule) "
+        "and one client with a primary patient."
+    )
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -41,6 +54,9 @@ class Command(BaseCommand):
         ScheduleService.replace_base_schedule(scheduled_profile, WEEKDAY_SCHEDULE)
 
         empty_user, _empty_profile = self._create_therapist(**EMPTY_THERAPIST)
+
+        client_user = self._create_client_with_primary_patient(**CLIENT_WITH_PRIMARY_PATIENT)
+        self._seed_appointment_types()
 
         self.stdout.write(self.style.SUCCESS("Development data seeded."))
         self.stdout.write("")
@@ -50,7 +66,10 @@ class Command(BaseCommand):
         self.stdout.write("Therapist with no schedule:")
         self._print_credentials(empty_user)
         self.stdout.write("")
-        self.stdout.write(f"Password for both accounts: {DEV_PASSWORD}")
+        self.stdout.write("Client with primary patient only:")
+        self._print_credentials(client_user)
+        self.stdout.write("")
+        self.stdout.write(f"Password for all accounts: {DEV_PASSWORD}")
 
     def _create_therapist(self, *, email, phone_number, first_name, last_name):
         user, created = User.objects.get_or_create(
@@ -95,6 +114,61 @@ class Command(BaseCommand):
         ).delete()
 
         return user, therapist
+
+    def _create_client_with_primary_patient(
+        self, *, email, phone_number, first_name, last_name, date_of_birth
+    ):
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "phone_number": phone_number,
+                "first_name": first_name,
+                "last_name": last_name,
+                "role": User.Role.CLIENT,
+                "is_verified": True,
+                "is_active": True,
+            },
+        )
+        if created:
+            user.set_password(DEV_PASSWORD)
+            user.save(update_fields=["password"])
+        else:
+            user.phone_number = phone_number
+            user.first_name = first_name
+            user.last_name = last_name
+            user.role = User.Role.CLIENT
+            user.is_verified = True
+            user.is_active = True
+            user.set_password(DEV_PASSWORD)
+            user.save()
+
+        Patient.objects.update_or_create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            date_of_birth=date_of_birth,
+            defaults={"is_primary": True, "is_active": True},
+        )
+
+        return user
+
+    def _seed_appointment_types(self):
+        AppointmentType.objects.update_or_create(
+            name="Zajęcia logopedyczne",
+            defaults={
+                "duration_time_minutes": 50,
+                "price": "150.00",
+                "is_periodic": True,
+            },
+        )
+        AppointmentType.objects.update_or_create(
+            name="Konsultacja",
+            defaults={
+                "duration_time_minutes": 30,
+                "price": "100.00",
+                "is_periodic": False,
+            },
+        )
 
     def _print_credentials(self, user):
         self.stdout.write(f"  email: {user.email}")

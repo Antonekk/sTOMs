@@ -80,9 +80,10 @@ DJOSER = {
 
 CONSTANCE_BACKEND = "constance.backends.memory.MemoryBackend"
 CONSTANCE_CONFIG = {
-    "APPOINTMENT_GENERATION_DAYS": (7, "Ile dni w przód generować wizyty"),
+    "APPOINTMENT_GENERATION_DAYS": (14, "Ile dni w przód generować wizyty"),
     "APPOINTMENT_BOOKING_DAYS": (7, "Ile dni w przód można rezerwować"),
     "AVAILABILITY_MAX_RANGE_DAYS": (14, "Maksymalny zakres zapytań GET /availability"),
+    "CANCELLATION_WINDOW_HOURS": (6, "Minimalny czas przed wizytą do anulowania (godz.)"),
 }
 
 
@@ -121,7 +122,6 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     "djoser",
-    "recurrence",
     "constance",
     "users",
     "patients",

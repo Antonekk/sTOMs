@@ -1007,6 +1007,156 @@ paths:
               schema:
                 $ref: '#/components/schemas/SetPasswordRetype'
           description: ''
+  /api/v1/appointment-types:
+    get:
+      operationId: v1_appointment_types_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/reservations:
+    get:
+      operationId: v1_reservations_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: v1_reservations_create
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/reservations/{series_id}:
+    get:
+      operationId: v1_reservations_retrieve_2
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: v1_reservations_partial_update
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/visits:
+    get:
+      operationId: v1_visits_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/visits/{appointment_id}:
+    get:
+      operationId: v1_visits_retrieve_2
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/visits/{appointment_id}/cancel:
+    patch:
+      operationId: v1_visits_cancel_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/visits/{appointment_id}/note:
+    patch:
+      operationId: v1_visits_note_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/visits/{appointment_id}/status:
+    patch:
+      operationId: v1_visits_status_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
 components:
   schemas:
     Activation:

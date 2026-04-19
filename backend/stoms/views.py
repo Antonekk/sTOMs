@@ -12,5 +12,6 @@ class ConfigView(APIView):
             {
                 "appointment_generation_days": config.APPOINTMENT_GENERATION_DAYS,
                 "appointment_booking_days": config.APPOINTMENT_BOOKING_DAYS,
+                "cancellation_window_hours": config.CANCELLATION_WINDOW_HOURS,
             }
         )
