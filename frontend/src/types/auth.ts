@@ -52,4 +52,5 @@ export interface User{
 export interface AppConfig {
     appointment_generation_days: number;
     appointment_booking_days: number;
+    cancellation_window_hours: number;
 }

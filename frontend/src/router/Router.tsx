@@ -12,6 +12,11 @@ import ScheduleOverrides from "../pages/ScheduleOverrides"
 import Profile from "../pages/Profile";
 import PatientNew from "../pages/PatientNew";
 import PatientEdit from "../pages/PatientEdit";
+import Reservations from "../pages/Reservations";
+import ReservationNew from "../pages/ReservationNew";
+import ReservationDetail from "../pages/ReservationDetail";
+import Visits from "../pages/Visits";
+import VisitDetail from "../pages/VisitDetail";
 
 
 // Clear local storage before registering to avoid sending pre-existing tokens
@@ -108,7 +113,48 @@ const Router: React.FC = () => {
                             </RoleRoute>
                         }
                     />
-                        
+
+                    <Route
+                        path="/rezerwacje"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <Reservations />
+                            </RoleRoute>
+                        }
+                    />
+                    <Route
+                        path="/rezerwacje/nowa"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <ReservationNew />
+                            </RoleRoute>
+                        }
+                    />
+                    <Route
+                        path="/rezerwacje/:id"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <ReservationDetail />
+                            </RoleRoute>
+                        }
+                    />
+                    <Route
+                        path="/wizyty"
+                        element={
+                            <AuthenticatedRoute>
+                                <Visits />
+                            </AuthenticatedRoute>
+                        }
+                    />
+                    <Route
+                        path="/wizyty/:id"
+                        element={
+                            <AuthenticatedRoute>
+                                <VisitDetail />
+                            </AuthenticatedRoute>
+                        }
+                    />
+
 
                     <Route 
                         path="*" 

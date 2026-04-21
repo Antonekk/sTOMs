@@ -39,8 +39,12 @@ export const RoleRoute = ({ children, role }: { children: React.ReactNode, role:
         return <Loading></Loading>
     }
 
-    if (!checkRole(role) && !isAuthenticated) {
+    if (!isAuthenticated) {
         return <Navigate to="/login" />;
+    }
+
+    if (!checkRole(role)) {
+        return <Navigate to="/panel" replace />;
     }
 
     return children;
