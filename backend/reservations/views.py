@@ -93,7 +93,7 @@ class ReservationDetailView(APIView):
                 {"detail": "Obsługiwane jest wyłącznie anulowanie rezerwacji."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        CancellationService.cancel_series(series)
+        CancellationService.cancel_series(series, canceled_by=AppUser.Role.CLIENT)
         series.refresh_from_db()
         serializer = AppointmentSeriesDetailSerializer(series)
         return Response(serializer.data)
@@ -207,7 +207,11 @@ class VisitStatusUpdateView(APIView):
             if new_status == Appointment.Status.COMPLETED:
                 CancellationService.mark_completed(appointment)
             elif new_status == Appointment.Status.CANCELED:
-                CancellationService.cancel_appointment(appointment, enforce_window=True)
+                CancellationService.cancel_appointment(
+                    appointment,
+                    enforce_window=True,
+                    canceled_by=AppUser.Role.THERAPIST,
+                )
         except CancellationWindowError as exc:
             return Response({"detail": str(exc.detail)}, status=exc.status_code)
 
@@ -226,7 +230,11 @@ class VisitCancelView(APIView):
             status=Appointment.Status.SCHEDULED,
         )
         try:
-            CancellationService.cancel_appointment(appointment, enforce_window=True)
+            CancellationService.cancel_appointment(
+                appointment,
+                enforce_window=True,
+                canceled_by=AppUser.Role.CLIENT,
+            )
         except CancellationWindowError as exc:
             return Response({"detail": str(exc.detail)}, status=exc.status_code)
 

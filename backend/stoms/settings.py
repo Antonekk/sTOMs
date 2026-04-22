@@ -84,6 +84,7 @@ CONSTANCE_CONFIG = {
     "APPOINTMENT_BOOKING_DAYS": (7, "Ile dni w przód można rezerwować"),
     "AVAILABILITY_MAX_RANGE_DAYS": (14, "Maksymalny zakres zapytań GET /availability"),
     "CANCELLATION_WINDOW_HOURS": (6, "Minimalny czas przed wizytą do anulowania (godz.)"),
+    "REMINDER_HOURS_BEFORE": (24, "Ile godzin przed wizytą wysłać przypomnienie"),
 }
 
 
@@ -208,6 +209,16 @@ TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 
 USE_TZ = True
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    "send-appointment-reminders": {
+        "task": "notifications.tasks.send_appointment_reminders",
+        "schedule": timedelta(hours=24),
+    },
+}
 
 # Set user used for auth
 AUTH_USER_MODEL = "users.AppUser"

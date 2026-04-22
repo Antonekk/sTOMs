@@ -93,6 +93,7 @@ class Appointment(models.Model):
 
     final_price = models.DecimalField(max_digits=5, decimal_places=2)
     notes = models.TextField(null=True, blank=True)
+    reminder_sent = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if self.appointment_series_id:

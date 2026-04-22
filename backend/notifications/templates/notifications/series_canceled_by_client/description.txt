@@ -1,0 +1,1 @@
+Klient {{ patient_name }} odwołał wszystkie wizyty z cyklu „{{ appointment_type }}” (od {{ start_date }}, {{ weekday }}).

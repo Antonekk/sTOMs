@@ -11,3 +11,5 @@ python-decouple
 drf-spectacular
 djoser
 django-constance[redis]
+celery[redis]
+redis

@@ -1,0 +1,1 @@
+Jutro o {{ start_time }} masz wizytę „{{ appointment_type }}” w gabinecie {{ localization_name }}, pokój {{ room_number }}.

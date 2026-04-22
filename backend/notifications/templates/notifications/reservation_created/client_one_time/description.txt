@@ -1,0 +1,1 @@
+Zarezerwowano wizytę „{{ appointment_type }}” na {{ appointment_date }} o {{ start_time }}.

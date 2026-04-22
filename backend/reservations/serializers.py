@@ -16,6 +16,8 @@ from .services.collision import CollisionDetectionService
 from .services.generation import AppointmentGenerationService
 from .services.horizon import ensure_horizon
 
+from notifications.services import NotificationService
+
 WEEKDAY_LABELS = [
     "poniedziałek",
     "wtorek",
@@ -209,6 +211,7 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
         )
         AppointmentGenerationService.generate(series)
         ensure_horizon(series)
+        NotificationService.notify_reservation_created(series)
         return series
 
 

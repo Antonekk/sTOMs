@@ -1,0 +1,1 @@
+Automatycznie anulowano {{ count }} wizyt w związku ze zmianą grafiku. Dotyczy dat: {{ dates_display }}.

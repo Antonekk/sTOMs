@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from constance import config
 from django.db import transaction
 from django.utils import timezone
+from notifications.services import NotificationService
 from rest_framework.exceptions import APIException
 
 from reservations.models import Appointment, AppointmentSeries
@@ -29,12 +30,14 @@ class CancellationService:
         return cls._appointment_start_datetime(appointment) - timezone.now() >= window
 
     @classmethod
-    def _queue_notifications(cls, appointments):
-        _ = appointments
-
-    @classmethod
     @transaction.atomic
-    def cancel_appointment(cls, appointment: Appointment, *, enforce_window: bool = True):
+    def cancel_appointment(
+        cls,
+        appointment: Appointment,
+        *,
+        enforce_window: bool = True,
+        canceled_by=None,
+    ):
         if appointment.status != Appointment.Status.SCHEDULED:
             return appointment
 
@@ -44,12 +47,13 @@ class CancellationService:
         appointment.status = Appointment.Status.CANCELED
         appointment.save(update_fields=["status"])
         cls._update_series_after_appointment_change(appointment.appointment_series)
-        cls._queue_notifications([appointment])
+        if canceled_by is not None:
+            NotificationService.notify_appointment_canceled(appointment, canceled_by)
         return appointment
 
     @classmethod
     @transaction.atomic
-    def cancel_series(cls, series: AppointmentSeries):
+    def cancel_series(cls, series: AppointmentSeries, *, canceled_by=None):
         if series.status == AppointmentSeries.Status.CANCELED:
             return series
 
@@ -58,14 +62,13 @@ class CancellationService:
             status=Appointment.Status.SCHEDULED,
             appointment_date__gte=today,
         )
-        canceled = list(future_appointments)
         future_appointments.update(status=Appointment.Status.CANCELED)
 
         series.status = AppointmentSeries.Status.CANCELED
         series.save(update_fields=["status"])
 
-        if canceled:
-            cls._queue_notifications(canceled)
+        if canceled_by is not None:
+            NotificationService.notify_series_canceled(series, canceled_by)
         return series
 
     @classmethod
@@ -99,7 +102,7 @@ class CancellationService:
                 cls._update_series_after_appointment_change(series)
 
         if canceled:
-            cls._queue_notifications(canceled)
+            NotificationService.notify_appointments_canceled_bulk(canceled, therapist)
         return canceled
 
     @classmethod

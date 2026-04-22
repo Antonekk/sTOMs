@@ -1,0 +1,1 @@
+Zarezerwowano cykl wizyt „{{ appointment_type }}” — co tydzień w {{ weekday }}, od {{ start_date }} o {{ start_time }}.

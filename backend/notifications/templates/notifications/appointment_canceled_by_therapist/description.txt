@@ -1,0 +1,1 @@
+Wizyta „{{ appointment_type }}” zaplanowana na {{ appointment_date }} o {{ start_time }} została odwołana przez terapeutę.

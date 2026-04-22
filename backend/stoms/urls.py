@@ -35,6 +35,7 @@ urlpatterns = [
     path("api/", include("patients.urls")),
     path("api/", include("therapist_availability.urls")),
     path("api/", include("reservations.urls")),
+    path("api/", include("notifications.urls")),
     # Swagger
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:
