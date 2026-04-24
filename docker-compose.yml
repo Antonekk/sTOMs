@@ -24,6 +24,44 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  celery-worker:
+    build: ./backend
+    container_name: celery-worker
+    command: celery -A stoms worker --loglevel=info
+    restart: always
+    environment:
+      SKIP_STARTUP_TASKS: "1"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+      - docker/backend.dev.env
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: ./backend
+    container_name: celery-beat
+    command: celery -A stoms beat --loglevel=info
+    restart: always
+    environment:
+      SKIP_STARTUP_TASKS: "1"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+      - docker/backend.dev.env
+    depends_on:
+      - db
+      - redis
+
 
   frontend:
     build: ./frontend

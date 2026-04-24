@@ -34,3 +34,10 @@ export const VISIT_ENDPOINTS = {
 }
 
 export const AVAILABILITY_ENDPOINT = "/api/availability"
+
+export const NOTIFICATION_ENDPOINTS = {
+    NOTIFICATIONS: "/api/v1/notifications",
+    NOTIFICATION: (id: string) => `/api/v1/notifications/${id}`,
+    NOTIFICATION_READ: (id: string) => `/api/v1/notifications/${id}/read`,
+    NOTIFICATIONS_READ_ALL: "/api/v1/notifications/read",
+}

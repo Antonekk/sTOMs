@@ -1018,6 +1018,64 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/notifications:
+    get:
+      operationId: v1_notifications_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/notifications/{notification_id}:
+    get:
+      operationId: v1_notifications_retrieve_2
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/notifications/{notification_id}/read:
+    patch:
+      operationId: v1_notifications_read_partial_update_2
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/notifications/read:
+    patch:
+      operationId: v1_notifications_read_partial_update
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/reservations:
     get:
       operationId: v1_reservations_retrieve

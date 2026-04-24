@@ -27,6 +27,7 @@ export const Client: Story = {
     isAuthenticated: true,
     role: "CLIENT",
     userName: "Klient",
+    unreadNotificationCount: 2,
     onLogoutClick: () => {alert("Wyloguj")},
     onNavigate: (path) => {alert(`Nawiguj do ${path}`)},
     children: <div>Client dashboard</div>,

@@ -17,6 +17,7 @@ import ReservationNew from "../pages/ReservationNew";
 import ReservationDetail from "../pages/ReservationDetail";
 import Visits from "../pages/Visits";
 import VisitDetail from "../pages/VisitDetail";
+import Notifications from "../pages/Notifications";
 
 
 // Clear local storage before registering to avoid sending pre-existing tokens
@@ -151,6 +152,14 @@ const Router: React.FC = () => {
                         element={
                             <AuthenticatedRoute>
                                 <VisitDetail />
+                            </AuthenticatedRoute>
+                        }
+                    />
+                    <Route
+                        path="/powiadomienia"
+                        element={
+                            <AuthenticatedRoute>
+                                <Notifications />
                             </AuthenticatedRoute>
                         }
                     />

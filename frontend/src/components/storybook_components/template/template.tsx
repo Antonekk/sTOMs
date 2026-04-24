@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import {Layout, Menu } from 'antd';
+import {Badge, Layout, Menu } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import type { Role } from '../../../types/auth';
 
@@ -10,6 +10,7 @@ interface TemplateProps {
   isAuthenticated: boolean;
   userName?: string;
   role?: Role;
+  unreadNotificationCount?: number;
   onLogoutClick?: () => void;
   onNavigate: (path: string) => void;
   children: ReactNode;
@@ -19,6 +20,7 @@ const Template: React.FC<TemplateProps> = ({
   isAuthenticated,
   userName,
   role,
+  unreadNotificationCount = 0,
   onLogoutClick,
   onNavigate,
   children,
@@ -65,10 +67,17 @@ const Template: React.FC<TemplateProps> = ({
           {isAuthenticated && (
             <Menu.SubMenu
               key="profile"
-              icon={<UserOutlined />}
+              icon={(
+                <Badge dot={unreadNotificationCount > 0} offset={[-2, 2]}>
+                  <UserOutlined />
+                </Badge>
+              )}
               title={userName ?? "Użytkownik"}
               style={{ marginLeft: 'auto' }}
             >
+              <Menu.Item key="powiadomienia" onClick={() => { onNavigate("/powiadomienia"); }}>
+                Powiadomienia
+              </Menu.Item>
               <Menu.Item key="profil" onClick={() => { onNavigate("/profil"); }}>
                 Profil
               </Menu.Item>

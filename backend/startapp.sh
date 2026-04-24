@@ -13,16 +13,18 @@ if [ "$DATABASE" = "postgres" ]; then
   echo "PostgreSQL is available"
 fi
 
-if [ "$RESET_DB_ON_START" = "1" ]; then
-  python manage.py reset_dev_database
+if [ "$SKIP_STARTUP_TASKS" != "1" ]; then
+  if [ "$RESET_DB_ON_START" = "1" ]; then
+    python manage.py reset_dev_database
+  fi
+
+  python manage.py migrate
+
+  if [ "$RESET_DB_ON_START" = "1" ]; then
+    python manage.py seed_dev_data
+  fi
+
+  python manage.py spectacular --color --file schema.yml
 fi
-
-python manage.py migrate
-
-if [ "$RESET_DB_ON_START" = "1" ]; then
-  python manage.py seed_dev_data
-fi
-
-python manage.py spectacular --color --file schema.yml
 
 exec "$@"

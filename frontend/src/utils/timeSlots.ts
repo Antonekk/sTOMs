@@ -56,6 +56,15 @@ export const formatDatePl = (isoDate: string): string => {
 
 export const formatTime = (time: string): string => time.slice(0, 5)
 
+export const formatDateTimePl = (isoDateTime: string): string =>
+    new Date(isoDateTime).toLocaleString("pl-PL", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    })
+
 export const isUpcomingVisit = (appointmentDate: string): boolean => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)

@@ -11,5 +11,6 @@ python-decouple
 drf-spectacular
 djoser
 django-constance[redis]
+django-recurrence
 celery[redis]
 redis
