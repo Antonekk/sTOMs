@@ -1,4 +1,3 @@
-
 services:
   backend:
     build: ./backend
@@ -12,6 +11,9 @@ services:
     env_file:
       - .env
       - docker/backend.dev.env
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       - db
 
@@ -42,6 +44,9 @@ services:
     env_file:
       - .env
       - docker/backend.dev.env
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       - db
       - redis
@@ -58,6 +63,9 @@ services:
     env_file:
       - .env
       - docker/backend.dev.env
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       - db
       - redis

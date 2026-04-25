@@ -5,6 +5,15 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 NAME_REGEX = re.compile(r"^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŻżŹź]+$")
+PHONE_NUMBER_REGEX = re.compile(r"^\+48\d{9}$")
+
+
+def validate_phone_number(value: str):
+    if not PHONE_NUMBER_REGEX.match(value):
+        raise ValidationError(
+            _("Numer telefonu musi zaczynać się od +48 i mieć 9 cyfr."),
+            code="invalid_phone_number",
+        )
 
 
 def validate_patient_age(value: date):

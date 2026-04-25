@@ -44,6 +44,19 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        # JWT views
+        "login": "10/minute",
+        "jwt_refresh": "30/minute",
+        "jwt_verify": "60/minute",
+        # Djoser anonymous requests
+        "user_register": "5/hour",
+        "user_activation": "20/hour",
+        "user_email": "3/hour",
+        "user_password_confirm": "10/hour",
+        # Djoser authenticated requests
+        "user_authenticated": "60/minute",
+    },
 }
 
 # Simple JWT setup
@@ -58,9 +71,9 @@ SIMPLE_JWT = {
 DJOSER = {
     "LOGIN_FIELD": "email",
     "PASSWORD_RESET_CONFIRM_URL": "haslo/reset/potwierdz/{uid}/{token}",
-    "EMAIL_FRONTEND_PROTOCOL": "http",
-    "EMAIL_FRONTEND_DOMAIN": "localhost:5173",
-    "EMAIL_FRONTEND_SITE_NAME": "sTOMs",
+    "EMAIL_FRONTEND_PROTOCOL": config("EMAIL_FRONTEND_PROTOCOL", default="http"),
+    "EMAIL_FRONTEND_DOMAIN": config("EMAIL_FRONTEND_DOMAIN", default="localhost:5173"),
+    "EMAIL_FRONTEND_SITE_NAME": config("EMAIL_FRONTEND_SITE_NAME", default="sTOMs"),
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
@@ -74,7 +87,6 @@ DJOSER = {
         "user_create_password_retype": "users.serializers.AppUserCreatePasswordRetypeSerializer",
         "current_user": "users.serializers.AppUserSerializer",
     },
-    # other settings
 }
 
 
@@ -224,13 +236,19 @@ CELERY_BEAT_SCHEDULE = {
 AUTH_USER_MODEL = "users.AppUser"
 
 # Email settings
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend",
+)
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default=EMAIL_HOST_USER or "noreply@localhost",
+)
 
 
 # CORS settings

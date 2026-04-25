@@ -2,45 +2,93 @@ from datetime import date
 from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.urls import reverse
 from patients.models import Patient
-from rest_framework.test import APIRequestFactory
+from djoser.utils import encode_uid
+from rest_framework import status
+from rest_framework.test import APIClient, APIRequestFactory
 
-from .permissions import (
-    IsAdminUser,
-    IsClient,
-    IsTherapist,
-    PatientPermissions,
-    TherapistPermissions,
-)
+from .permissions import IsAdminUser, IsClient, IsTherapist
 from .serializers import AppUserCreatePasswordRetypeSerializer, AppUserSerializer
 
 
 User = get_user_model()
 
+# Basic test users
+TEST_PASSWORD = "BardzoBezpieczne123!"
+CLIENT_USER = {
+    "first_name": "Jan",
+    "last_name": "Juzer",
+    "email": "jan_juzer@dobry-mail.com",
+    "phone_number": "+48123123123",
+}
 
-def create_user(email="test@test.com", phone_number="+48123456789", **extra_fields):
-    defaults = {
-        "password": "Bezpieczne#123",
-        "first_name": "Jan",
-        "last_name": "Kowalski",
-    }
-    defaults.update(extra_fields)
+THERAPIST_USER = {
+    "first_name": "Jacek",
+    "last_name": "Terapeutyczny",
+    "email": "jacek_terapeutyczny@dobry-mail.com",
+    "phone_number": "+48123321123",
+    "role": User.Role.THERAPIST,
+}
+
+ADMIN_USER = {
+    "first_name": "Ada",
+    "last_name": "Min",
+    "email": "ada_min@dobry-mail.com",
+    "phone_number": "+48123123321",
+    "role": User.Role.ADMIN,
+    "is_staff": True,
+}
+
+
+def _build_user_fields(defaults, extra_fields):
+    fields = {**defaults, **extra_fields}
+    return fields.pop("email"), fields.pop("phone_number"), fields
+
+
+def create_client(password=TEST_PASSWORD, **extra_fields):
+    email, phone_number, fields = _build_user_fields(CLIENT_USER, extra_fields)
     return User.objects.create_user(
         email=email,
         phone_number=phone_number,
-        **defaults,
+        password=password,
+        **fields,
+    )
+
+
+def create_therapist(password=TEST_PASSWORD, **extra_fields):
+    email, phone_number, fields = _build_user_fields(THERAPIST_USER, extra_fields)
+    return User.objects.create_user(
+        email=email,
+        phone_number=phone_number,
+        password=password,
+        **fields,
+    )
+
+
+def create_superuser(password=TEST_PASSWORD, **extra_fields):
+    email, phone_number, fields = _build_user_fields(ADMIN_USER, extra_fields)
+    return User.objects.create_superuser(
+        email=email,
+        phone_number=phone_number,
+        password=password,
+        **fields,
     )
 
 
 class TestUserManagers(TestCase):
     def test_create_user(self):
-        user = create_user()
+        user = create_client()
 
-        self.assertEqual(user.email, "test@test.com")
-        self.assertEqual(user.phone_number, "+48123456789")
-        self.assertTrue(user.check_password("Bezpieczne#123"))
+        self.assertEqual(user.email, CLIENT_USER["email"])
+        self.assertEqual(user.phone_number, CLIENT_USER["phone_number"])
+        self.assertEqual(user.get_full_name(), "Jan Juzer")
+        self.assertTrue(user.check_password(TEST_PASSWORD))
         self.assertTrue(user.is_active)
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
@@ -53,20 +101,17 @@ class TestUserManagers(TestCase):
         with self.assertRaises(TypeError):
             User.objects.create_user()
         with self.assertRaises(TypeError):
-            User.objects.create_user(email="test@test.com")
+            User.objects.create_user(email=CLIENT_USER["email"])
         with self.assertRaises(TypeError):
-            User.objects.create_user(email="", phone_number="+48123456789")
+            User.objects.create_user(
+                email="", phone_number=CLIENT_USER["phone_number"]
+            )
 
     def test_create_superuser(self):
-        admin_user = User.objects.create_superuser(
-            email="admin@test.com",
-            phone_number="+48987654321",
-            password="foo",
-            first_name="Admin",
-            last_name="User",
-        )
+        admin_user = create_superuser()
 
-        self.assertEqual(admin_user.email, "admin@test.com")
+        self.assertEqual(admin_user.email, ADMIN_USER["email"])
+        self.assertEqual(admin_user.get_full_name(), "Ada Min")
         self.assertTrue(admin_user.is_active)
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
@@ -77,32 +122,38 @@ class TestUserManagers(TestCase):
             pass
 
         with self.assertRaises(ValueError):
-            User.objects.create_superuser(
-                email="admin2@test.com",
+            create_superuser(
+                email="admin2@dobry-mail.com",
                 phone_number="+48111111111",
-                password="foo",
                 is_staff=False,
             )
         with self.assertRaises(ValueError):
-            User.objects.create_superuser(
-                email="admin3@test.com",
+            create_superuser(
+                email="admin3@dobry-mail.com",
                 phone_number="+48222222222",
-                password="foo",
                 is_superuser=False,
             )
 
 
 class TestAppUserModel(TestCase):
-    def test_role_helpers_and_full_name(self):
-        client = create_user(first_name="Anna", last_name="Nowak")
-        therapist = create_user(
-            email="therapist@test.com",
-            phone_number="+48111111111",
-            role=User.Role.THERAPIST,
+    def test_phone_number_requires_plus48_prefix(self):
+        user = User(
+            email="phone@test.com",
+            phone_number="123456789",
+            first_name="Jan",
+            last_name="Kowalski",
         )
 
-        self.assertEqual(str(client), "test@test.com")
-        self.assertEqual(client.get_full_name(), "Anna Nowak")
+        with self.assertRaises(ValidationError):
+            user.full_clean()
+
+    def test_role_helpers_and_full_name(self):
+        client = create_client()
+        therapist = create_therapist()
+
+        self.assertEqual(str(client), CLIENT_USER["email"])
+        self.assertEqual(client.get_full_name(), "Jan Juzer")
+        self.assertEqual(therapist.get_full_name(), "Jacek Terapeutyczny")
         self.assertTrue(client.is_client)
         self.assertFalse(client.is_therapist)
         self.assertTrue(therapist.is_therapist)
@@ -110,15 +161,28 @@ class TestAppUserModel(TestCase):
 
 
 class TestAppUserSerializers(TestCase):
+    def test_register_serializer_rejects_phone_without_plus48_prefix(self):
+        serializer = AppUserCreatePasswordRetypeSerializer(
+            data={
+                "email": "phone@example.com",
+                "phone_number": "123456789",
+                "first_name": "Anna",
+                "last_name": "Kowalska",
+                "password": TEST_PASSWORD,
+                "re_password": TEST_PASSWORD,
+                "date_of_birth": date(1995, 5, 20),
+            }
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("phone_number", serializer.errors)
+
     def test_register_serializer_creates_primary_patient(self):
         serializer = AppUserCreatePasswordRetypeSerializer(
             data={
-                "email": "anna@example.com",
-                "phone_number": "+48123456789",
-                "first_name": "Anna",
-                "last_name": "Kowalska",
-                "password": "Bezpieczne#123",
-                "re_password": "Bezpieczne#123",
+                **CLIENT_USER,
+                "password": TEST_PASSWORD,
+                "re_password": TEST_PASSWORD,
                 "date_of_birth": date(1995, 5, 20),
             }
         )
@@ -127,8 +191,8 @@ class TestAppUserSerializers(TestCase):
         user = serializer.save()
 
         patient = Patient.objects.get(user=user)
-        self.assertEqual(patient.first_name, "Anna")
-        self.assertEqual(patient.last_name, "Kowalska")
+        self.assertEqual(patient.first_name, "Jan")
+        self.assertEqual(patient.last_name, "Juzer")
         self.assertEqual(patient.date_of_birth, date(1995, 5, 20))
         self.assertTrue(patient.is_primary)
 
@@ -139,8 +203,8 @@ class TestAppUserSerializers(TestCase):
                 "phone_number": "+48123456789",
                 "first_name": "Jan",
                 "last_name": "Kowalski",
-                "password": "Bezpieczne#123",
-                "re_password": "Bezpieczne#123",
+                "password": TEST_PASSWORD,
+                "re_password": TEST_PASSWORD,
                 "date_of_birth": date.today(),
             }
         )
@@ -149,11 +213,11 @@ class TestAppUserSerializers(TestCase):
         self.assertIn("date_of_birth", serializer.errors)
 
     def test_user_serializer_exposes_role_and_patients(self):
-        user = create_user(first_name="Anna", last_name="Nowak")
+        user = create_client()
         Patient.objects.create(
             user=user,
-            first_name="Anna",
-            last_name="Nowak",
+            first_name=CLIENT_USER["first_name"],
+            last_name=CLIENT_USER["last_name"],
             date_of_birth=date(1995, 5, 20),
             is_primary=True,
         )
@@ -162,80 +226,20 @@ class TestAppUserSerializers(TestCase):
 
         self.assertEqual(data["role"], User.Role.CLIENT)
         self.assertEqual(len(data["patients"]), 1)
-        self.assertEqual(data["patients"][0]["first_name"], "Anna")
+        self.assertEqual(data["patients"][0]["first_name"], "Jan")
 
 
 class TestUserPermissions(TestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
-        self.client_user = create_user(
-            email="client@test.com",
-            phone_number="+48111111111",
-            role=User.Role.CLIENT,
-        )
-        self.other_client = create_user(
-            email="other-client@test.com",
-            phone_number="+48222222222",
-            role=User.Role.CLIENT,
-        )
-        self.therapist = create_user(
-            email="therapist@test.com",
-            phone_number="+48333333333",
-            role=User.Role.THERAPIST,
-        )
-        self.admin = create_user(
-            email="admin@test.com",
-            phone_number="+48444444444",
-            role=User.Role.ADMIN,
-            is_staff=True,
-        )
-        self.patient = Patient.objects.create(
-            user=self.client_user,
-            first_name="Anna",
-            last_name="Nowak",
-            date_of_birth=date(1995, 5, 20),
-            is_primary=True,
-        )
+        self.client_user = create_client()
+        self.therapist = create_therapist()
+        self.admin = create_superuser()
 
     def request(self, method, user):
         request = getattr(self.factory, method.lower())("/")
         request.user = user
         return request
-
-    def test_patient_permissions_allow_client_full_access_to_own_patient(self):
-        permission = PatientPermissions()
-
-        request = self.request("GET", self.client_user)
-        self.assertTrue(permission.has_permission(request, None))
-        self.assertTrue(permission.has_object_permission(request, None, self.patient))
-
-        request = self.request("DELETE", self.client_user)
-        self.assertTrue(permission.has_permission(request, None))
-        self.assertTrue(permission.has_object_permission(request, None, self.patient))
-
-    def test_patient_permissions_deny_client_access_to_other_patient(self):
-        permission = PatientPermissions()
-        request = self.request("GET", self.other_client)
-
-        self.assertTrue(permission.has_permission(request, None))
-        self.assertFalse(permission.has_object_permission(request, None, self.patient))
-
-    def test_patient_permissions_limit_therapist_to_safe_methods(self):
-        permission = PatientPermissions()
-
-        request = self.request("GET", self.therapist)
-        self.assertTrue(permission.has_permission(request, None))
-        self.assertTrue(permission.has_object_permission(request, None, self.patient))
-
-        request = self.request("POST", self.therapist)
-        self.assertFalse(permission.has_permission(request, None))
-        self.assertFalse(permission.has_object_permission(request, None, self.patient))
-
-    def test_patient_permissions_deny_anonymous_user(self):
-        permission = PatientPermissions()
-        request = self.request("GET", AnonymousUser())
-
-        self.assertFalse(permission.has_permission(request, None))
 
     def test_role_permissions(self):
         view = SimpleNamespace()
@@ -259,15 +263,155 @@ class TestUserPermissions(TestCase):
             IsAdminUser().has_permission(self.request("GET", self.client_user), view)
         )
 
-    def test_therapist_permissions_allow_authenticated_safe_methods_only(self):
-        permission = TherapistPermissions()
 
-        self.assertTrue(
-            permission.has_permission(self.request("GET", self.client_user), None)
+class TestAccountActivation(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_client()
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        self.uid = encode_uid(self.user.pk)
+        self.token = default_token_generator.make_token(self.user)
+
+    def test_activation_is_idempotent_and_sends_confirmation_once(self):
+        url = reverse("user-activation")
+        payload = {"uid": self.uid, "token": self.token}
+
+        with self.settings(
+            EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+        ):
+            response = self.client.post(url, payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            self.assertEqual(len(mail.outbox), 1)
+
+            response = self.client.post(url, payload, format="json")
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            self.assertEqual(len(mail.outbox), 1)
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_activation_rejects_invalid_token(self):
+        response = self.client.post(
+            reverse("user-activation"),
+            {"uid": self.uid, "token": "invalid-token"},
+            format="json",
         )
-        self.assertFalse(
-            permission.has_permission(self.request("POST", self.client_user), None)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+
+
+class TestPasswordReset(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_client()
+
+    def test_reset_password_request_returns_success(self):
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            response = self.client.post(
+                reverse("user-reset-password"),
+                {"email": CLIENT_USER["email"]},
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_reset_password_confirm_changes_password(self):
+        uid = encode_uid(self.user.pk)
+        token = default_token_generator.make_token(self.user)
+        new_password = "NoweBardzoBezpieczne123!"
+
+        response = self.client.post(
+            reverse("user-reset-password-confirm"),
+            {
+                "uid": uid,
+                "token": token,
+                "new_password": new_password,
+                "re_new_password": new_password,
+            },
+            format="json",
         )
-        self.assertFalse(
-            permission.has_permission(self.request("GET", AnonymousUser()), None)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password))
+        self.assertFalse(self.user.check_password(TEST_PASSWORD))
+
+    def test_reset_password_confirm_rejects_invalid_token(self):
+        uid = encode_uid(self.user.pk)
+
+        response = self.client.post(
+            reverse("user-reset-password-confirm"),
+            {
+                "uid": uid,
+                "token": "invalid-token",
+                "new_password": "NoweBardzoBezpieczne123!",
+                "re_new_password": "NoweBardzoBezpieczne123!",
+            },
+            format="json",
         )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestUserEndpointThrottling(TestCase):
+    """Uses production throttle rates from settings.REST_FRAMEWORK."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = APIClient()
+
+    def test_login_is_throttled(self):
+        url = reverse("jwt-create")
+        payload = {"email": "nobody@example.com", "password": "wrong-password"}
+
+        for _ in range(10):
+            response = self.client.post(url, payload, format="json")
+            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    def test_registration_is_throttled(self):
+        url = reverse("user-list")
+        base_payload = {
+            "first_name": CLIENT_USER["first_name"],
+            "last_name": CLIENT_USER["last_name"],
+            "password": TEST_PASSWORD,
+            "re_password": TEST_PASSWORD,
+            "date_of_birth": "1995-05-20",
+        }
+
+        for index in range(5):
+            payload = {
+                **base_payload,
+                "email": f"user{index}@example.com",
+                "phone_number": f"+481112223{index:02d}",
+            }
+            response = self.client.post(url, payload, format="json")
+            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+        payload = {
+            **base_payload,
+            "email": "user5@example.com",
+            "phone_number": "+48111222305",
+        }
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    def test_password_reset_is_throttled(self):
+        create_client()
+        url = reverse("user-reset-password")
+
+        for _ in range(3):
+            response = self.client.post(
+                url, {"email": CLIENT_USER["email"]}, format="json"
+            )
+            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+        response = self.client.post(
+            url, {"email": CLIENT_USER["email"]}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

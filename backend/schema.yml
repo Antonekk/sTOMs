@@ -1233,7 +1233,7 @@ components:
         phone_number:
           type: string
           title: Numer telefonu
-          pattern: ^(?:\+48)?\d{9}$
+          pattern: ^\+48\d{9}$
           maxLength: 15
         first_name:
           type: string
@@ -1272,7 +1272,7 @@ components:
         phone_number:
           type: string
           title: Numer telefonu
-          pattern: ^(?:\+48)?\d{9}$
+          pattern: ^\+48\d{9}$
           maxLength: 15
         first_name:
           type: string
@@ -1376,7 +1376,7 @@ components:
         phone_number:
           type: string
           title: Numer telefonu
-          pattern: ^(?:\+48)?\d{9}$
+          pattern: ^\+48\d{9}$
           maxLength: 15
         first_name:
           type: string

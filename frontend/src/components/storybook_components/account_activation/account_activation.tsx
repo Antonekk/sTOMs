@@ -6,6 +6,7 @@ export interface AccountActivationProps {
     title: string;
     subTitle: string;
     onClick: () => void;
+    buttonLabel?: string;
 }
 
 
@@ -14,6 +15,7 @@ const AccountActivation: React.FC<AccountActivationProps> = ({
     title,
     subTitle,
     onClick,
+    buttonLabel,
 }) => (
   <Result
       status={success ? "success" : "error"}
@@ -21,7 +23,7 @@ const AccountActivation: React.FC<AccountActivationProps> = ({
       subTitle={subTitle}
       extra={[
         <Button type="primary" key="login" onClick={onClick}>
-          {success ? "Zaloguj się" : "Zarejestruj się"}
+          {buttonLabel ?? (success ? "Zaloguj się" : "Zarejestruj się")}
         </Button>,
       ]}
     />

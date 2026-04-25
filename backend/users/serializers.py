@@ -6,7 +6,7 @@ from rest_framework import serializers
 from patients.models import Patient
 from patients.serializers import PatientSerializer
 
-from .validators import validate_patient_age_primary
+from .validators import validate_patient_age_primary, validate_phone_number
 
 User = get_user_model()
 
@@ -28,6 +28,10 @@ class AppUserCreatePasswordRetypeSerializer(UserCreatePasswordRetypeSerializer):
     class Meta:
         model = User
         fields = UserCreatePasswordRetypeSerializer.Meta.fields + ("date_of_birth",)
+
+    def validate_phone_number(self, value):
+        validate_phone_number(value)
+        return value
 
     def validate_date_of_birth(self, value):
         return validate_patient_age_primary(value)

@@ -37,6 +37,17 @@ export interface ActivateData{
     token?: string;
 }
 
+export interface PasswordResetRequestData {
+    email: string;
+}
+
+export interface PasswordResetConfirmData {
+    uid: string;
+    token: string;
+    new_password: string;
+    re_new_password: string;
+}
+
 
 
 export interface User{

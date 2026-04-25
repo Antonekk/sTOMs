@@ -5,6 +5,8 @@ export const AUTH_ENDPOINTS = {
     LOGIN: "/api/jwt/create/",
     REFRESH: "/api/jwt/refresh/",
     ACTIVATE: "/api/users/activation/",
+    RESET_PASSWORD: "/api/users/reset_password/",
+    RESET_PASSWORD_CONFIRM: "/api/users/reset_password_confirm/",
     ME: "api/users/me/",
     CONFIG: "/api/config/",
 }

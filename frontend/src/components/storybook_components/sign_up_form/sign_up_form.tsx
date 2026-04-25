@@ -2,6 +2,11 @@ import React from "react";
 import {Card, Form, Input, Button, DatePicker, Space} from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import {
+    formatPhoneNumber,
+    PHONE_PREFIX,
+    phoneLocalFormRules,
+} from "../../../utils/phone";
 
 
 export interface SignUpFormValues {
@@ -26,7 +31,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
     const onFinish = (values: SignUpFormValues) => {
         const submissionValues = {
             ...values,
-            phone_number: `+48${values.phone_number}`,
+            phone_number: formatPhoneNumber(values.phone_number),
         };
         void onSubmit(submissionValues);
     };
@@ -83,20 +88,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
 
             <Form.Item label="Numer telefonu" required>
                 <Space.Compact style={{ width: '100%' }}>
-                    <Input style={{ width: '60px' }} defaultValue="+48" disabled />
+                    <Input style={{ width: '60px' }} defaultValue={PHONE_PREFIX} disabled />
                     <Form.Item
                         name="phone_number"
                         noStyle
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Podaj swój numer telefonu',
-                            },
-                            {
-                                pattern: /^\d{9}$/,
-                                message: 'Podaj poprawny numer telefonu (9 cyfr)',
-                            },
-                        ]}
+                        rules={[...phoneLocalFormRules]}
                     >
                         <Input style={{ flex: 1 }} />
                     </Form.Item>

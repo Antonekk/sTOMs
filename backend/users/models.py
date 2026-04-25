@@ -7,9 +7,12 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .managers import AppUserManager
-from .validators import validate_only_letters
+from .validators import PHONE_NUMBER_REGEX, validate_only_letters
 
-phone_validator = RegexValidator(r"^(?:\+48)?\d{9}$", _("Invalid phone number"))
+phone_validator = RegexValidator(
+    PHONE_NUMBER_REGEX.pattern,
+    _("Numer telefonu musi zaczynać się od +48 i mieć 9 cyfr."),
+)
 
 
 class AppUser(AbstractBaseUser, PermissionsMixin):

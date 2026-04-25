@@ -5,6 +5,8 @@ import NotFound from "../pages/NotFound"
 import Home from "../pages/Home"
 import WeeklySchedule from "../pages/WeeklySchedule";
 import ActivateAccount from "../pages/ActivateAccount"
+import ForgotPassword from "../pages/ForgotPassword"
+import ResetPassword from "../pages/ResetPassword"
 import {AuthenticatedRoute, RoleRoute, NonAuthenticatedRoute} from "../auth/Protectors"
 import Layout from "../layouts/Layout";
 import type React from "react";
@@ -58,6 +60,22 @@ const Router: React.FC = () => {
                         element={
                             <NonAuthenticatedRoute>
                                 <ActivateAccount/>
+                            </NonAuthenticatedRoute>
+                        }
+                    />
+                    <Route
+                        path="/haslo/reset"
+                        element={
+                            <NonAuthenticatedRoute>
+                                <ForgotPassword />
+                            </NonAuthenticatedRoute>
+                        }
+                    />
+                    <Route
+                        path="/haslo/reset/potwierdz/:uid/:token"
+                        element={
+                            <NonAuthenticatedRoute>
+                                <ResetPassword />
                             </NonAuthenticatedRoute>
                         }
                     />

@@ -1,6 +1,17 @@
 import api from "./api"
 import { AUTH_ENDPOINTS } from "./endpoints"
-import type { LoginData, LoginResponse, RegisterData, RefreshTokenData, RefreshTokenResponse ,ActivateData, User, AppConfig } from "../types/auth"
+import type {
+    ActivateData,
+    AppConfig,
+    LoginData,
+    LoginResponse,
+    PasswordResetConfirmData,
+    PasswordResetRequestData,
+    RefreshTokenData,
+    RefreshTokenResponse,
+    RegisterData,
+    User,
+} from "../types/auth"
 
 
 export const register = (data: RegisterData) => api.post(AUTH_ENDPOINTS.REGISTER, data)
@@ -10,6 +21,12 @@ export const login = (data: LoginData) => api.post<LoginResponse>(AUTH_ENDPOINTS
 export const tokenRefresh = (data: RefreshTokenData) => api.post<RefreshTokenResponse>(AUTH_ENDPOINTS.REFRESH, data )
 
 export const activate = (data: ActivateData) => api.post(AUTH_ENDPOINTS.ACTIVATE, data)
+
+export const requestPasswordReset = (data: PasswordResetRequestData) =>
+    api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data)
+
+export const confirmPasswordReset = (data: PasswordResetConfirmData) =>
+    api.post(AUTH_ENDPOINTS.RESET_PASSWORD_CONFIRM, data)
 
 export const getMe = () => api.get<User>(AUTH_ENDPOINTS.ME);
 

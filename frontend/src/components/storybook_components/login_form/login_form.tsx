@@ -1,5 +1,6 @@
 import React from "react";
-import {Card, Form, Input, Button} from 'antd';
+import { Link } from "react-router-dom";
+import { Card, Form, Input, Button, Typography } from "antd";
 
 
 export interface LoginFormValues {
@@ -21,7 +22,7 @@ const SignUpForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
     };
 
     return (
-    <Card title="Lowowanie" style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
+    <Card title="Logowanie" style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
         <Form
             form={form}
             name="registration_form"
@@ -65,6 +66,10 @@ const SignUpForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
                     Zaloguj się
                 </Button>
             </Form.Item>
+
+            <Typography.Text>
+                <Link to="/haslo/reset">Nie pamiętasz hasła?</Link>
+            </Typography.Text>
 
         </Form>
     </Card>

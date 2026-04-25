@@ -101,6 +101,7 @@ class ReservationDetailView(APIView):
 
 class VisitListView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AppointmentClientSerializer
 
     def get_queryset(self, request):
         user = request.user
@@ -132,8 +133,9 @@ class VisitListView(APIView):
 
         return queryset.order_by("appointment_date", "appointment_series__start_time")
 
-    def get_serializer_class(self, request):
-        if request.user.role == AppUser.Role.THERAPIST:
+    def get_serializer_class(self):
+        request = getattr(self, "request", None)
+        if request and request.user.role == AppUser.Role.THERAPIST:
             return AppointmentTherapistSerializer
         return AppointmentClientSerializer
 
@@ -146,7 +148,7 @@ class VisitListView(APIView):
         ensure_horizon_for_queryset(
             AppointmentSeries.objects.filter(id__in=series_ids)
         )
-        serializer_class = self.get_serializer_class(request)
+        serializer_class = self.get_serializer_class()
         serializer = serializer_class(queryset, many=True)
         return Response(serializer.data)
 
