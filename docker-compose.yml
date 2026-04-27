@@ -16,6 +16,7 @@ services:
       - 8.8.4.4
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:16

@@ -56,7 +56,18 @@ REST_FRAMEWORK = {
         "user_password_confirm": "10/hour",
         # Djoser authenticated requests
         "user_authenticated": "60/minute",
+        # Patient profiles (authenticated clients)
+        "patients": "60/minute",
     },
+}
+
+CACHE_URL = os.environ.get("CACHE_URL", "redis://redis:6379/1")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": CACHE_URL,
+    }
 }
 
 # Simple JWT setup
@@ -97,6 +108,11 @@ CONSTANCE_CONFIG = {
     "AVAILABILITY_MAX_RANGE_DAYS": (14, "Maksymalny zakres zapytań GET /availability"),
     "CANCELLATION_WINDOW_HOURS": (6, "Minimalny czas przed wizytą do anulowania (godz.)"),
     "REMINDER_HOURS_BEFORE": (24, "Ile godzin przed wizytą wysłać przypomnienie"),
+    "MAX_PATIENTS_PER_CLIENT": (5, "Maksymalna liczba aktywnych pacjentów na klienta"),
+    "PATIENT_LIST_CACHE_TIMEOUT": (
+        300,
+        "Czas życia cache listy i szczegółów pacjentów (sek.)",
+    ),
 }
 
 

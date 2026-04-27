@@ -1,10 +1,17 @@
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import TestCase, override_settings
+from patients.cache_utils import (
+    get_cached_patient_detail,
+    get_cached_patient_list,
+)
+from constance import config
 from patients.models import Patient
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APITestCase
 
 from users.serializers import AppUserCreatePasswordRetypeSerializer
 
@@ -130,14 +137,48 @@ class TestPatientAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["first_name"], "Maria")
-        self.assertEqual(response.data["last_name"], "Kowalska")
+        self.assertEqual(response.data["last_name"], "Kowalski")
         self.assertEqual(response.data["birthday"], "2020-03-10")
         self.assertFalse(response.data["is_primary"])
         self.assertTrue(response.data["is_active"])
 
-        patient = Patient.objects.get(first_name="Maria", last_name="Kowalska")
+        patient = Patient.objects.get(first_name="Maria", last_name="Kowalski")
         self.assertEqual(patient.user, self.client_user)
         self.assertFalse(patient.is_primary)
+
+    def test_create_duplicate_patient_returns_readable_error(self):
+        self.authenticate(self.client_user)
+
+        payload = {
+            "first_name": self.child_patient.first_name,
+            "last_name": self.child_patient.last_name,
+            "birthday": self.child_patient.date_of_birth.isoformat(),
+        }
+        response = self.client.post("/api/patients/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            "już istnieje",
+            str(response.data),
+        )
+
+    def test_create_duplicate_soft_deleted_patient_suggests_restore(self):
+        self.child_patient.is_active = False
+        self.child_patient.save()
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            "/api/patients/",
+            {
+                "first_name": self.child_patient.first_name,
+                "last_name": self.child_patient.last_name,
+                "birthday": self.child_patient.date_of_birth.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Przywróć", str(response.data))
 
     def test_retrieve_own_patient(self):
         self.authenticate(self.client_user)
@@ -233,3 +274,202 @@ class TestPatientAPI(APITestCase):
         response = self.client.get("/api/patients/")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_restore_soft_deleted_patient(self):
+        self.child_patient.is_active = False
+        self.child_patient.save()
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            f"/api/patients/{self.child_patient.id}/restore/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_active"])
+        self.child_patient.refresh_from_db()
+        self.assertTrue(self.child_patient.is_active)
+
+        list_response = self.client.get("/api/patients/")
+        returned_ids = {item["id"] for item in list_response.data}
+        self.assertIn(str(self.child_patient.id), returned_ids)
+
+    def test_restore_active_patient_returns_404(self):
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            f"/api/patients/{self.child_patient.id}/restore/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_restore_blocked_when_patient_limit_reached(self):
+        self.child_patient.is_active = False
+        self.child_patient.save()
+        extra_slots = config.MAX_PATIENTS_PER_CLIENT - 1
+        for index in range(extra_slots):
+            create_patient(
+                self.client_user,
+                first_name=f"Extra{index}",
+                last_name="Pacjent",
+                date_of_birth=date(2016, 1, 1 + index),
+            )
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            f"/api/patients/{self.child_patient.id}/restore/"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.child_patient.refresh_from_db()
+        self.assertFalse(self.child_patient.is_active)
+
+    def test_create_rejected_at_max_patients_per_client(self):
+        extra_needed = config.MAX_PATIENTS_PER_CLIENT - 2
+        for index in range(extra_needed):
+            create_patient(
+                self.client_user,
+                first_name=f"Child{index}",
+                last_name="Kowalski",
+                date_of_birth=date(2017, 2, 1 + index),
+            )
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            "/api/patients/",
+            {
+                "first_name": "Maria",
+                "last_name": "Kowalski",
+                "birthday": "2020-03-10",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(
+            Patient.objects.filter(
+                user=self.client_user,
+                first_name="Maria",
+                last_name="Kowalski",
+                is_active=True,
+            ).exists()
+        )
+
+    def test_soft_deleted_patients_do_not_count_toward_limit(self):
+        for index in range(config.MAX_PATIENTS_PER_CLIENT - 2):
+            create_patient(
+                self.client_user,
+                first_name=f"Slot{index}",
+                last_name="Kowalski",
+                date_of_birth=date(2016, 3, 1 + index),
+            )
+        self.child_patient.is_active = False
+        self.child_patient.save()
+        self.authenticate(self.client_user)
+
+        response = self.client.post(
+            "/api/patients/",
+            {
+                "first_name": "Zofia",
+                "last_name": "Kowalski",
+                "birthday": "2021-05-05",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_list_response_is_cached(self):
+        cache.clear()
+        self.authenticate(self.client_user)
+
+        self.client.get("/api/patients/")
+        cached = get_cached_patient_list(self.client_user.id)
+        self.assertIsNotNone(cached)
+        self.assertEqual(len(cached), 2)
+
+    def test_list_cache_invalidated_after_create(self):
+        cache.clear()
+        self.authenticate(self.client_user)
+        self.client.get("/api/patients/")
+        self.assertIsNotNone(get_cached_patient_list(self.client_user.id))
+
+        self.client.post(
+            "/api/patients/",
+            {
+                "first_name": "Ewa",
+                "last_name": "Kowalski",
+                "birthday": "2019-08-12",
+            },
+            format="json",
+        )
+
+        self.assertIsNone(get_cached_patient_list(self.client_user.id))
+
+    def test_retrieve_response_is_cached(self):
+        cache.clear()
+        self.authenticate(self.client_user)
+
+        self.client.get(f"/api/patients/{self.child_patient.id}/")
+        cached = get_cached_patient_detail(
+            self.client_user.id, self.child_patient.id
+        )
+        self.assertIsNotNone(cached)
+        self.assertEqual(cached["first_name"], "Tomasz")
+
+    def test_detail_cache_invalidated_after_update(self):
+        cache.clear()
+        self.authenticate(self.client_user)
+        self.client.get(f"/api/patients/{self.child_patient.id}/")
+        self.assertIsNotNone(
+            get_cached_patient_detail(
+                self.client_user.id, self.child_patient.id
+            )
+        )
+
+        self.client.put(
+            f"/api/patients/{self.child_patient.id}/",
+            {
+                "first_name": "Tomek",
+                "last_name": "Kowalski",
+                "birthday": "2018-04-15",
+            },
+            format="json",
+        )
+
+        self.assertIsNone(
+            get_cached_patient_detail(
+                self.client_user.id, self.child_patient.id
+            )
+        )
+
+
+@override_settings(
+    REST_FRAMEWORK={
+        **settings.REST_FRAMEWORK,
+        "DEFAULT_THROTTLE_RATES": {
+            **settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+            "patients": "3/minute",
+        },
+    }
+)
+class TestPatientEndpointThrottling(APITestCase):
+    def setUp(self):
+        cache.clear()
+        self.client_user = create_client()
+        create_patient(self.client_user, is_primary=True)
+        self.authenticate(self.client_user)
+
+    def authenticate(self, user):
+        self.client.force_authenticate(user=user)
+
+    def test_patients_list_is_throttled(self):
+        url = "/api/patients/"
+
+        for _ in range(3):
+            response = self.client.get(url)
+            self.assertNotEqual(
+                response.status_code, status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
