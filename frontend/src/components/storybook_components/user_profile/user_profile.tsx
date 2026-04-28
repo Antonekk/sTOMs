@@ -3,22 +3,22 @@ import { UserOutlined } from "@ant-design/icons";
 import type React from "react";
 import type { User } from "../../../types/auth";
 import AccountDetails from "./account_details";
-import PatientList from "./patient_list";
+import PatientList, { type PatientListAction } from "./patient_list";
 
 const { Text, Title } = Typography;
 
 export interface UserProfileProps {
     user: User;
     onNavigate: (path: string) => void;
-    onDeletePatient?: (patientId: string) => Promise<void>;
-    deletingPatientId?: string | null;
+    onAction?: (action: PatientListAction, patientId: string) => Promise<void>;
+    patientId?: string | null;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
     user,
     onNavigate,
-    onDeletePatient,
-    deletingPatientId,
+    onAction,
+    patientId,
 }) => (
     <Space orientation="vertical" size="large" style={{ width: "100%" }}>
         <Card>
@@ -38,8 +38,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <PatientList
                 patients={user.patients}
                 onNavigate={onNavigate}
-                onDeletePatient={onDeletePatient}
-                deletingPatientId={deletingPatientId}
+                onAction={onAction}
+                patientId={patientId}
             />
         )}
     </Space>

@@ -4,14 +4,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import TestCase, override_settings
-from patients.cache_utils import (
-    get_cached_patient_detail,
-    get_cached_patient_list,
-)
 from constance import config
 from patients.models import Patient
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework.throttling import ScopedRateThrottle
 
 from users.serializers import AppUserCreatePasswordRetypeSerializer
 
@@ -100,6 +97,29 @@ class TestPatientAPI(APITestCase):
     def authenticate(self, user):
         self.client.force_authenticate(user=user)
 
+    def test_list_inactive_returns_only_soft_deleted_patients(self):
+        self.child_patient.is_active = False
+        self.child_patient.save()
+        inactive = create_patient(
+            self.client_user,
+            first_name="Inactive",
+            last_name="Patient",
+            date_of_birth=date(2015, 6, 1),
+            is_active=False,
+        )
+        self.authenticate(self.client_user)
+
+        response = self.client.get("/api/patients/", {"is_active": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        returned_ids = {item["id"] for item in response.data}
+        self.assertIn(str(self.child_patient.id), returned_ids)
+        self.assertIn(str(inactive.id), returned_ids)
+        self.assertNotIn(str(self.primary_patient.id), returned_ids)
+        for item in response.data:
+            self.assertFalse(item["is_active"])
+
     def test_list_returns_only_active_patients_for_client(self):
         inactive = create_patient(
             self.client_user,
@@ -178,7 +198,7 @@ class TestPatientAPI(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Przywróć", str(response.data))
+        self.assertIn("przywróć", str(response.data))
 
     def test_retrieve_own_patient(self):
         self.authenticate(self.client_user)
@@ -378,86 +398,21 @@ class TestPatientAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_list_response_is_cached(self):
-        cache.clear()
-        self.authenticate(self.client_user)
-
-        self.client.get("/api/patients/")
-        cached = get_cached_patient_list(self.client_user.id)
-        self.assertIsNotNone(cached)
-        self.assertEqual(len(cached), 2)
-
-    def test_list_cache_invalidated_after_create(self):
-        cache.clear()
-        self.authenticate(self.client_user)
-        self.client.get("/api/patients/")
-        self.assertIsNotNone(get_cached_patient_list(self.client_user.id))
-
-        self.client.post(
-            "/api/patients/",
-            {
-                "first_name": "Ewa",
-                "last_name": "Kowalski",
-                "birthday": "2019-08-12",
-            },
-            format="json",
-        )
-
-        self.assertIsNone(get_cached_patient_list(self.client_user.id))
-
-    def test_retrieve_response_is_cached(self):
-        cache.clear()
-        self.authenticate(self.client_user)
-
-        self.client.get(f"/api/patients/{self.child_patient.id}/")
-        cached = get_cached_patient_detail(
-            self.client_user.id, self.child_patient.id
-        )
-        self.assertIsNotNone(cached)
-        self.assertEqual(cached["first_name"], "Tomasz")
-
-    def test_detail_cache_invalidated_after_update(self):
-        cache.clear()
-        self.authenticate(self.client_user)
-        self.client.get(f"/api/patients/{self.child_patient.id}/")
-        self.assertIsNotNone(
-            get_cached_patient_detail(
-                self.client_user.id, self.child_patient.id
-            )
-        )
-
-        self.client.put(
-            f"/api/patients/{self.child_patient.id}/",
-            {
-                "first_name": "Tomek",
-                "last_name": "Kowalski",
-                "birthday": "2018-04-15",
-            },
-            format="json",
-        )
-
-        self.assertIsNone(
-            get_cached_patient_detail(
-                self.client_user.id, self.child_patient.id
-            )
-        )
-
-
-@override_settings(
-    REST_FRAMEWORK={
-        **settings.REST_FRAMEWORK,
-        "DEFAULT_THROTTLE_RATES": {
-            **settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
-            "patients": "3/minute",
-        },
-    }
-)
 class TestPatientEndpointThrottling(APITestCase):
     def setUp(self):
         cache.clear()
+        self._original_throttle_rates = ScopedRateThrottle.THROTTLE_RATES
+        ScopedRateThrottle.THROTTLE_RATES = {
+            **self._original_throttle_rates,
+            "patients": "3/minute",
+        }
         self.client_user = create_client()
         create_patient(self.client_user, is_primary=True)
         self.authenticate(self.client_user)
+
+    def tearDown(self):
+        ScopedRateThrottle.THROTTLE_RATES = self._original_throttle_rates
+        super().tearDown()
 
     def authenticate(self, user):
         self.client.force_authenticate(user=user)

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -35,8 +36,9 @@ DEBUG = bool(os.environ.get("DEBUG", default=0))
 ALLOWED_HOSTS = ["*"]
 
 
-# Setting up JWT authentication
+
 REST_FRAMEWORK = {
+    # Setting up JWT authentication
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -63,12 +65,19 @@ REST_FRAMEWORK = {
 
 CACHE_URL = os.environ.get("CACHE_URL", "redis://redis:6379/1")
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": CACHE_URL,
+if "test" in sys.argv:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": CACHE_URL,
+        }
+    }
 
 # Simple JWT setup
 SIMPLE_JWT = {
@@ -109,10 +118,6 @@ CONSTANCE_CONFIG = {
     "CANCELLATION_WINDOW_HOURS": (6, "Minimalny czas przed wizytą do anulowania (godz.)"),
     "REMINDER_HOURS_BEFORE": (24, "Ile godzin przed wizytą wysłać przypomnienie"),
     "MAX_PATIENTS_PER_CLIENT": (5, "Maksymalna liczba aktywnych pacjentów na klienta"),
-    "PATIENT_LIST_CACHE_TIMEOUT": (
-        300,
-        "Czas życia cache listy i szczegółów pacjentów (sek.)",
-    ),
 }
 
 

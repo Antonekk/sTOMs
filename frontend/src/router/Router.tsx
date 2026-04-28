@@ -14,6 +14,7 @@ import ScheduleOverrides from "../pages/ScheduleOverrides"
 import Profile from "../pages/Profile";
 import PatientNew from "../pages/PatientNew";
 import PatientEdit from "../pages/PatientEdit";
+import PatientRestore from "../pages/PatientRestore";
 import Reservations from "../pages/Reservations";
 import ReservationNew from "../pages/ReservationNew";
 import ReservationDetail from "../pages/ReservationDetail";
@@ -111,6 +112,15 @@ const Router: React.FC = () => {
                         element={
                             <RoleRoute role="CLIENT">
                                 <PatientEdit />
+                            </RoleRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/pacjenci/przywroc"
+                        element={
+                            <RoleRoute role="CLIENT">
+                                <PatientRestore />
                             </RoleRoute>
                         }
                     />

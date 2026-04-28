@@ -1,13 +1,22 @@
 import { Button, Card, Empty, List, Popconfirm, Space, Tag } from "antd";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    ArrowLeftOutlined,
+    EditOutlined,
+    PlusOutlined,
+    UndoOutlined,
+} from "@ant-design/icons";
 import type React from "react";
 import type { Patient } from "../../../types/patients";
+
+export type PatientListVariant = "active" | "inactive";
+export type PatientListAction = "delete" | "restore";
 
 export interface PatientListProps {
     patients: Patient[];
     onNavigate: (path: string) => void;
-    onDeletePatient?: (patientId: string) => Promise<void>;
-    deletingPatientId?: string | null;
+    variant?: PatientListVariant;
+    onAction?: (action: PatientListAction, patientId: string) => Promise<void>;
+    patientId?: string | null;
 }
 
 const formatPatientName = (patient: Patient) =>
@@ -19,20 +28,40 @@ const formatBirthday = (birthday: string) =>
 const PatientList: React.FC<PatientListProps> = ({
     patients,
     onNavigate,
-    onDeletePatient,
-    deletingPatientId = null,
+    variant = "active",
+    onAction,
+    patientId = null,
 }) => {
+    const isInactiveList = variant === "inactive";
+
     return (
         <Card
-            title="Pacjenci"
+            title={isInactiveList ? "Usunięte profile pacjentów" : "Pacjenci"}
             extra={
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => { onNavigate("/pacjenci/nowy"); }}
-                >
-                    Dodaj pacjenta
-                </Button>
+                isInactiveList ? (
+                    <Button
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => { onNavigate("/profil"); }}
+                    >
+                        Powrót do profilu
+                    </Button>
+                ) : (
+                    <Space>
+                        <Button
+                            icon={<UndoOutlined />}
+                            onClick={() => { onNavigate("/pacjenci/przywroc"); }}
+                        >
+                            Przywróć usunięte
+                        </Button>
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => { onNavigate("/pacjenci/nowy"); }}
+                        >
+                            Dodaj pacjenta
+                        </Button>
+                    </Space>
+                )
             }
         >
             {patients.length > 0 ? (
@@ -40,36 +69,65 @@ const PatientList: React.FC<PatientListProps> = ({
                     dataSource={patients}
                     renderItem={(patient) => (
                         <List.Item
-                            actions={[
-                                <Button
-                                    key="edit"
-                                    type="link"
-                                    icon={<EditOutlined />}
-                                    onClick={() => {
-                                        onNavigate(`/pacjenci/${patient.id}/edycja`);
-                                    }}
-                                >
-                                    Edytuj
-                                </Button>,
-                                !patient.is_primary && onDeletePatient ? (
-                                    <Popconfirm
-                                        key="delete"
-                                        title="Usunąć profil pacjenta?"
-                                        description="Profil zostanie ukryty, ale historia wizyt pozostanie zachowana."
-                                        okText="Usuń"
-                                        cancelText="Anuluj"
-                                        onConfirm={() => onDeletePatient(patient.id)}
-                                    >
-                                        <Button
-                                            type="link"
-                                            danger
-                                            loading={deletingPatientId === patient.id}
-                                        >
-                                            Usuń
-                                        </Button>
-                                    </Popconfirm>
-                                ) : null,
-                            ].filter(Boolean)}
+                            actions={
+                                isInactiveList
+                                    ? [
+                                          onAction ? (
+                                              <Popconfirm
+                                                  key="restore"
+                                                  title="Przywrócić profil pacjenta?"
+                                                  description="Profil zostanie ponownie widoczny na liście pacjentów."
+                                                  okText="Przywróć"
+                                                  cancelText="Anuluj"
+                                                  onConfirm={() =>
+                                                      onAction("restore", patient.id)
+                                                  }
+                                              >
+                                                  <Button
+                                                      type="link"
+                                                      icon={<UndoOutlined />}
+                                                      loading={patientId === patient.id}
+                                                  >
+                                                      Przywróć
+                                                  </Button>
+                                              </Popconfirm>
+                                          ) : null,
+                                      ].filter(Boolean)
+                                    : [
+                                          <Button
+                                              key="edit"
+                                              type="link"
+                                              icon={<EditOutlined />}
+                                              onClick={() => {
+                                                  onNavigate(
+                                                      `/pacjenci/${patient.id}/edycja`,
+                                                  );
+                                              }}
+                                          >
+                                              Edytuj
+                                          </Button>,
+                                          !patient.is_primary && onAction ? (
+                                              <Popconfirm
+                                                  key="delete"
+                                                  title="Usunąć profil pacjenta?"
+                                                  description="Profil zostanie ukryty, ale historia wizyt pozostanie zachowana."
+                                                  okText="Usuń"
+                                                  cancelText="Anuluj"
+                                                  onConfirm={() =>
+                                                      onAction("delete", patient.id)
+                                                  }
+                                              >
+                                                  <Button
+                                                      type="link"
+                                                      danger
+                                                      loading={patientId === patient.id}
+                                                  >
+                                                      Usuń
+                                                  </Button>
+                                              </Popconfirm>
+                                          ) : null,
+                                      ].filter(Boolean)
+                            }
                         >
                             <List.Item.Meta
                                 title={
@@ -86,7 +144,13 @@ const PatientList: React.FC<PatientListProps> = ({
                     )}
                 />
             ) : (
-                <Empty description="Brak przypisanych pacjentów" />
+                <Empty
+                    description={
+                        isInactiveList
+                            ? "Brak usuniętych profili pacjentów"
+                            : "Brak przypisanych pacjentów"
+                    }
+                />
             )}
         </Card>
     );

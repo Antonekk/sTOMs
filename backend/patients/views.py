@@ -7,13 +7,6 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.viewsets import ModelViewSet
 from users.permissions import IsClient
 
-from .cache_utils import (
-    get_cached_patient_detail,
-    get_cached_patient_list,
-    invalidate_patient_cache,
-    set_cached_patient_detail,
-    set_cached_patient_list,
-)
 from .models import Patient
 from .serializers import PatientSerializer, PatientWriteSerializer
 
@@ -23,13 +16,12 @@ _PATIENT_ACTIONS = {
     "create",
     "update",
     "destroy",
-    "restore"
+    "restore",
 }
 
 
 class PatientViewSet(ModelViewSet):
     permission_classes = [IsClient]
-    http_method_names = ["get", "post", "put", "delete", "head", "options"]
 
     def get_throttles(self):
         if self.action in _PATIENT_ACTIONS:
@@ -46,6 +38,15 @@ class PatientViewSet(ModelViewSet):
         queryset = Patient.objects.filter(user=self.request.user)
         if self.action == "restore":
             return queryset.filter(is_active=False)
+        if self.action == "list":
+            is_active = self.request.query_params.get("is_active")
+            if is_active is not None:
+                queryset = queryset.filter(
+                    is_active=is_active.lower() in ("true", "1")
+                )
+            else:
+                queryset = queryset.filter(is_active=True)
+            return queryset
         return queryset.filter(is_active=True)
 
     def _active_patient_count(self):
@@ -64,23 +65,6 @@ class PatientViewSet(ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    def list(self, request, *args, **kwargs):
-        cached = get_cached_patient_list(request.user.id)
-        if cached is not None:
-            return Response(cached)
-        response = super().list(request, *args, **kwargs)
-        set_cached_patient_list(request.user.id, response.data)
-        return response
-
-    def retrieve(self, request, *args, **kwargs):
-        patient = self.get_object()
-        cached = get_cached_patient_detail(request.user.id, patient.id)
-        if cached is not None:
-            return Response(cached)
-        response = super().retrieve(request, *args, **kwargs)
-        set_cached_patient_detail(request.user.id, patient.id, response.data)
-        return response
-
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, is_primary=False)
 
@@ -91,16 +75,10 @@ class PatientViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         patient = serializer.instance
-        invalidate_patient_cache(request.user.id, patient.id)
         return Response(
             PatientSerializer(patient).data,
             status=status.HTTP_201_CREATED,
         )
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        invalidate_patient_cache(request.user.id, kwargs["pk"])
-        return response
 
     def destroy(self, request, *args, **kwargs):
         patient = self.get_object()
@@ -111,16 +89,14 @@ class PatientViewSet(ModelViewSet):
             )
         patient.is_active = False
         patient.save(update_fields=["is_active"])
-        invalidate_patient_cache(request.user.id, patient.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["post"], url_path="restore")
+    @action(detail=True, methods=["post"])
     def restore(self, request, pk=None):
         patient = self.get_object()
         if self._active_patient_count() >= config.MAX_PATIENTS_PER_CLIENT:
             return self._patient_limit_reached_response()
         patient.is_active = True
         patient.save(update_fields=["is_active"])
-        invalidate_patient_cache(request.user.id, patient.id)
         serializer = PatientSerializer(patient)
         return Response(serializer.data, status=status.HTTP_200_OK)

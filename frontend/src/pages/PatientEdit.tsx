@@ -76,26 +76,36 @@ const PatientEdit: React.FC = () => {
     }
 
     return (
-        <Flex vertical gap={16} style={{ padding: 24 }}>
-            <Title level={2}>Edycja pacjenta</Title>
-            {error && (
-                <Alert
-                    title={error}
-                    type="error"
-                    showIcon
-                    closable={{ closeIcon: true, onClose: () => { setError(null); } }}
+        <Flex justify="center" style={{ padding: 24 }}>
+            <Flex
+                vertical
+                gap={16}
+                align="center"
+                style={{ width: "100%", maxWidth: 600 }}
+            >
+                <Title level={2} style={{ margin: 0, textAlign: "center" }}>
+                    Edycja pacjenta
+                </Title>
+                {error && (
+                    <Alert
+                        title={error}
+                        type="error"
+                        showIcon
+                        style={{ width: "100%" }}
+                        closable={{ closeIcon: true, onClose: () => { setError(null); } }}
+                    />
+                )}
+                <PatientForm
+                    initialValues={{
+                        first_name: patient.first_name,
+                        last_name: patient.last_name,
+                        birthday: patient.birthday,
+                    }}
+                    submitLabel="Zapisz zmiany"
+                    submitting={submitting}
+                    onSubmit={onSubmit}
                 />
-            )}
-            <PatientForm
-                initialValues={{
-                    first_name: patient.first_name,
-                    last_name: patient.last_name,
-                    birthday: patient.birthday,
-                }}
-                submitLabel="Zapisz zmiany"
-                submitting={submitting}
-                onSubmit={onSubmit}
-            />
+            </Flex>
         </Flex>
     );
 };

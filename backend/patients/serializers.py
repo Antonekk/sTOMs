@@ -1,5 +1,5 @@
 from constance import config
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -50,6 +50,7 @@ class PatientWriteSerializer(serializers.ModelSerializer):
                 )
         return attrs
 
+    # Raise readable errors for duplicate patients
     def _raise_duplicate_patient_error(self, exc, user, validated_data):
         instance = self.instance
         first_name = validated_data.get(
@@ -81,13 +82,15 @@ class PatientWriteSerializer(serializers.ModelSerializer):
         validated_data["user"] = request.user
         validated_data["is_primary"] = False
         try:
-            return super().create(validated_data)
+            with transaction.atomic():
+                return super().create(validated_data)
         except IntegrityError as exc:
             self._raise_duplicate_patient_error(exc, request.user, validated_data)
 
     def update(self, instance, validated_data):
         request = self.context.get("request")
         try:
-            return super().update(instance, validated_data)
+            with transaction.atomic():
+                return super().update(instance, validated_data)
         except IntegrityError as exc:
             self._raise_duplicate_patient_error(exc, request.user, validated_data)

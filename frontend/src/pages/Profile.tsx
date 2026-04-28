@@ -2,6 +2,7 @@ import { Alert, Flex, message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "../components/storybook_components/user_profile/user_profile";
+import type { PatientListAction } from "../components/storybook_components/user_profile/patient_list";
 import { useAuthentication } from "../auth/AuthProvider";
 import { deletePatient } from "../api/patients";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -9,10 +10,11 @@ import { getApiErrorMessage } from "../utils/apiError";
 const Profile: React.FC = () => {
     const navigate = useNavigate();
     const { user, refreshUser } = useAuthentication();
-    const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
+    const [actionPatientId, setActionPatientId] = useState<string | null>(null);
 
-    const handleDeletePatient = async (patientId: string) => {
-        setDeletingPatientId(patientId);
+    const handleAction = async (action: PatientListAction, patientId: string) => {
+        if (action !== "delete") return;
+        setActionPatientId(patientId);
         try {
             await deletePatient(patientId);
             await refreshUser();
@@ -22,7 +24,7 @@ const Profile: React.FC = () => {
                 getApiErrorMessage(err, "Nie udało się usunąć profilu pacjenta."),
             );
         } finally {
-            setDeletingPatientId(null);
+            setActionPatientId(null);
         }
     };
 
@@ -44,8 +46,8 @@ const Profile: React.FC = () => {
                 <UserProfile
                     user={user}
                     onNavigate={(path) => { void navigate(path); }}
-                    onDeletePatient={handleDeletePatient}
-                    deletingPatientId={deletingPatientId}
+                    onAction={handleAction}
+                    patientId={actionPatientId}
                 />
             </div>
         </Flex>

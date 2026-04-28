@@ -19,6 +19,7 @@ export const THERAPIST_AVAILABILITY_ENDPOINTS = {
 export const PATIENT_ENDPOINTS = {
     PATIENTS: "/api/patients/",
     PATIENT: (id: string) => `/api/patients/${id}/`,
+    RESTORE_PATIENT: (id: string) => `/api/patients/${id}/restore/`,
 }
 
 export const RESERVATION_ENDPOINTS = {

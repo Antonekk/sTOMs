@@ -3,6 +3,7 @@ import { Button, Card, DatePicker, Form, Input } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import type { PatientWrite } from "../../../types/patients";
+import { ONLY_LETTERS_PATTERN } from "../../../utils/validation";
 
 export interface PatientFormValues {
     first_name: string;
@@ -34,7 +35,7 @@ const PatientForm: React.FC<PatientFormProps> = ({
     };
 
     return (
-        <Card style={{ width: "100%", maxWidth: 600 }}>
+        <Card style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}>
             <Form
                 form={form}
                 layout="vertical"
@@ -54,7 +55,7 @@ const PatientForm: React.FC<PatientFormProps> = ({
                     rules={[
                         { required: true, message: "Podaj imię" },
                         {
-                            pattern: /^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŻżŹź]+$/,
+                            pattern: ONLY_LETTERS_PATTERN,
                             message: "Pole może zawierać wyłącznie litery alfabetu",
                         },
                     ]}
@@ -68,7 +69,7 @@ const PatientForm: React.FC<PatientFormProps> = ({
                     rules={[
                         { required: true, message: "Podaj nazwisko" },
                         {
-                            pattern: /^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŻżŹź]+$/,
+                            pattern: ONLY_LETTERS_PATTERN,
                             message: "Pole może zawierać wyłącznie litery alfabetu",
                         },
                     ]}
