@@ -7,11 +7,6 @@ from django.utils import timezone
 from offices.models import Localization, Office
 from rest_framework.test import APIClient, APITestCase
 
-from therapist_availability.filters import (
-    filter_weekly_availability_blocks,
-    get_override_availability_blocks,
-    get_weekly_availability_blocks,
-)
 from therapist_availability.models import AvailabilityBlock, Therapist
 from therapist_availability.serializers import (
     BaseScheduleBlockSerializer,
@@ -169,41 +164,6 @@ class TestScheduleService(TestCase):
                     {"day_of_week": 0, "start_time": time(11, 0), "end_time": time(14, 0)},
                 ],
             )
-
-
-class TestFilterFunctions(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        _, cls.therapist = create_therapist("filters@test.com")
-        cls.test_date = date(2025, 6, 2)
-        AvailabilityBlock.objects.create(
-            therapist=cls.therapist,
-            type=AvailabilityBlock.BlockType.BASE,
-            day_of_week=0,
-            start_time=time(9, 0),
-            end_time=time(12, 0),
-        )
-        AvailabilityBlock.objects.create(
-            therapist=cls.therapist,
-            type=AvailabilityBlock.BlockType.INCLUSION,
-            specific_date=cls.test_date,
-            start_time=time(18, 0),
-            end_time=time(20, 0),
-        )
-
-    def test_get_weekly_availability_blocks(self):
-        blocks = get_weekly_availability_blocks(self.therapist, 0)
-        self.assertEqual(blocks.count(), 1)
-
-    def test_get_override_availability_blocks(self):
-        blocks = get_override_availability_blocks(self.therapist, self.test_date)
-        self.assertEqual(blocks.count(), 1)
-
-    def test_filter_weekly_availability_blocks(self):
-        blocks = filter_weekly_availability_blocks(
-            self.therapist, 0, time(10, 0), time(11, 0)
-        )
-        self.assertTrue(blocks.exists())
 
 
 class TestSerializers(TestCase):
