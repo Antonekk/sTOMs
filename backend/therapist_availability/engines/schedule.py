@@ -9,7 +9,7 @@ from therapist_availability.models import AvailabilityBlock
 from therapist_availability.utils import overlaps
 
 
-class ScheduleService:
+class ScheduleEngine:
     @staticmethod
     def validate_base_blocks_overlap(blocks):
         by_day: dict[int, list] = {}

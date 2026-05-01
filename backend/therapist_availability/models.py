@@ -27,7 +27,6 @@ class Therapist(models.Model):
     )
 
     class Meta:
-        db_table = "users_therapist"
         verbose_name = _("Terapeuta")
         verbose_name_plural = _("Terapeuci")
 
@@ -105,7 +104,7 @@ class AvailabilityBlock(models.Model):
                         day_of_week__isnull=True,
                     )
                 ),
-                name="availability_block_type_fields_xor",
+                name="availability_block_type_fields_constraint",
             )
         ]
         indexes = [

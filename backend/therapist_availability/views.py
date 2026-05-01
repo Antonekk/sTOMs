@@ -19,7 +19,9 @@ from .serializers import (
     OverrideBlockSerializer,
     TherapistSerializer,
 )
-from .services import AvailabilityService, CancellationService, ScheduleService
+from reservations.services.cancellation import CancellationService
+
+from .engines import AvailabilityEngine, ScheduleEngine
 
 
 def get_therapist_for_user(user) -> Therapist:
@@ -62,7 +64,7 @@ class SelfScheduleView(APIView):
         serializer.is_valid(raise_exception=True)
 
         therapist = get_therapist_for_user(request.user)
-        ScheduleService.replace_base_schedule(
+        ScheduleEngine.replace_base_schedule(
             therapist, serializer.validated_data["blocks"]
         )
         CancellationService.cancel_conflicting_appointments(therapist)
@@ -91,7 +93,7 @@ class SelfScheduleOverrideView(APIView):
 
         therapist = get_therapist_for_user(request.user)
         block = AvailabilityBlock(therapist=therapist, **serializer.validated_data)
-        ScheduleService.validate_override(block)
+        ScheduleEngine.validate_override(block)
         block.save()
 
         if block.type == AvailabilityBlock.BlockType.EXCLUSION:
@@ -167,7 +169,7 @@ class AvailabilityListView(APIView):
                 continue
 
             for therapist in therapists:
-                slots = AvailabilityService.get_slots(therapist, current)
+                slots = AvailabilityEngine.get_slots(therapist, current)
                 if not slots:
                     continue
 

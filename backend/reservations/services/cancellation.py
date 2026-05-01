@@ -7,7 +7,7 @@ from notifications.services import NotificationService
 from rest_framework.exceptions import APIException
 
 from reservations.models import Appointment, AppointmentSeries
-from therapist_availability.services.availability import AvailabilityService
+from therapist_availability.engines.availability import AvailabilityEngine
 
 
 class CancellationWindowError(APIException):
@@ -94,7 +94,7 @@ class CancellationService:
         canceled = []
         for appointment in appointments:
             series = appointment.appointment_series
-            slots = AvailabilityService.get_slots(therapist, appointment.appointment_date)
+            slots = AvailabilityEngine.get_slots(therapist, appointment.appointment_date)
             if not cls._appointment_fits(slots, series.start_time, series.end_time):
                 appointment.status = Appointment.Status.CANCELED
                 appointment.save(update_fields=["status"])

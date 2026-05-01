@@ -8,7 +8,7 @@ from patients.models import Patient
 
 from reservations.models import AppointmentType
 from therapist_availability.models import AvailabilityBlock, Therapist
-from therapist_availability.services import ScheduleService
+from therapist_availability.engines import ScheduleEngine
 
 User = get_user_model()
 
@@ -51,7 +51,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         scheduled_user, scheduled_profile = self._create_therapist(**SCHEDULED_THERAPIST)
-        ScheduleService.replace_base_schedule(scheduled_profile, WEEKDAY_SCHEDULE)
+        ScheduleEngine.replace_base_schedule(scheduled_profile, WEEKDAY_SCHEDULE)
 
         empty_user, _empty_profile = self._create_therapist(**EMPTY_THERAPIST)
 

@@ -4,9 +4,9 @@ from therapist_availability.models import AvailabilityBlock
 from therapist_availability.utils import exclude_intervals
 
 
-class AvailabilityService:
+class AvailabilityEngine:
     """
-    Service for managing therapist availability blocks.
+    Engine for computing therapist availability blocks.
     Provides methods for getting availability slots for a given therapist and date.
     """
 

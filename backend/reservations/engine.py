@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from constance import config
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from therapist_availability.services.availability import AvailabilityService
+from therapist_availability.engines.availability import AvailabilityEngine
 from therapist_availability.utils import exclude_intervals
 
 from .filters import filter_appointments_for_day
@@ -11,7 +11,7 @@ from .services.collision import CollisionDetectionService
 
 
 def _get_bookable_slots(therapist, appointment_date):
-    slots = AvailabilityService.get_slots(therapist, appointment_date)
+    slots = AvailabilityEngine.get_slots(therapist, appointment_date)
     appointment_blocks = [
         {
             "start_time": appointment.appointment_series.start_time,

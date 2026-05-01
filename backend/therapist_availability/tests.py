@@ -13,9 +13,9 @@ from therapist_availability.serializers import (
     BaseScheduleSerializer,
     OverrideBlockSerializer,
 )
-from therapist_availability.services import (
-    AvailabilityService,
-    ScheduleService,
+from therapist_availability.engines import (
+    AvailabilityEngine,
+    ScheduleEngine,
 )
 from therapist_availability.utils import exclude_intervals, overlaps
 
@@ -96,7 +96,7 @@ class TestAvailabilityBlockModel(TestCase):
             block.full_clean()
 
 
-class TestAvailabilityService(TestCase):
+class TestAvailabilityEngine(TestCase):
     @classmethod
     def setUpTestData(cls):
         _, cls.therapist = create_therapist("service@test.com")
@@ -117,7 +117,7 @@ class TestAvailabilityService(TestCase):
             start_time=time(12, 0),
             end_time=time(13, 0),
         )
-        result = AvailabilityService.get_slots(self.therapist, self.monday)
+        result = AvailabilityEngine.get_slots(self.therapist, self.monday)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["end_time"], time(12, 0))
         self.assertEqual(result[1]["start_time"], time(13, 0))
@@ -130,17 +130,17 @@ class TestAvailabilityService(TestCase):
             start_time=time(9, 0),
             end_time=time(17, 0),
         )
-        result = AvailabilityService.get_slots(self.therapist, self.monday)
+        result = AvailabilityEngine.get_slots(self.therapist, self.monday)
         self.assertEqual(result, [])
 
 
-class TestScheduleService(TestCase):
+class TestScheduleEngine(TestCase):
     @classmethod
     def setUpTestData(cls):
         _, cls.therapist = create_therapist("schedule@test.com")
 
     def test_replace_base_schedule(self):
-        ScheduleService.replace_base_schedule(
+        ScheduleEngine.replace_base_schedule(
             self.therapist,
             [
                 {"day_of_week": 0, "start_time": time(9, 0), "end_time": time(17, 0)},
@@ -157,7 +157,7 @@ class TestScheduleService(TestCase):
 
     def test_overlapping_base_blocks_raise(self):
         with self.assertRaises(ValidationError):
-            ScheduleService.replace_base_schedule(
+            ScheduleEngine.replace_base_schedule(
                 self.therapist,
                 [
                     {"day_of_week": 0, "start_time": time(9, 0), "end_time": time(12, 0)},

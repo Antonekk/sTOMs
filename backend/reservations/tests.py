@@ -8,7 +8,7 @@ from patients.models import Patient
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from therapist_availability.models import AvailabilityBlock, Therapist
-from therapist_availability.services import ScheduleService
+from therapist_availability.engines import ScheduleEngine
 
 from reservations.models import Appointment, AppointmentSeries, AppointmentType
 from reservations.services.cancellation import CancellationService
@@ -74,7 +74,7 @@ def create_appointment_types():
 
 
 def add_weekly_schedule(therapist):
-    ScheduleService.replace_base_schedule(
+    ScheduleEngine.replace_base_schedule(
         therapist,
         [
             {"day_of_week": day, "start_time": time(9, 0), "end_time": time(17, 0)}
