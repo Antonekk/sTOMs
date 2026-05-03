@@ -1,6 +1,6 @@
 import type { AvailabilityDay, AppointmentType, BookableSlot } from "../types/reservations"
 
-const timeToMinutes = (time: string): number => {
+export const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.slice(0, 5).split(":").map(Number)
     return hours * 60 + minutes
 }
@@ -9,6 +9,24 @@ const minutesToTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`
+}
+
+export const timeRangesOverlap = (
+    aStart: string,
+    aEnd: string,
+    bStart: string,
+    bEnd: string,
+): boolean => {
+    const aStartMinutes = timeToMinutes(aStart)
+    const aEndMinutes = timeToMinutes(aEnd)
+    const bStartMinutes = timeToMinutes(bStart)
+    const bEndMinutes = timeToMinutes(bEnd)
+    return aStartMinutes < bEndMinutes && aEndMinutes > bStartMinutes
+}
+
+export const djangoWeekdayFromDate = (isoDate: string): number => {
+    const jsDay = new Date(`${isoDate}T12:00:00`).getDay()
+    return (jsDay + 6) % 7
 }
 
 export const splitAvailabilityIntoBookableSlots = (

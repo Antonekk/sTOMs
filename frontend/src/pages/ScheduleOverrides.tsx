@@ -5,9 +5,12 @@ import type { ScheduleOverride } from "../components/storybook_components/schedu
 import type { ScheduleOverrideResponse, ScheduleOverrideRequest } from "../types/therapistAvailability";
 import {
     getScheduleOverrides,
+    getWeeklySchedule,
     createScheduleOverride,
     deleteScheduleOverride,
 } from "../api/therapistAvailability";
+import type { BaseScheduleBlock } from "../types/therapistAvailability";
+import { djangoWeekdayFromDate, timeRangesOverlap } from "../utils/timeSlots";
 import Loading from "../components/storybook_components/loading/loading";
 
 const { Title } = Typography;
@@ -30,9 +33,39 @@ const transformToRequest = (block: ScheduleOverride): ScheduleOverrideRequest =>
     type: block.type,
 });
 
+const validateInclusionsAgainstBase = (
+    overrides: ScheduleOverride[],
+    baseBlocks: BaseScheduleBlock[],
+): string | null => {
+    for (const override of overrides) {
+        if (override.type !== "INCLUSION") {
+            continue;
+        }
+
+        const dayOfWeek = djangoWeekdayFromDate(override.specificDate);
+        const dayBaseBlocks = baseBlocks.filter((block) => block.day_of_week === dayOfWeek);
+
+        for (const baseBlock of dayBaseBlocks) {
+            if (
+                timeRangesOverlap(
+                    override.startTime,
+                    override.endTime,
+                    baseBlock.start_time.slice(0, 5),
+                    baseBlock.end_time.slice(0, 5),
+                )
+            ) {
+                return "Dodatkowe godziny nie mogą pokrywać się z bazowym grafikiem";
+            }
+        }
+    }
+
+    return null;
+};
+
 const ScheduleOverrides: React.FC = () => {
     const [blocks, setBlocks] = useState<ScheduleOverride[]>([]);
     const [savedBlocks, setSavedBlocks] = useState<ScheduleOverride[]>([]);
+    const [baseBlocks, setBaseBlocks] = useState<BaseScheduleBlock[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -40,10 +73,14 @@ const ScheduleOverrides: React.FC = () => {
     useEffect(() => {
         const fetchOverrides = async () => {
             try {
-                const response = await getScheduleOverrides();
-                const fetchedBlocks = transformToBlocks(response.data);
+                const [overridesResponse, scheduleResponse] = await Promise.all([
+                    getScheduleOverrides(),
+                    getWeeklySchedule(),
+                ]);
+                const fetchedBlocks = transformToBlocks(overridesResponse.data);
                 setBlocks(fetchedBlocks);
                 setSavedBlocks(fetchedBlocks);
+                setBaseBlocks(scheduleResponse.data.blocks);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 void message.error(`Nie udało się wczytać wyjątków: ${errorMessage}`);
@@ -65,6 +102,12 @@ const ScheduleOverrides: React.FC = () => {
     };
 
     const handleSave = async () => {
+        const validationError = validateInclusionsAgainstBase(blocks, baseBlocks);
+        if (validationError) {
+            void message.error(validationError);
+            return;
+        }
+
         setSaving(true);
         try {
             const savedIds = new Set(savedBlocks.map((b) => b.id));
