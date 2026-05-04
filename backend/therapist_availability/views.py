@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from constance import config
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -22,6 +23,7 @@ from .serializers import (
 from reservations.services.cancellation import CancellationService
 
 from .engines import AvailabilityEngine, ScheduleEngine
+from .utils import merge_adjacent_blocks
 
 
 def get_therapist_for_user(user) -> Therapist:
@@ -47,14 +49,16 @@ class SelfScheduleView(APIView):
             type=AvailabilityBlock.BlockType.BASE,
         ).order_by("day_of_week", "start_time")
         payload = {
-            "blocks": [
-                {
-                    "day_of_week": block.day_of_week,
-                    "start_time": block.start_time,
-                    "end_time": block.end_time,
-                }
-                for block in blocks
-            ]
+            "blocks": merge_adjacent_blocks(
+                [
+                    {
+                        "day_of_week": block.day_of_week,
+                        "start_time": block.start_time,
+                        "end_time": block.end_time,
+                    }
+                    for block in blocks
+                ]
+            )
         }
         serializer = BaseScheduleResponseSerializer(payload)
         return Response(serializer.data)
@@ -93,7 +97,12 @@ class SelfScheduleOverrideView(APIView):
 
         therapist = get_therapist_for_user(request.user)
         block = AvailabilityBlock(therapist=therapist, **serializer.validated_data)
-        ScheduleEngine.validate_override(block)
+        try:
+            ScheduleEngine.validate_override(block)
+        except DjangoValidationError as exc:
+            if hasattr(exc, "message_dict"):
+                raise ValidationError(exc.message_dict) from exc
+            raise ValidationError({"detail": str(exc.message or exc)}) from exc
         block.save()
 
         if block.type == AvailabilityBlock.BlockType.EXCLUSION:

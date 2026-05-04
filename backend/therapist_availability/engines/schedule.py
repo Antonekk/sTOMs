@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from therapist_availability.models import AvailabilityBlock
-from therapist_availability.utils import overlaps
+from therapist_availability.utils import merge_adjacent_blocks, overlaps
 
 
 class ScheduleEngine:
@@ -30,6 +30,7 @@ class ScheduleEngine:
     @transaction.atomic
     def replace_base_schedule(cls, therapist, blocks):
         cls.validate_base_blocks_overlap(blocks)
+        merged_blocks = merge_adjacent_blocks(blocks)
 
         AvailabilityBlock.objects.filter(
             therapist=therapist,
@@ -45,7 +46,7 @@ class ScheduleEngine:
                     start_time=block["start_time"],
                     end_time=block["end_time"],
                 )
-                for block in blocks
+                for block in merged_blocks
             ]
         )
 
@@ -85,10 +86,13 @@ class ScheduleEngine:
             day_of_week=target_date.weekday(),
         )
 
-        if weekly_blocks.exists() and not any(
-            start < block.start_time or end > block.end_time for block in weekly_blocks
+        if any(
+            overlaps(start, end, block.start_time, block.end_time)
+            for block in weekly_blocks
         ):
-            raise ValidationError(_("Rozszerzenie musi rozszerzać bazowy grafik"))
+            raise ValidationError(
+                _("Dodatkowe godziny nie mogą pokrywać się z bazowym grafikiem")
+            )
 
         inclusion_blocks = AvailabilityBlock.objects.filter(
             therapist=therapist,

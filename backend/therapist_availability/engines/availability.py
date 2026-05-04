@@ -6,8 +6,7 @@ from therapist_availability.utils import exclude_intervals
 
 class AvailabilityEngine:
     """
-    Engine for computing therapist availability blocks.
-    Provides methods for getting availability slots for a given therapist and date.
+    Engine for computing therapist availability blocks
     """
 
     @staticmethod

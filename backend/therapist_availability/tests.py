@@ -17,7 +17,7 @@ from therapist_availability.engines import (
     AvailabilityEngine,
     ScheduleEngine,
 )
-from therapist_availability.utils import exclude_intervals, overlaps
+from therapist_availability.utils import exclude_intervals, merge_adjacent_blocks, overlaps
 
 User = get_user_model()
 
@@ -48,6 +48,49 @@ class TestOverlapsUtility(TestCase):
 
     def test_overlaps_adjacent_no_overlap(self):
         self.assertFalse(overlaps(time(9, 0), time(10, 0), time(10, 0), time(11, 0)))
+
+
+class TestMergeAdjacentBlocks(TestCase):
+    def test_merges_touching_blocks_on_same_day(self):
+        blocks = [
+            {"day_of_week": 4, "start_time": time(8, 0), "end_time": time(9, 0)},
+            {"day_of_week": 4, "start_time": time(9, 0), "end_time": time(17, 0)},
+        ]
+        result = merge_adjacent_blocks(blocks)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["start_time"], time(8, 0))
+        self.assertEqual(result[0]["end_time"], time(17, 0))
+
+    def test_merges_chain_of_adjacent_blocks(self):
+        blocks = [
+            {"day_of_week": 0, "start_time": time(8, 0), "end_time": time(10, 0)},
+            {"day_of_week": 0, "start_time": time(10, 0), "end_time": time(12, 0)},
+            {"day_of_week": 0, "start_time": time(12, 0), "end_time": time(14, 0)},
+        ]
+        result = merge_adjacent_blocks(blocks)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["start_time"], time(8, 0))
+        self.assertEqual(result[0]["end_time"], time(14, 0))
+
+    def test_keeps_separate_blocks_with_gap(self):
+        blocks = [
+            {"day_of_week": 0, "start_time": time(8, 0), "end_time": time(10, 0)},
+            {"day_of_week": 0, "start_time": time(11, 0), "end_time": time(14, 0)},
+        ]
+        result = merge_adjacent_blocks(blocks)
+        self.assertEqual(len(result), 2)
+
+    def test_merges_per_day_independently(self):
+        blocks = [
+            {"day_of_week": 0, "start_time": time(9, 0), "end_time": time(12, 0)},
+            {"day_of_week": 0, "start_time": time(12, 0), "end_time": time(15, 0)},
+            {"day_of_week": 1, "start_time": time(10, 0), "end_time": time(12, 0)},
+            {"day_of_week": 1, "start_time": time(12, 0), "end_time": time(16, 0)},
+        ]
+        result = merge_adjacent_blocks(blocks)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["day_of_week"], 0)
+        self.assertEqual(result[1]["day_of_week"], 1)
 
 
 class TestExcludeIntervals(TestCase):
@@ -165,6 +208,77 @@ class TestScheduleEngine(TestCase):
                 ],
             )
 
+    def test_inclusion_overlapping_base_schedule_raises(self):
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+        )
+        with self.assertRaises(ValidationError):
+            ScheduleEngine.validate_inclusion(
+                self.therapist,
+                date(2026, 6, 5),
+                time(8, 0),
+                time(16, 0),
+            )
+
+    def test_inclusion_extending_before_base_schedule_is_allowed(self):
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+        )
+        ScheduleEngine.validate_inclusion(
+            self.therapist,
+            date(2026, 6, 5),
+            time(7, 0),
+            time(9, 0),
+        )
+
+    def test_inclusion_filling_gap_between_base_blocks_is_allowed(self):
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+        )
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(14, 0),
+            end_time=time(17, 0),
+        )
+        ScheduleEngine.validate_inclusion(
+            self.therapist,
+            date(2026, 6, 5),
+            time(12, 0),
+            time(14, 0),
+        )
+
+    def test_adjacent_base_blocks_are_merged_on_save(self):
+        ScheduleEngine.replace_base_schedule(
+            self.therapist,
+            [
+                {"day_of_week": 4, "start_time": time(8, 0), "end_time": time(9, 0)},
+                {"day_of_week": 4, "start_time": time(9, 0), "end_time": time(17, 0)},
+            ],
+        )
+        blocks = AvailabilityBlock.objects.filter(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+        )
+        self.assertEqual(blocks.count(), 1)
+        block = blocks.first()
+        self.assertEqual(block.start_time, time(8, 0))
+        self.assertEqual(block.end_time, time(17, 0))
+
 
 class TestSerializers(TestCase):
     def test_base_schedule_overlapping_blocks_invalid(self):
@@ -229,6 +343,28 @@ class TestSelfScheduleAPI(APITestCase):
         response = self.client.get("/api/therapists/self/schedule")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["blocks"]), 1)
+
+    def test_get_merges_adjacent_base_blocks(self):
+        self.client.force_authenticate(user=self.therapist_user)
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(8, 0),
+            end_time=time(9, 0),
+        )
+        AvailabilityBlock.objects.create(
+            therapist=self.therapist,
+            type=AvailabilityBlock.BlockType.BASE,
+            day_of_week=4,
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+        )
+        response = self.client.get("/api/therapists/self/schedule")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["blocks"]), 1)
+        self.assertEqual(response.data["blocks"][0]["start_time"], "08:00:00")
+        self.assertEqual(response.data["blocks"][0]["end_time"], "17:00:00")
 
     def test_put_replaces_existing_blocks(self):
         self.client.force_authenticate(user=self.therapist_user)
@@ -301,6 +437,19 @@ class TestSelfScheduleOverrideAPI(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 201)
+
+    def test_create_inclusion_overlapping_base_schedule_returns_400(self):
+        response = self.client.post(
+            "/api/therapists/self/schedule/override",
+            {
+                "type": "INCLUSION",
+                "specific_date": "2025-06-02",
+                "start_time": "08:00",
+                "end_time": "16:00",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
 
     def test_delete_other_therapist_override_returns_404(self):
         exclusion = AvailabilityBlock.objects.create(
