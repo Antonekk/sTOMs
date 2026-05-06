@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Flex } from "antd";
+import { Flex } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import { confirmPasswordReset } from "../api/auth";
 import AccountActivation from "../components/storybook_components/account_activation/account_activation";
 import ResetPasswordForm from "../components/storybook_components/reset_password_form/reset_password_form";
@@ -66,14 +67,9 @@ const ResetPassword: React.FC = () => {
         <Flex align="center" style={{ width: "100%", height: "100%" }} vertical gap="middle">
             <div style={{ minHeight: 40, width: "100%", maxWidth: 600 }}>
                 {error && (
-                    <Alert
+                    <AppAlert
                         title={error}
-                        type="error"
-                        showIcon
-                        closable={{
-                            closeIcon: true,
-                            onClose: () => { setError(null); },
-                        }}
+                        onClose={() => { setError(null); }}
                     />
                 )}
             </div>

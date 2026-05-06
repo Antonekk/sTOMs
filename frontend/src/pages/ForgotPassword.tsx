@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Alert, Flex, Typography } from "antd";
+import { Flex, Typography } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import { requestPasswordReset } from "../api/auth";
 import ForgotPasswordForm from "../components/storybook_components/forgot_password_form/forgot_password_form";
 import type { ForgotPasswordFormValues } from "../components/storybook_components/forgot_password_form/forgot_password_form";
@@ -35,9 +36,8 @@ const ForgotPassword: React.FC = () => {
     if (success) {
         return (
             <Flex align="center" style={{ width: "100%", height: "100%" }} vertical gap="middle">
-                <Alert
+                <AppAlert
                     type="success"
-                    showIcon
                     title="Sprawdź skrzynkę e-mail"
                     description="Jeśli konto z podanym adresem istnieje, wysłaliśmy link do ustawienia nowego hasła."
                 />
@@ -52,14 +52,9 @@ const ForgotPassword: React.FC = () => {
         <Flex align="center" style={{ width: "100%", height: "100%" }} vertical gap="middle">
             <div style={{ minHeight: 40, width: "100%", maxWidth: 600 }}>
                 {error && (
-                    <Alert
+                    <AppAlert
                         title={error}
-                        type="error"
-                        showIcon
-                        closable={{
-                            closeIcon: true,
-                            onClose: () => { setError(null); },
-                        }}
+                        onClose={() => { setError(null); }}
                     />
                 )}
             </div>

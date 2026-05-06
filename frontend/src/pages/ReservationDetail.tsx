@@ -1,4 +1,5 @@
-import { Alert, Button, Card, Flex, Space, Table, Tag, Typography, message } from "antd"
+import { Button, Card, Flex, Space, Table, Tag, Typography, message } from "antd"
+import AppAlert from "../components/storybook_components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { cancelReservation, getReservation } from "../api/reservations"
@@ -65,7 +66,7 @@ const ReservationDetailPage: React.FC = () => {
     if (error || !reservation) {
         return (
             <Flex style={{ padding: 24 }}>
-                <Alert type="error" showIcon title={error ?? "Nie znaleziono rezerwacji."} />
+                <AppAlert title={error ?? "Nie znaleziono rezerwacji."} />
             </Flex>
         )
     }

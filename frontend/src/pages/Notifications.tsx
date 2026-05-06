@@ -1,4 +1,5 @@
-import { Alert, Button, Flex, Typography, message } from "antd"
+import { Button, Flex, Typography, message } from "antd"
+import AppAlert from "../components/storybook_components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import {
     listNotifications,
@@ -101,7 +102,7 @@ const Notifications: React.FC = () => {
                 )}
             </Flex>
 
-            {error && <Alert type="error" showIcon title={error} />}
+            {error && <AppAlert title={error} />}
 
             <NotificationList
                 notifications={notifications}

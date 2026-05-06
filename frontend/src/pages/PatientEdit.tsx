@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Flex, Typography } from "antd";
+import { Flex, Typography } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import PatientForm from "../components/storybook_components/patient_form/patient_form";
 import { getPatient, updatePatient } from "../api/patients";
 import { useAuthentication } from "../auth/AuthProvider";
@@ -66,11 +67,7 @@ const PatientEdit: React.FC = () => {
     if (!patient) {
         return (
             <Flex justify="center" style={{ padding: 24 }}>
-                <Alert
-                    type="error"
-                    showIcon
-                    title={error ?? "Nie znaleziono pacjenta"}
-                />
+                <AppAlert title={error ?? "Nie znaleziono pacjenta"} />
             </Flex>
         );
     }
@@ -87,12 +84,10 @@ const PatientEdit: React.FC = () => {
                     Edycja pacjenta
                 </Title>
                 {error && (
-                    <Alert
+                    <AppAlert
                         title={error}
-                        type="error"
-                        showIcon
                         style={{ width: "100%" }}
-                        closable={{ closeIcon: true, onClose: () => { setError(null); } }}
+                        onClose={() => { setError(null); }}
                     />
                 )}
                 <PatientForm

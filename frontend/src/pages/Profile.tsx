@@ -1,4 +1,5 @@
-import { Alert, Flex, message } from "antd";
+import { Flex, message } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "../components/storybook_components/user_profile/user_profile";
@@ -31,9 +32,8 @@ const Profile: React.FC = () => {
     if (!user) {
         return (
             <Flex justify="center" style={{ padding: 24 }}>
-                <Alert
+                <AppAlert
                     type="warning"
-                    showIcon
                     title="Nie udało się wczytać danych profilu"
                 />
             </Flex>

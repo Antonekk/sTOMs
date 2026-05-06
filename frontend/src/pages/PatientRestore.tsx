@@ -1,4 +1,5 @@
-import { Alert, Flex, Spin, message } from "antd";
+import { Flex, Spin, message } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PatientList, { type PatientListAction } from "../components/storybook_components/user_profile/patient_list";
@@ -66,9 +67,7 @@ const PatientRestore: React.FC = () => {
         <Flex justify="center" style={{ padding: 24 }}>
             <div style={{ width: "100%", maxWidth: 960 }}>
                 {loadError && (
-                    <Alert
-                        type="error"
-                        showIcon
+                    <AppAlert
                         title={loadError}
                         style={{ marginBottom: 16 }}
                     />

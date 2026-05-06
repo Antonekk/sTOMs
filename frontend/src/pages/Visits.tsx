@@ -1,4 +1,5 @@
-import { Alert, Flex, Segmented, Switch, Typography, message } from "antd"
+import { Flex, Segmented, Switch, Typography, message } from "antd"
+import AppAlert from "../components/storybook_components/app_alert/app_alert"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { cancelVisit, listVisits } from "../api/visits"
@@ -103,14 +104,13 @@ const Visits: React.FC = () => {
             </Flex>
 
             {config && tab === "upcoming" && !isTherapist && (
-                <Alert
+                <AppAlert
                     type="info"
-                    showIcon
                     title={`Anulowanie możliwe najpóźniej ${config.cancellation_window_hours} godzin przed wizytą.`}
                 />
             )}
 
-            {error && <Alert type="error" showIcon title={error} />}
+            {error && <AppAlert title={error} />}
 
             <VisitList
                 visits={filteredVisits}

@@ -1,4 +1,5 @@
-import { Alert, Button, Flex, Segmented, Typography, message } from "antd"
+import { Button, Flex, Segmented, Typography, message } from "antd"
+import AppAlert from "../components/storybook_components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { cancelReservation, listReservations } from "../api/reservations"
@@ -74,7 +75,7 @@ const Reservations: React.FC = () => {
                 ]}
             />
 
-            {error && <Alert type="error" showIcon title={error} />}
+            {error && <AppAlert title={error} />}
 
             <ReservationList
                 reservations={reservations}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Flex, Typography } from "antd";
+import { Flex, Typography } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import PatientForm from "../components/storybook_components/patient_form/patient_form";
 import { createPatient } from "../api/patients";
 import { useAuthentication } from "../auth/AuthProvider";
@@ -37,11 +38,9 @@ const PatientNew: React.FC = () => {
         <Flex vertical gap={16} style={{ padding: 24 }}>
             <Title level={2}>Nowy pacjent</Title>
             {error && (
-                <Alert
+                <AppAlert
                     title={error}
-                    type="error"
-                    showIcon
-                    closable={{ closeIcon: true, onClose: () => { setError(null); } }}
+                    onClose={() => { setError(null); }}
                 />
             )}
             <PatientForm

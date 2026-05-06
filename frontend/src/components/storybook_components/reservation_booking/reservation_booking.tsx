@@ -9,7 +9,7 @@ import {
     Typography,
 } from "antd"
 import type React from "react"
-import ErrorAlert from "../../ErrorAlert"
+import AppAlert from "../app_alert/app_alert"
 import type { Patient } from "../../../types/patients"
 import type { AppointmentType, BookableSlot } from "../../../types/reservations"
 import { formatDatePl, formatTime } from "../../../utils/timeSlots"
@@ -100,7 +100,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
     return (
         <Flex vertical gap={16}>
             {error && (
-                <ErrorAlert
+                <AppAlert
                     title={error.title}
                     description={error.description}
                 />

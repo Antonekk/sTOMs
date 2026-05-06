@@ -1,4 +1,5 @@
-import { Alert, Button, Flex, message } from "antd"
+import { Button, Flex, message } from "antd"
+import AppAlert from "../components/storybook_components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import {
@@ -112,7 +113,7 @@ const VisitDetailPage: React.FC = () => {
     if (error || !visit) {
         return (
             <Flex style={{ padding: 24 }}>
-                <Alert type="error" showIcon title={error ?? "Nie znaleziono wizyty."} />
+                <AppAlert title={error ?? "Nie znaleziono wizyty."} />
             </Flex>
         )
     }

@@ -5,6 +5,7 @@ import type { WeeklyAvailabilityBlock } from "../components/storybook_components
 import type { BaseScheduleRequest, BaseScheduleResponse } from "../types/therapistAvailability";
 import { getWeeklySchedule, saveWeeklySchedule } from "../api/therapistAvailability";
 import Loading from "../components/storybook_components/loading/loading";
+import { getApiErrorMessage } from "../utils/apiError";
 
 const { Title } = Typography;
 
@@ -41,8 +42,7 @@ const WeeklySchedule: React.FC = () => {
                 setBlocks(fetchedBlocks);
                 setSavedBlocks(fetchedBlocks);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                void message.error(`Nie udało się wczytać harmonogramu: ${errorMessage}`);
+                void message.error(getApiErrorMessage(error, "Nie udało się wczytać harmonogramu."));
             } finally {
                 setLoading(false);
             }
@@ -69,8 +69,7 @@ const WeeklySchedule: React.FC = () => {
             setIsEditing(false);
             void message.success("Harmonogram został zapisany");
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            void message.error(`Nie udało się zapisać harmonogramu: ${errorMessage}`);
+            void message.error(getApiErrorMessage(error, "Nie udało się zapisać harmonogramu."));
         } finally {
             setSaving(false);
         }

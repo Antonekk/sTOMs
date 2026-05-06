@@ -12,6 +12,7 @@ import {
 import type { BaseScheduleBlock } from "../types/therapistAvailability";
 import { djangoWeekdayFromDate, timeRangesOverlap } from "../utils/timeSlots";
 import Loading from "../components/storybook_components/loading/loading";
+import { getApiErrorMessage } from "../utils/apiError";
 
 const { Title } = Typography;
 
@@ -82,8 +83,7 @@ const ScheduleOverrides: React.FC = () => {
                 setSavedBlocks(fetchedBlocks);
                 setBaseBlocks(scheduleResponse.data.blocks);
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                void message.error(`Nie udało się wczytać wyjątków: ${errorMessage}`);
+                void message.error(getApiErrorMessage(error, "Nie udało się wczytać wyjątków."));
             } finally {
                 setLoading(false);
             }
@@ -147,8 +147,7 @@ const ScheduleOverrides: React.FC = () => {
             setIsEditing(false);
             void message.success("Wyjątki zostały zapisane");
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            void message.error(`Nie udało się zapisać wyjątków: ${errorMessage}`);
+            void message.error(getApiErrorMessage(error, "Nie udało się zapisać wyjątków."));
         } finally {
             setSaving(false);
         }

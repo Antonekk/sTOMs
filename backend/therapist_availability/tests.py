@@ -22,11 +22,19 @@ from therapist_availability.utils import exclude_intervals, merge_adjacent_block
 User = get_user_model()
 
 
-def create_therapist(email="therapist@test.com"):
+def next_monday(from_date=None):
+    from_date = from_date or timezone.localdate()
+    days_ahead = (7 - from_date.weekday()) % 7
+    if days_ahead == 0:
+        days_ahead = 7
+    return from_date + timedelta(days=days_ahead)
+
+
+def create_therapist(email="therapist@test.com", phone_number="+48123456789"):
     user = User.objects.create_user(
         email=email,
         password="testpass123",
-        phone_number="+48123456789",
+        phone_number=phone_number,
         first_name="Test",
         last_name="Therapist",
         role=User.Role.THERAPIST,
@@ -142,7 +150,7 @@ class TestAvailabilityBlockModel(TestCase):
 class TestAvailabilityEngine(TestCase):
     @classmethod
     def setUpTestData(cls):
-        _, cls.therapist = create_therapist("service@test.com")
+        _, cls.therapist = create_therapist("service@test.com", "+48123456780")
         cls.monday = date(2025, 6, 2)
         AvailabilityBlock.objects.create(
             therapist=cls.therapist,
@@ -180,7 +188,7 @@ class TestAvailabilityEngine(TestCase):
 class TestScheduleEngine(TestCase):
     @classmethod
     def setUpTestData(cls):
-        _, cls.therapist = create_therapist("schedule@test.com")
+        _, cls.therapist = create_therapist("schedule@test.com", "+48123456781")
 
     def test_replace_base_schedule(self):
         ScheduleEngine.replace_base_schedule(
@@ -313,7 +321,9 @@ class TestSerializers(TestCase):
 class TestSelfScheduleAPI(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.therapist_user, cls.therapist = create_therapist("api-schedule@test.com")
+        cls.therapist_user, cls.therapist = create_therapist(
+            "api-schedule@test.com", "+48123456782"
+        )
         cls.client_user = User.objects.create_user(
             email="client@test.com",
             password="testpass123",
@@ -410,9 +420,13 @@ class TestSelfScheduleAPI(APITestCase):
 class TestSelfScheduleOverrideAPI(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.therapist_user, cls.therapist = create_therapist("api-override@test.com")
-        cls.other_user, cls.other_therapist = create_therapist("other@test.com")
-        cls.monday = date(2025, 6, 2)
+        cls.therapist_user, cls.therapist = create_therapist(
+            "api-override@test.com", "+48123456783"
+        )
+        cls.other_user, cls.other_therapist = create_therapist(
+            "other@test.com", "+48123456784"
+        )
+        cls.monday = next_monday()
         AvailabilityBlock.objects.create(
             therapist=cls.therapist,
             type=AvailabilityBlock.BlockType.BASE,
@@ -430,7 +444,7 @@ class TestSelfScheduleOverrideAPI(APITestCase):
             "/api/therapists/self/schedule/override",
             {
                 "type": "EXCLUSION",
-                "specific_date": "2025-06-02",
+                "specific_date": self.monday.isoformat(),
                 "start_time": "10:00",
                 "end_time": "12:00",
             },
@@ -443,7 +457,7 @@ class TestSelfScheduleOverrideAPI(APITestCase):
             "/api/therapists/self/schedule/override",
             {
                 "type": "INCLUSION",
-                "specific_date": "2025-06-02",
+                "specific_date": self.monday.isoformat(),
                 "start_time": "08:00",
                 "end_time": "16:00",
             },

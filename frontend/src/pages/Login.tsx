@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flex, Alert } from "antd";
+import { Flex } from "antd";
+import AppAlert from "../components/storybook_components/app_alert/app_alert";
 import axios from "axios";
 import LoginForm from "../components/storybook_components/login_form/login_form";
 import type { LoginFormValues } from "../components/storybook_components/login_form/login_form";
@@ -44,7 +45,7 @@ const onSubmit = async (values: LoginFormValues) =>{
 
         <Flex align="center" style={{ width: '100%', height: '100%' }} vertical gap="middle">
             <div style={{ minHeight: 40 }}>
-                {error && <Alert title={error} type="error" showIcon closable={{ closeIcon: true, onClose: () => { setError(null); } }} />}
+                {error && <AppAlert title={error} onClose={() => { setError(null); }} />}
             </div>
             <LoginForm onSubmit={onSubmit} />
         </Flex>
