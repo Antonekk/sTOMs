@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from therapist_availability.models import AvailabilityBlock
-from therapist_availability.utils import merge_adjacent_blocks, overlaps
+from therapist_availability.utils import merge_adjacent_blocks, merge_adjacent_date_blocks, overlaps
 
 
 class ScheduleEngine:
@@ -122,6 +122,69 @@ class ScheduleEngine:
                 block.start_time,
                 block.end_time,
             )
+
+    @classmethod
+    @transaction.atomic
+    def merge_adjacent_overrides(
+        cls,
+        therapist,
+        target_date,
+        block_type,
+        source_block=None,
+    ):
+        blocks = list(
+            AvailabilityBlock.objects.filter(
+                therapist=therapist,
+                type=block_type,
+                specific_date=target_date,
+            ).order_by("start_time")
+        )
+
+        if len(blocks) <= 1:
+            return blocks[0] if blocks else None
+
+        merged_ranges = merge_adjacent_date_blocks(
+            [
+                {
+                    "specific_date": block.specific_date,
+                    "start_time": block.start_time,
+                    "end_time": block.end_time,
+                }
+                for block in blocks
+            ]
+        )
+
+        if len(merged_ranges) == len(blocks):
+            return source_block or blocks[0]
+
+        AvailabilityBlock.objects.filter(
+            therapist=therapist,
+            type=block_type,
+            specific_date=target_date,
+        ).delete()
+
+        new_blocks = AvailabilityBlock.objects.bulk_create(
+            [
+                AvailabilityBlock(
+                    therapist=therapist,
+                    type=block_type,
+                    specific_date=target_date,
+                    start_time=merged_range["start_time"],
+                    end_time=merged_range["end_time"],
+                )
+                for merged_range in merged_ranges
+            ]
+        )
+
+        if source_block is not None:
+            for new_block in new_blocks:
+                if (
+                    new_block.start_time <= source_block.start_time
+                    and new_block.end_time >= source_block.end_time
+                ):
+                    return new_block
+
+        return new_blocks[0] if new_blocks else None
 
     @staticmethod
     def validate_override_date(specific_date: date):

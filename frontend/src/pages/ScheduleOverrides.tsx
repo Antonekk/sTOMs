@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Flex, message, Space, Typography } from "antd";
 import ScheduleOverrider from "../components/storybook_components/schedule_overrider/schedule_overrider";
-import type { ScheduleOverride } from "../components/storybook_components/schedule_overrider/types";
+import type { BaseBlock, ScheduleOverride } from "../components/storybook_components/schedule_overrider/types";
 import type { ScheduleOverrideResponse, ScheduleOverrideRequest } from "../types/therapistAvailability";
 import {
     getScheduleOverrides,
@@ -25,6 +25,13 @@ const transformToBlocks = (overrides: ScheduleOverrideResponse[]): ScheduleOverr
         startTime: normalizeTime(override.start_time),
         endTime: normalizeTime(override.end_time),
         type: override.type,
+    }));
+
+const transformToBaseBlocks = (blocks: BaseScheduleBlock[]): BaseBlock[] =>
+    blocks.map((block) => ({
+        dayOfWeek: block.day_of_week,
+        startTime: normalizeTime(block.start_time),
+        endTime: normalizeTime(block.end_time),
     }));
 
 const transformToRequest = (block: ScheduleOverride): ScheduleOverrideRequest => ({
@@ -163,6 +170,7 @@ const ScheduleOverrides: React.FC = () => {
             <ScheduleOverrider
                 value={blocks}
                 onChange={setBlocks}
+                baseBlocks={transformToBaseBlocks(baseBlocks)}
                 editable={isEditing}
             />
             <Space>

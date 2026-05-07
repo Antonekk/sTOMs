@@ -7,3 +7,17 @@ export interface ScheduleOverride {
   endTime: string;      // "HH:mm"
   type: OverrideType;
 }
+
+export interface BaseBlock {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export type DayBlockKind = "BASE" | "INCLUSION" | "EXCLUSION";
+
+export interface DayBlock {
+  kind: DayBlockKind;
+  startTime: string;
+  endTime: string;
+}

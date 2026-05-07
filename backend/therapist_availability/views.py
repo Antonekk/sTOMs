@@ -105,6 +105,20 @@ class SelfScheduleOverrideView(APIView):
             raise ValidationError({"detail": str(exc.message or exc)}) from exc
         block.save()
 
+        if block.type in (
+            AvailabilityBlock.BlockType.INCLUSION,
+            AvailabilityBlock.BlockType.EXCLUSION,
+        ):
+            block = (
+                ScheduleEngine.merge_adjacent_overrides(
+                    therapist,
+                    block.specific_date,
+                    block.type,
+                    source_block=block,
+                )
+                or block
+            )
+
         if block.type == AvailabilityBlock.BlockType.EXCLUSION:
             CancellationService.cancel_conflicting_appointments(
                 therapist, target_date=block.specific_date
