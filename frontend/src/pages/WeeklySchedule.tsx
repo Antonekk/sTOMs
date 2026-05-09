@@ -81,7 +81,7 @@ const WeeklySchedule: React.FC = () => {
 
     return (
         <Flex vertical gap={16} style={{ padding: 24 }}>
-            <Title level={2}>Harmonogram tygodniowy</Title>
+            <Title level={2}>Grafik tygodniowy</Title>
             <WeeklyScheduleEditor
                 value={blocks}
                 onChange={setBlocks}

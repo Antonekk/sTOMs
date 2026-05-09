@@ -11,7 +11,7 @@ class AvailabilityEngine:
 
     @staticmethod
     def get_slots(therapist, target_date: date) -> list[dict]:
-        """Return raw availability intervals after BASE, EXCLUSION and INCLUSION."""
+        """Return raw availability intervals after BASE, EXCLUSION and INCLUSION"""
         day_of_week = target_date.weekday()
 
         base_blocks = [
