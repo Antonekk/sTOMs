@@ -1,11 +1,10 @@
 from django.urls import re_path
+from djoser.views import UserViewSet
 from rest_framework.routers import DefaultRouter
-
-from .views import (
-    ThrottledTokenObtainPairView,
-    ThrottledTokenRefreshView,
-    ThrottledTokenVerifyView,
-    UserViewSet,
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
 )
 
 router = DefaultRouter()
@@ -14,17 +13,17 @@ router.register("users", UserViewSet, basename="user")
 urlpatterns = [
     re_path(
         r"^jwt/create/?$",
-        ThrottledTokenObtainPairView.as_view(),
+        TokenObtainPairView.as_view(),
         name="jwt-create",
     ),
     re_path(
         r"^jwt/refresh/?$",
-        ThrottledTokenRefreshView.as_view(),
+        TokenRefreshView.as_view(),
         name="jwt-refresh",
     ),
     re_path(
         r"^jwt/verify/?$",
-        ThrottledTokenVerifyView.as_view(),
+        TokenVerifyView.as_view(),
         name="jwt-verify",
     ),
     *router.urls,

@@ -3,31 +3,15 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.viewsets import ModelViewSet
 from users.permissions import IsClient
 
 from .models import Patient
 from .serializers import PatientSerializer, PatientWriteSerializer
 
-_PATIENT_ACTIONS = {
-    "list",
-    "retrieve",
-    "create",
-    "update",
-    "destroy",
-    "restore",
-}
-
 
 class PatientViewSet(ModelViewSet):
     permission_classes = [IsClient]
-
-    def get_throttles(self):
-        if self.action in _PATIENT_ACTIONS:
-            self.throttle_scope = "patients"
-            return [ScopedRateThrottle()]
-        return super().get_throttles()
 
     def get_serializer_class(self):
         if self.action in ("create", "update"):

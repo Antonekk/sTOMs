@@ -2,13 +2,11 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 from django.test import TestCase, override_settings
 from constance import config
 from patients.models import Patient
 from rest_framework import status
 from rest_framework.test import APITestCase
-from rest_framework.throttling import ScopedRateThrottle
 
 from users.serializers import AppUserCreatePasswordRetypeSerializer
 
@@ -397,34 +395,3 @@ class TestPatientAPI(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-class TestPatientEndpointThrottling(APITestCase):
-    def setUp(self):
-        cache.clear()
-        self._original_throttle_rates = ScopedRateThrottle.THROTTLE_RATES
-        ScopedRateThrottle.THROTTLE_RATES = {
-            **self._original_throttle_rates,
-            "patients": "3/minute",
-        }
-        self.client_user = create_client()
-        create_patient(self.client_user, is_primary=True)
-        self.authenticate(self.client_user)
-
-    def tearDown(self):
-        ScopedRateThrottle.THROTTLE_RATES = self._original_throttle_rates
-        super().tearDown()
-
-    def authenticate(self, user):
-        self.client.force_authenticate(user=user)
-
-    def test_patients_list_is_throttled(self):
-        url = "/api/patients/"
-
-        for _ in range(3):
-            response = self.client.get(url)
-            self.assertNotEqual(
-                response.status_code, status.HTTP_429_TOO_MANY_REQUESTS
-            )
-
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

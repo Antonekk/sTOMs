@@ -4,7 +4,6 @@ from types import SimpleNamespace
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
@@ -354,64 +353,3 @@ class TestPasswordReset(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-
-class TestUserEndpointThrottling(TestCase):
-    """Uses production throttle rates from settings.REST_FRAMEWORK."""
-
-    def setUp(self):
-        cache.clear()
-        self.client = APIClient()
-
-    def test_login_is_throttled(self):
-        url = reverse("jwt-create")
-        payload = {"email": "nobody@example.com", "password": "wrong-password"}
-
-        for _ in range(10):
-            response = self.client.post(url, payload, format="json")
-            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-        response = self.client.post(url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-    def test_registration_is_throttled(self):
-        url = reverse("user-list")
-        base_payload = {
-            "first_name": CLIENT_USER["first_name"],
-            "last_name": CLIENT_USER["last_name"],
-            "password": TEST_PASSWORD,
-            "re_password": TEST_PASSWORD,
-            "date_of_birth": "1995-05-20",
-        }
-
-        for index in range(5):
-            payload = {
-                **base_payload,
-                "email": f"user{index}@example.com",
-                "phone_number": f"+481112223{index:02d}",
-            }
-            response = self.client.post(url, payload, format="json")
-            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-        payload = {
-            **base_payload,
-            "email": "user5@example.com",
-            "phone_number": "+48111222305",
-        }
-        response = self.client.post(url, payload, format="json")
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-    def test_password_reset_is_throttled(self):
-        create_client()
-        url = reverse("user-reset-password")
-
-        for _ in range(3):
-            response = self.client.post(
-                url, {"email": CLIENT_USER["email"]}, format="json"
-            )
-            self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-        response = self.client.post(
-            url, {"email": CLIENT_USER["email"]}, format="json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

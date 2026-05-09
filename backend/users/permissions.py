@@ -14,10 +14,10 @@ class IsTherapist(BasePermission):
 
 
 class IsClient(BasePermission):
-    def has_permission(self, request):
+    def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == AppUser.Role.CLIENT
 
 
 class IsAdminUser(BasePermission):
-    def has_permission(self, request):
+    def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_staff and request.user.role == AppUser.Role.ADMIN

@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
-import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -46,38 +45,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_RATES": {
-        # JWT views
-        "login": "10/minute",
-        "jwt_refresh": "30/minute",
-        "jwt_verify": "60/minute",
-        # Djoser anonymous requests
-        "user_register": "5/hour",
-        "user_activation": "20/hour",
-        "user_email": "3/hour",
-        "user_password_confirm": "10/hour",
-        # Djoser authenticated requests
-        "user_authenticated": "60/minute",
-        # Patient profiles (authenticated clients)
-        "patients": "60/minute",
-    },
 }
-
-CACHE_URL = os.environ.get("CACHE_URL", "redis://redis:6379/1")
-
-if "test" in sys.argv:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        }
-    }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": CACHE_URL,
-        }
-    }
 
 # Simple JWT setup
 SIMPLE_JWT = {
