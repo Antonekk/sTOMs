@@ -1,30 +1,31 @@
-from datetime import date
-
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from therapist_availability.models import AvailabilityBlock
-from therapist_availability.utils import merge_adjacent_blocks, merge_adjacent_date_blocks, overlaps
+from therapist_availability.utils import (
+    clip_interval_to_blocks,
+    exclude_intervals,
+    has_overlapping_intervals,
+    merge_adjacent_blocks,
+    merge_overlapping_intervals,
+    overlaps,
+)
 
 
 class ScheduleEngine:
     @staticmethod
     def validate_base_blocks_overlap(blocks):
-        by_day: dict[int, list] = {}
+        by_day = {}
         for block in blocks:
             by_day.setdefault(block["day_of_week"], []).append(block)
 
         for day_blocks in by_day.values():
-            sorted_blocks = sorted(day_blocks, key=lambda x: x["start_time"])
-            for index in range(len(sorted_blocks) - 1):
-                current = sorted_blocks[index]
-                next_block = sorted_blocks[index + 1]
-                if current["end_time"] > next_block["start_time"]:
-                    raise ValidationError(
-                        _("Nakładające się bloki w tym samym dniu tygodnia")
-                    )
+            if has_overlapping_intervals(day_blocks):
+                raise ValidationError(
+                    _("Nakładające się bloki w tym samym dniu tygodnia")
+                )
 
     @classmethod
     @transaction.atomic
@@ -49,62 +50,193 @@ class ScheduleEngine:
                 for block in merged_blocks
             ]
         )
+        cls.reconcile_overrides_after_base_change(therapist)
+
+    @classmethod
+    def reconcile_overrides_after_base_change(cls, therapist):
+        today = timezone.localdate()
+        override_dates = (
+            AvailabilityBlock.objects.filter(
+                therapist=therapist,
+                type__in=[
+                    AvailabilityBlock.BlockType.INCLUSION,
+                    AvailabilityBlock.BlockType.EXCLUSION,
+                ],
+                specific_date__gte=today,
+            )
+            .values_list("specific_date", flat=True)
+            .distinct()
+        )
+
+        for target_date in override_dates:
+            cls.normalize_overrides_for_date(therapist, target_date)
 
     @staticmethod
-    def validate_exclusion(therapist, target_date, start, end):
-        weekly_blocks = AvailabilityBlock.objects.filter(
+    def _weekly_base_blocks_queryset(therapist, target_date):
+        return AvailabilityBlock.objects.filter(
             therapist=therapist,
             type=AvailabilityBlock.BlockType.BASE,
             day_of_week=target_date.weekday(),
         )
 
+    @staticmethod
+    def _base_blocks_for_date(therapist, target_date):
+        return [
+            {"start_time": block.start_time, "end_time": block.end_time}
+            for block in ScheduleEngine._weekly_base_blocks_queryset(
+                therapist, target_date
+            ).order_by("start_time")
+        ]
+
+    @classmethod
+    def _intervals_for_type(cls, therapist, target_date, block_type, base_blocks):
+        override_blocks = AvailabilityBlock.objects.filter(
+            therapist=therapist,
+            type=block_type,
+            specific_date=target_date,
+        ).order_by("start_time")
+
+        intervals = []
+        for block in override_blocks:
+            interval = {"start_time": block.start_time, "end_time": block.end_time}
+            if block_type == AvailabilityBlock.BlockType.INCLUSION:
+                intervals.extend(exclude_intervals([interval], base_blocks))
+            else:
+                intervals.extend(clip_interval_to_blocks(interval, base_blocks))
+        return merge_overlapping_intervals(intervals)
+
+    @staticmethod
+    def _subtract_intervals(intervals, subtrahend):
+        return merge_overlapping_intervals(
+            part
+            for interval in intervals
+            for part in exclude_intervals([interval], subtrahend)
+        )
+
+    @classmethod
+    def _resolve_cross_type_overrides(cls, inclusions, exclusions):
+        return (
+            cls._subtract_intervals(inclusions, exclusions),
+            cls._subtract_intervals(exclusions, inclusions),
+        )
+
+    @classmethod
+    def _save_intervals_if_changed(cls, therapist, target_date, block_type, intervals):
+        blocks = list(
+            AvailabilityBlock.objects.filter(
+                therapist=therapist,
+                type=block_type,
+                specific_date=target_date,
+            ).order_by("start_time")
+        )
+        old_intervals = [
+            {"start_time": block.start_time, "end_time": block.end_time}
+            for block in blocks
+        ]
+        if old_intervals == intervals:
+            return
+
+        AvailabilityBlock.objects.filter(
+            therapist=therapist,
+            type=block_type,
+            specific_date=target_date,
+        ).delete()
+
+        if intervals:
+            AvailabilityBlock.objects.bulk_create(
+                [
+                    AvailabilityBlock(
+                        therapist=therapist,
+                        type=block_type,
+                        specific_date=target_date,
+                        start_time=interval["start_time"],
+                        end_time=interval["end_time"],
+                    )
+                    for interval in intervals
+                ]
+            )
+
+    @classmethod
+    @transaction.atomic
+    def normalize_overrides_for_date(cls, therapist, target_date, source_block=None):
+        base_blocks = cls._base_blocks_for_date(therapist, target_date)
+        inclusions = cls._intervals_for_type(
+            therapist,
+            target_date,
+            AvailabilityBlock.BlockType.INCLUSION,
+            base_blocks,
+        )
+        exclusions = cls._intervals_for_type(
+            therapist,
+            target_date,
+            AvailabilityBlock.BlockType.EXCLUSION,
+            base_blocks,
+        )
+        inclusions, exclusions = cls._resolve_cross_type_overrides(
+            inclusions,
+            exclusions,
+        )
+
+        cls._save_intervals_if_changed(
+            therapist,
+            target_date,
+            AvailabilityBlock.BlockType.INCLUSION,
+            inclusions,
+        )
+        cls._save_intervals_if_changed(
+            therapist,
+            target_date,
+            AvailabilityBlock.BlockType.EXCLUSION,
+            exclusions,
+        )
+
+        if source_block is None:
+            return None
+        return cls._find_normalized_block(therapist, target_date, source_block)
+
+    @staticmethod
+    def _find_normalized_block(therapist, target_date, source_block):
+        blocks = list(
+            AvailabilityBlock.objects.filter(
+                therapist=therapist,
+                type=source_block.type,
+                specific_date=target_date,
+            ).order_by("start_time")
+        )
+        if not blocks:
+            return None
+
+        for block in blocks:
+            if (
+                block.start_time <= source_block.start_time
+                and block.end_time >= source_block.end_time
+            ):
+                return block
+        return blocks[0]
+
+    @staticmethod
+    def validate_exclusion(therapist, target_date, start, end):
         if not any(
             overlaps(start, end, block.start_time, block.end_time)
-            for block in weekly_blocks
+            for block in ScheduleEngine._weekly_base_blocks_queryset(
+                therapist, target_date
+            )
         ):
             raise ValidationError(
                 _("Wykluczenie musi usuwać fragment bazowego grafiku")
             )
 
-        exclusion_blocks = AvailabilityBlock.objects.filter(
-            therapist=therapist,
-            type=AvailabilityBlock.BlockType.EXCLUSION,
-            specific_date=target_date,
-        )
-
-        if any(
-            overlaps(start, end, block.start_time, block.end_time)
-            for block in exclusion_blocks
-        ):
-            raise ValidationError(_("Wykluczenie nie może nakładać się z innym"))
-
     @staticmethod
     def validate_inclusion(therapist, target_date, start, end):
-        weekly_blocks = AvailabilityBlock.objects.filter(
-            therapist=therapist,
-            type=AvailabilityBlock.BlockType.BASE,
-            day_of_week=target_date.weekday(),
-        )
-
         if any(
             overlaps(start, end, block.start_time, block.end_time)
-            for block in weekly_blocks
+            for block in ScheduleEngine._weekly_base_blocks_queryset(
+                therapist, target_date
+            )
         ):
             raise ValidationError(
                 _("Dodatkowe godziny nie mogą pokrywać się z bazowym grafikiem")
             )
-
-        inclusion_blocks = AvailabilityBlock.objects.filter(
-            therapist=therapist,
-            type=AvailabilityBlock.BlockType.INCLUSION,
-            specific_date=target_date,
-        )
-
-        if any(
-            overlaps(start, end, block.start_time, block.end_time)
-            for block in inclusion_blocks
-        ):
-            raise ValidationError(_("Rozszerzenie nie może nakładać się z innym"))
 
     @classmethod
     def validate_override(cls, block: AvailabilityBlock):
@@ -122,71 +254,3 @@ class ScheduleEngine:
                 block.start_time,
                 block.end_time,
             )
-
-    @classmethod
-    @transaction.atomic
-    def merge_adjacent_overrides(
-        cls,
-        therapist,
-        target_date,
-        block_type,
-        source_block=None,
-    ):
-        blocks = list(
-            AvailabilityBlock.objects.filter(
-                therapist=therapist,
-                type=block_type,
-                specific_date=target_date,
-            ).order_by("start_time")
-        )
-
-        if len(blocks) <= 1:
-            return blocks[0] if blocks else None
-
-        merged_ranges = merge_adjacent_date_blocks(
-            [
-                {
-                    "specific_date": block.specific_date,
-                    "start_time": block.start_time,
-                    "end_time": block.end_time,
-                }
-                for block in blocks
-            ]
-        )
-
-        if len(merged_ranges) == len(blocks):
-            return source_block or blocks[0]
-
-        AvailabilityBlock.objects.filter(
-            therapist=therapist,
-            type=block_type,
-            specific_date=target_date,
-        ).delete()
-
-        new_blocks = AvailabilityBlock.objects.bulk_create(
-            [
-                AvailabilityBlock(
-                    therapist=therapist,
-                    type=block_type,
-                    specific_date=target_date,
-                    start_time=merged_range["start_time"],
-                    end_time=merged_range["end_time"],
-                )
-                for merged_range in merged_ranges
-            ]
-        )
-
-        if source_block is not None:
-            for new_block in new_blocks:
-                if (
-                    new_block.start_time <= source_block.start_time
-                    and new_block.end_time >= source_block.end_time
-                ):
-                    return new_block
-
-        return new_blocks[0] if new_blocks else None
-
-    @staticmethod
-    def validate_override_date(specific_date: date):
-        if specific_date < timezone.localdate():
-            raise ValidationError(_("Data wyjątku musi być w przyszłości"))

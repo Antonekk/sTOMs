@@ -23,7 +23,7 @@ class CanceledBy:
     THERAPIST = User.Role.THERAPIST
 
 
-class NotificationService:
+class NotificationEngine:
     @classmethod
     def _patient_full_name(cls, series: AppointmentSeries) -> str:
         return f"{series.patient.first_name} {series.patient.last_name}"

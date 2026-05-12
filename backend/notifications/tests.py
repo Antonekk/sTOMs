@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from notifications.models import Notification
-from notifications.services import CanceledBy, NotificationService
+from notifications.engine import CanceledBy, NotificationEngine
 from notifications.tasks import send_appointment_reminders
 from notifications.templating import render_notification
 from reservations.models import Appointment, AppointmentSeries, AppointmentType
@@ -89,7 +89,7 @@ def create_series(*, therapist, patient, is_weekly=False):
     return series, appointment, appointment_type
 
 
-class NotificationServiceTestCase(TestCase):
+class NotificationEngineTestCase(TestCase):
     def setUp(self):
         self.therapist_user, self.therapist = create_therapist()
         self.client_user, self.patient = create_client()
@@ -99,7 +99,7 @@ class NotificationServiceTestCase(TestCase):
         )
 
     def test_notify_reservation_created_creates_two_notifications(self):
-        NotificationService.notify_reservation_created(self.series)
+        NotificationEngine.notify_reservation_created(self.series)
         self.assertEqual(Notification.objects.count(), 2)
         self.assertTrue(
             Notification.objects.filter(
@@ -115,14 +115,14 @@ class NotificationServiceTestCase(TestCase):
         )
 
     def test_notify_appointment_canceled_by_client_notifies_therapist_only(self):
-        NotificationService.notify_appointment_canceled(self.appointment, CanceledBy.CLIENT)
+        NotificationEngine.notify_appointment_canceled(self.appointment, CanceledBy.CLIENT)
         self.assertEqual(Notification.objects.count(), 1)
         notification = Notification.objects.get()
         self.assertEqual(notification.user, self.therapist_user)
         self.assertEqual(notification.title, "Wizyta odwołana przez klienta")
 
     def test_notify_appointment_canceled_by_therapist_notifies_client_only(self):
-        NotificationService.notify_appointment_canceled(
+        NotificationEngine.notify_appointment_canceled(
             self.appointment,
             CanceledBy.THERAPIST,
         )
@@ -137,7 +137,7 @@ class NotificationServiceTestCase(TestCase):
             therapist=self.therapist,
             patient=patient_2,
         )
-        NotificationService.notify_appointments_canceled_bulk(
+        NotificationEngine.notify_appointments_canceled_bulk(
             [self.appointment, appointment_2],
             self.therapist,
         )

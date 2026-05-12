@@ -21,8 +21,8 @@ from .serializers import (
     AppointmentTherapistSerializer,
     AppointmentTypeSerializer,
 )
-from .services.cancellation import CancellationService, CancellationWindowError
-from .services.horizon import ensure_horizon, ensure_horizon_for_queryset
+from .engines.cancellation import CancellationEngine, CancellationWindowError
+from .engines.horizon import ensure_horizon, ensure_horizon_for_queryset
 
 
 class AppointmentTypeListView(APIView):
@@ -93,7 +93,7 @@ class ReservationDetailView(APIView):
                 {"detail": "Obsługiwane jest wyłącznie anulowanie rezerwacji."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        CancellationService.cancel_series(series, canceled_by=AppUser.Role.CLIENT)
+        CancellationEngine.cancel_series(series, canceled_by=AppUser.Role.CLIENT)
         series.refresh_from_db()
         serializer = AppointmentSeriesDetailSerializer(series)
         return Response(serializer.data)
@@ -207,9 +207,9 @@ class VisitStatusUpdateView(APIView):
 
         try:
             if new_status == Appointment.Status.COMPLETED:
-                CancellationService.mark_completed(appointment)
+                CancellationEngine.mark_completed(appointment)
             elif new_status == Appointment.Status.CANCELED:
-                CancellationService.cancel_appointment(
+                CancellationEngine.cancel_appointment(
                     appointment,
                     enforce_window=True,
                     canceled_by=AppUser.Role.THERAPIST,
@@ -232,7 +232,7 @@ class VisitCancelView(APIView):
             status=Appointment.Status.SCHEDULED,
         )
         try:
-            CancellationService.cancel_appointment(
+            CancellationEngine.cancel_appointment(
                 appointment,
                 enforce_window=True,
                 canceled_by=AppUser.Role.CLIENT,

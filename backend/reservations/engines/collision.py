@@ -3,7 +3,7 @@ from datetime import date, time
 from reservations.models import Appointment, AppointmentSeries
 
 
-class CollisionDetectionService:
+class CollisionDetectionEngine:
     @staticmethod
     def check(
         therapist_id,

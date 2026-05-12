@@ -11,9 +11,9 @@ from therapist_availability.models import AvailabilityBlock, Therapist
 from therapist_availability.engines import ScheduleEngine
 
 from reservations.models import Appointment, AppointmentSeries, AppointmentType
-from reservations.services.cancellation import CancellationService
-from reservations.services.generation import AppointmentGenerationService
-from reservations.services.horizon import ensure_horizon
+from reservations.engines.cancellation import CancellationEngine
+from reservations.engines.generation import AppointmentGenerationEngine
+from reservations.engines.horizon import ensure_horizon
 
 User = get_user_model()
 
@@ -157,10 +157,10 @@ class ReservationAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         series = AppointmentSeries.objects.get(id=response.data["id"])
         expected_count = len(
-            AppointmentGenerationService._occurrence_dates(
+            AppointmentGenerationEngine._occurrence_dates(
                 series,
                 max(series.start_date, timezone.localdate()),
-                AppointmentGenerationService.default_horizon_date(),
+                AppointmentGenerationEngine.default_horizon_date(),
             )
         )
         self.assertEqual(series.appointments.count(), expected_count)
@@ -367,7 +367,7 @@ class ReservationAPITestCase(APITestCase):
             final_price=self.periodic_type.price,
         )
         with patch.object(
-            AppointmentGenerationService,
+            AppointmentGenerationEngine,
             "default_horizon_date",
             return_value=target_date,
         ):
@@ -492,7 +492,7 @@ class ReservationAPITestCase(APITestCase):
         self.assertNotIn("notes", payload)
 
 
-class CancellationServiceTestCase(TestCase):
+class CancellationEngineTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         _, cls.therapist = create_therapist("cancel@test.com")
@@ -519,7 +519,7 @@ class CancellationServiceTestCase(TestCase):
         )
 
         AvailabilityBlock.objects.filter(therapist=self.therapist).delete()
-        canceled = CancellationService.cancel_conflicting_appointments(
+        canceled = CancellationEngine.cancel_conflicting_appointments(
             self.therapist, target_date
         )
         appointment.refresh_from_db()

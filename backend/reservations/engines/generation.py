@@ -7,7 +7,7 @@ from django.utils import timezone
 from reservations.models import Appointment, AppointmentSeries
 
 
-class AppointmentGenerationService:
+class AppointmentGenerationEngine:
     @classmethod
     def default_horizon_date(cls) -> date:
         return timezone.localdate() + timedelta(days=config.APPOINTMENT_GENERATION_DAYS)

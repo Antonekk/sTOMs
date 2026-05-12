@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 from constance import config
 from django.db import transaction
 from django.utils import timezone
-from notifications.services import NotificationService
+from notifications.engine import NotificationEngine
 from rest_framework.exceptions import APIException
 
 from reservations.models import Appointment, AppointmentSeries
@@ -16,7 +16,7 @@ class CancellationWindowError(APIException):
     default_code = "cancellation_window"
 
 
-class CancellationService:
+class CancellationEngine:
     @staticmethod
     def _appointment_start_datetime(appointment: Appointment) -> datetime:
         series = appointment.appointment_series
@@ -48,7 +48,7 @@ class CancellationService:
         appointment.save(update_fields=["status"])
         cls._update_series_after_appointment_change(appointment.appointment_series)
         if canceled_by is not None:
-            NotificationService.notify_appointment_canceled(appointment, canceled_by)
+            NotificationEngine.notify_appointment_canceled(appointment, canceled_by)
         return appointment
 
     @classmethod
@@ -68,7 +68,7 @@ class CancellationService:
         series.save(update_fields=["status"])
 
         if canceled_by is not None:
-            NotificationService.notify_series_canceled(series, canceled_by)
+            NotificationEngine.notify_series_canceled(series, canceled_by)
         return series
 
     @classmethod
@@ -102,7 +102,7 @@ class CancellationService:
                 cls._update_series_after_appointment_change(series)
 
         if canceled:
-            NotificationService.notify_appointments_canceled_bulk(canceled, therapist)
+            NotificationEngine.notify_appointments_canceled_bulk(canceled, therapist)
         return canceled
 
     @classmethod
@@ -163,9 +163,9 @@ class CancellationService:
             series.save(update_fields=["status"])
             return appointment
 
-        from reservations.services.generation import AppointmentGenerationService
+        from reservations.engines.generation import AppointmentGenerationEngine
 
-        horizon_date = AppointmentGenerationService.default_horizon_date()
+        horizon_date = AppointmentGenerationEngine.default_horizon_date()
         latest_date = (
             series.appointments.order_by("-appointment_date")
             .values_list("appointment_date", flat=True)

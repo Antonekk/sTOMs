@@ -10,13 +10,13 @@ from .exceptions import ConflictError
 from patients.models import Patient
 from therapist_availability.models import Therapist
 
-from .engine import validate_slot
 from .models import Appointment, AppointmentSeries, AppointmentType
-from .services.collision import CollisionDetectionService
-from .services.generation import AppointmentGenerationService
-from .services.horizon import ensure_horizon
+from .engines.booking import BookingEngine
+from .engines.collision import CollisionDetectionEngine
+from .engines.generation import AppointmentGenerationEngine
+from .engines.horizon import ensure_horizon
 
-from notifications.services import NotificationService
+from notifications.engine import NotificationEngine
 
 WEEKDAY_LABELS = [
     "poniedziałek",
@@ -96,7 +96,7 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
         from django.core.exceptions import ValidationError as DjangoValidationError
 
         try:
-            validate_slot(therapist, occurrence_date, start_time, end_time)
+            BookingEngine.validate_slot(therapist, occurrence_date, start_time, end_time)
         except DjangoValidationError as exc:
             message = str(exc.message or exc)
             if "zajęty" in message or "koliduje" in message:
@@ -157,8 +157,8 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             start_date=start_date,
             is_weekly=True,
         )
-        horizon_date = AppointmentGenerationService.default_horizon_date()
-        occurrence_dates = AppointmentGenerationService._occurrence_dates(
+        horizon_date = AppointmentGenerationEngine.default_horizon_date()
+        occurrence_dates = AppointmentGenerationEngine._occurrence_dates(
             temp_series, max(start_date, timezone.localdate()), horizon_date
         )
         if not occurrence_dates:
@@ -167,7 +167,7 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             )
 
         for occurrence_date in occurrence_dates:
-            if CollisionDetectionService.check(
+            if CollisionDetectionEngine.check(
                 therapist.id, occurrence_date, start_time, end_time
             ):
                 raise ConflictError()
@@ -183,10 +183,8 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
 
     @staticmethod
     def _validate_booking_window(start_date):
-        from .engine import validate_booking_date
-
         try:
-            validate_booking_date(start_date)
+            BookingEngine.validate_booking_date(start_date)
         except Exception as exc:
             raise ValidationError({"start_date": str(exc)}) from exc
 
@@ -194,9 +192,9 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
     def _slot_available_without_collision_check(
         therapist, appointment_date, start_time, end_time
     ):
-        from .engine import slot_in_availability
-
-        return slot_in_availability(therapist, appointment_date, start_time, end_time)
+        return BookingEngine.slot_in_availability(
+            therapist, appointment_date, start_time, end_time
+        )
 
     @transaction.atomic
     def create(self, validated_data):
@@ -209,9 +207,9 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             start_date=validated_data["start_date"],
             is_weekly=validated_data["is_weekly"],
         )
-        AppointmentGenerationService.generate(series)
+        AppointmentGenerationEngine.generate(series)
         ensure_horizon(series)
-        NotificationService.notify_reservation_created(series)
+        NotificationEngine.notify_reservation_created(series)
         return series
 
 

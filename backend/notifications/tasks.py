@@ -5,7 +5,7 @@ from constance import config
 from django.db import transaction
 from django.utils import timezone
 
-from notifications.services import NotificationService
+from notifications.engine import NotificationEngine
 from reservations.models import Appointment
 
 
@@ -31,4 +31,4 @@ def send_appointment_reminders():
                     reminder_sent=False,
                 ).update(reminder_sent=True)
                 if updated:
-                    NotificationService.notify_upcoming_appointment(appointment)
+                    NotificationEngine.notify_upcoming_appointment(appointment)

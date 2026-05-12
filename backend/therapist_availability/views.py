@@ -20,7 +20,7 @@ from .serializers import (
     OverrideBlockSerializer,
     TherapistSerializer,
 )
-from reservations.services.cancellation import CancellationService
+from reservations.engines.cancellation import CancellationEngine
 
 from .engines import AvailabilityEngine, ScheduleEngine
 from .utils import merge_adjacent_blocks
@@ -71,7 +71,7 @@ class SelfScheduleView(APIView):
         ScheduleEngine.replace_base_schedule(
             therapist, serializer.validated_data["blocks"]
         )
-        CancellationService.cancel_conflicting_appointments(therapist)
+        CancellationEngine.cancel_conflicting_appointments(therapist)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -105,22 +105,17 @@ class SelfScheduleOverrideView(APIView):
             raise ValidationError({"detail": str(exc.message or exc)}) from exc
         block.save()
 
-        if block.type in (
-            AvailabilityBlock.BlockType.INCLUSION,
-            AvailabilityBlock.BlockType.EXCLUSION,
-        ):
-            block = (
-                ScheduleEngine.merge_adjacent_overrides(
-                    therapist,
-                    block.specific_date,
-                    block.type,
-                    source_block=block,
-                )
-                or block
+        block = (
+            ScheduleEngine.normalize_overrides_for_date(
+                therapist,
+                block.specific_date,
+                source_block=block,
             )
+            or block
+        )
 
         if block.type == AvailabilityBlock.BlockType.EXCLUSION:
-            CancellationService.cancel_conflicting_appointments(
+            CancellationEngine.cancel_conflicting_appointments(
                 therapist, target_date=block.specific_date
             )
 
