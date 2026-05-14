@@ -1,5 +1,7 @@
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta
+from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
@@ -217,20 +219,50 @@ class AppointmentReminderTaskTestCase(TestCase):
             patient=self.patient,
         )
 
+    def _freeze_at(self, frozen_at):
+        return patch(
+            "notifications.tasks.timezone.now",
+            return_value=timezone.make_aware(frozen_at),
+        )
+
+    def test_celery_beat_runs_hourly(self):
+        schedule = settings.CELERY_BEAT_SCHEDULE["send-appointment-reminders"]["schedule"]
+        self.assertEqual(schedule, timedelta(hours=1))
+
     def test_send_appointment_reminders_creates_notification_once(self):
-        reminder_date = timezone.localdate() + timedelta(days=1)
-        self.appointment.appointment_date = reminder_date
+        appointment_start = timezone.make_aware(datetime(2026, 6, 8, 10, 0))
+        remind_at = appointment_start - timedelta(hours=24)
+        self.appointment.appointment_date = appointment_start.date()
         self.appointment.save(update_fields=["appointment_date"])
-        self.series.start_time = time(10, 0)
+        self.series.start_time = appointment_start.time()
         self.series.save(update_fields=["start_time"])
 
-        send_appointment_reminders()
+        with self._freeze_at(remind_at + timedelta(minutes=30)):
+            send_appointment_reminders()
+
         self.assertEqual(Notification.objects.filter(user=self.client_user).count(), 1)
         self.appointment.refresh_from_db()
         self.assertTrue(self.appointment.reminder_sent)
 
-        send_appointment_reminders()
+        with self._freeze_at(remind_at + timedelta(hours=1)):
+            send_appointment_reminders()
+
         self.assertEqual(Notification.objects.filter(user=self.client_user).count(), 1)
+
+    def test_send_appointment_reminders_waits_until_remind_at(self):
+        appointment_start = timezone.make_aware(datetime(2026, 6, 8, 10, 0))
+        remind_at = appointment_start - timedelta(hours=24)
+        self.appointment.appointment_date = appointment_start.date()
+        self.appointment.save(update_fields=["appointment_date"])
+        self.series.start_time = appointment_start.time()
+        self.series.save(update_fields=["start_time"])
+
+        with self._freeze_at(remind_at - timedelta(minutes=1)):
+            send_appointment_reminders()
+
+        self.assertEqual(Notification.objects.count(), 0)
+        self.appointment.refresh_from_db()
+        self.assertFalse(self.appointment.reminder_sent)
 
     def test_send_appointment_reminders_skips_outside_window(self):
         self.appointment.appointment_date = timezone.localdate() + timedelta(days=10)

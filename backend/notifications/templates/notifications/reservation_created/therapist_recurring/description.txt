@@ -1,1 +1,1 @@
-Klient {{ patient_name }} zarezerwował cykl wizyt „{{ appointment_type }}” — co tydzień w {{ weekday }}, od {{ start_date }} o {{ start_time }}.
+Klient {{ patient_name }} zarezerwował cykl wizyt "{{ appointment_type }}" — co tydzień w {{ weekday }}, od {{ start_date }} o {{ start_time }}.

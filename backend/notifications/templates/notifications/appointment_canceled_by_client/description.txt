@@ -1,1 +1,1 @@
-Klient {{ patient_name }} odwołał wizytę „{{ appointment_type }}” zaplanowaną na {{ appointment_date }} o {{ start_time }}.
+Klient {{ patient_name }} odwołał wizytę "{{ appointment_type }}" zaplanowaną na {{ appointment_date }} o {{ start_time }}.

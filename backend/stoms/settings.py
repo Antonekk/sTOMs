@@ -217,7 +217,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     "send-appointment-reminders": {
         "task": "notifications.tasks.send_appointment_reminders",
-        "schedule": timedelta(hours=24),
+        "schedule": timedelta(hours=1),
     },
 }
 
