@@ -1,21 +1,31 @@
 import {
     Button,
     Card,
+    DatePicker,
     Flex,
+    Pagination,
     Radio,
     Select,
     Space,
     Spin,
     Typography,
 } from "antd"
+import dayjs from "dayjs"
 import type React from "react"
 import AppAlert from "../app_alert/app_alert"
 import type { Patient } from "../../../types/patients"
-import type { AppointmentType, BookableSlot } from "../../../types/reservations"
+import type {
+    AppointmentType,
+    BookableSlot,
+    BookableTimeOptions,
+    BookingTherapist,
+    OfficeLocation,
+} from "../../../types/reservations"
+import { formatOfficeAddress, formatOfficeLocationShort } from "../../../utils/officeDisplay"
 import { formatDatePl, formatTime } from "../../../utils/timeSlots"
 import PatientSelector from "../patient_selector/patient_selector"
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 const WEEKDAY_OPTIONS = [
     { value: 0, label: "Poniedziałek" },
@@ -27,75 +37,144 @@ const WEEKDAY_OPTIONS = [
     { value: 6, label: "Niedziela" },
 ]
 
+export interface OfficeOption {
+    value: string
+    label: string
+}
+
 export interface ReservationBookingProps {
     patients: Patient[]
     appointmentTypes: AppointmentType[]
+    therapists: BookingTherapist[]
+    officeOptions: OfficeOption[]
     bookableSlots: BookableSlot[]
+    timeOptions: BookableTimeOptions
+    slotsTotal: number
+    slotsPage: number
+    slotsPageSize: number
+    maxBookingDate?: string
+    hasSearched?: boolean
     loadingSlots?: boolean
+    loadingTimeOptions?: boolean
     submitting?: boolean
     error?: { title: string; description: string } | null
     patientId?: string
     appointmentTypeId?: string
-    dayOfWeek?: number
-    therapistId?: string
-    selectedSlotKey?: string
     bookingMode: "once" | "weekly"
+    visitDate?: string
+    dayOfWeek?: number
+    startDate?: string
+    therapistId?: string
+    officeId?: string
+    timeFrom?: string
+    timeTo?: string
+    selectedSlotKey?: string
     onPatientChange: (patientId: string) => void
     onAppointmentTypeChange: (typeId: string) => void
-    onDayOfWeekChange: (day: number | undefined) => void
-    onTherapistChange: (therapistId: string | undefined) => void
     onBookingModeChange: (mode: "once" | "weekly") => void
+    onVisitDateChange: (date: string | undefined) => void
+    onDayOfWeekChange: (day: number | undefined) => void
+    onStartDateChange: (date: string | undefined) => void
+    onTherapistChange: (therapistId: string | undefined) => void
+    onOfficeChange: (officeId: string | undefined) => void
+    onTimeFromChange: (time: string | undefined) => void
+    onTimeToChange: (time: string | undefined) => void
     onSlotSelect: (slotKey: string) => void
     onSearchSlots: () => void
+    onSlotsPageChange: (page: number) => void
     onSubmit: () => void
 }
 
 export const slotKey = (slot: BookableSlot): string =>
     `${slot.therapist_id}|${slot.date}|${slot.start_time}`
 
+const djangoWeekdayFromDayjs = (value: { day: () => number }): number =>
+    (value.day() + 6) % 7
+
+const OfficeLocationInfo: React.FC<{ office: OfficeLocation | null }> = ({ office }) => {
+    if (!office) return null
+
+    return (
+        <Space orientation="vertical" size={0}>
+            <Text type="secondary">{formatOfficeAddress(office)}</Text>
+            {office.room_number && (
+                <Text type="secondary">Pokój {office.room_number}</Text>
+            )}
+        </Space>
+    )
+}
+
 const ReservationBooking: React.FC<ReservationBookingProps> = ({
     patients,
     appointmentTypes,
+    therapists,
+    officeOptions,
     bookableSlots,
+    timeOptions,
+    slotsTotal,
+    slotsPage,
+    slotsPageSize,
+    maxBookingDate,
+    hasSearched = false,
     loadingSlots = false,
+    loadingTimeOptions = false,
     submitting = false,
     error,
     patientId,
     appointmentTypeId,
-    dayOfWeek,
-    therapistId,
-    selectedSlotKey,
     bookingMode,
+    visitDate,
+    dayOfWeek,
+    startDate,
+    therapistId,
+    officeId,
+    timeFrom,
+    timeTo,
+    selectedSlotKey,
     onPatientChange,
     onAppointmentTypeChange,
-    onDayOfWeekChange,
-    onTherapistChange,
     onBookingModeChange,
+    onVisitDateChange,
+    onDayOfWeekChange,
+    onStartDateChange,
+    onTherapistChange,
+    onOfficeChange,
+    onTimeFromChange,
+    onTimeToChange,
     onSlotSelect,
     onSearchSlots,
+    onSlotsPageChange,
     onSubmit,
 }) => {
     const selectedType = appointmentTypes.find((type) => type.id === appointmentTypeId)
-    const therapistOptions = Array.from(
-        new Map(
-            bookableSlots.map((slot) => [
-                slot.therapist_id,
-                { value: slot.therapist_id, label: slot.therapist_name },
-            ]),
-        ).values(),
+    const canBookWeekly = selectedType?.is_periodic ?? false
+    const today = dayjs().startOf("day")
+    const maxDate = maxBookingDate ? dayjs(maxBookingDate) : undefined
+
+    const therapistOptions = therapists.map((therapist) => ({
+        value: therapist.id,
+        label: therapist.office
+            ? `${therapist.full_name} · ${formatOfficeLocationShort(therapist.office)}`
+            : therapist.full_name,
+    }))
+
+    const dateFiltersReady =
+        bookingMode === "once"
+            ? Boolean(visitDate)
+            : dayOfWeek !== undefined && Boolean(startDate)
+
+    const validEndTimes = timeOptions.end_times.filter(
+        (endTime) => !timeFrom || endTime > timeFrom,
     )
 
-    const filteredSlots = bookableSlots.filter((slot) => {
-        if (therapistId && slot.therapist_id !== therapistId) return false
-        if (dayOfWeek !== undefined) {
-            const date = new Date(`${slot.date}T12:00:00`)
-            const weekday = date.getDay() === 0 ? 6 : date.getDay() - 1
-            if (weekday !== dayOfWeek) return false
+    const disableWeeklyStartDate = (current: Parameters<NonNullable<React.ComponentProps<typeof DatePicker>["disabledDate"]>>[0]) => {
+        if (current.isBefore(today, "day")) return true
+        if (maxDate && current.isAfter(maxDate, "day")) return true
+        if (dayOfWeek !== undefined && djangoWeekdayFromDayjs(current) !== dayOfWeek) {
+            return true
         }
-        return true
-    })
-
-    const canBookWeekly = selectedType?.is_periodic ?? false
+        return false
+    }
 
     return (
         <Flex vertical gap={16}>
@@ -127,92 +206,206 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                 />
             </Card>
 
-            <Card title="3. Filtry terminów">
-                <Space wrap style={{ width: "100%" }}>
-                    <Select
-                        allowClear
-                        placeholder="Dzień tygodnia"
-                        style={{ minWidth: 180 }}
-                        value={dayOfWeek}
-                        onChange={onDayOfWeekChange}
-                        options={WEEKDAY_OPTIONS}
-                    />
-                    <Select
-                        allowClear
-                        placeholder="Terapeuta"
-                        style={{ minWidth: 220 }}
-                        value={therapistId}
-                        onChange={onTherapistChange}
-                        options={therapistOptions}
-                    />
-                    <Button
-                        type="primary"
-                        onClick={onSearchSlots}
-                        disabled={!appointmentTypeId}
-                        loading={loadingSlots}
-                    >
-                        Szukaj terminów
-                    </Button>
-                </Space>
-            </Card>
-
-            <Card title="4. Dostępne terminy">
-                {loadingSlots ? (
-                    <Flex justify="center" style={{ padding: 24 }}>
-                        <Spin />
-                    </Flex>
-                ) : filteredSlots.length === 0 ? (
-                    <Text type="secondary">Brak dostępnych terminów dla wybranych filtrów.</Text>
-                ) : (
+            {appointmentTypeId && (
+                <Card title="3. Tryb rezerwacji">
                     <Radio.Group
-                        style={{ width: "100%" }}
-                        value={selectedSlotKey}
-                        onChange={(event) => { onSlotSelect(event.target.value as string); }}
+                        value={bookingMode}
+                        onChange={(event) => {
+                            onBookingModeChange(event.target.value as "once" | "weekly")
+                        }}
                     >
-                        <Flex vertical gap={8}>
-                            {filteredSlots.map((slot) => {
-                                const key = slotKey(slot)
-                                return (
-                                    <Radio key={key} value={key}>
-                                        <Space orientation="vertical" size={0}>
-                                            <Text strong>
-                                                {formatDatePl(slot.date)}, {formatTime(slot.start_time)}
-                                                {" – "}
-                                                {formatTime(slot.end_time)}
-                                            </Text>
-                                            <Text type="secondary">
-                                                {slot.therapist_name}
-                                                {slot.localization ? ` · ${slot.localization}` : ""}
-                                            </Text>
-                                        </Space>
-                                    </Radio>
-                                )
-                            })}
-                        </Flex>
-                    </Radio.Group>
-                )}
-            </Card>
-
-            {selectedType && (
-                <Card title="5. Potwierdzenie">
-                    <Space orientation="vertical">
-                        <Text>Tryb rezerwacji:</Text>
-                        <Radio.Group
-                            value={bookingMode}
-                            onChange={(event) => {
-                                onBookingModeChange(event.target.value as "once" | "weekly")
-                            }}
-                        >
+                        <Space orientation="vertical">
                             <Radio value="once">Jednorazowa</Radio>
                             <Radio value="weekly" disabled={!canBookWeekly}>
                                 Cykliczna (co tydzień)
                             </Radio>
-                        </Radio.Group>
-                        {!canBookWeekly && (
-                            <Text type="secondary">
-                                Wybrany typ wizyty nie obsługuje rezerwacji cyklicznej.
-                            </Text>
+                        </Space>
+                    </Radio.Group>
+                    {!canBookWeekly && (
+                        <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+                            Wybrany typ wizyty nie obsługuje rezerwacji cyklicznej.
+                        </Text>
+                    )}
+                </Card>
+            )}
+
+            {appointmentTypeId && (
+                <Card title="4. Filtry terminów">
+                    <Flex vertical gap={12}>
+                        {bookingMode === "once" ? (
+                            <DatePicker
+                                placeholder="Dzień wizyty"
+                                value={visitDate ? dayjs(visitDate) : undefined}
+                                minDate={today}
+                                maxDate={maxDate}
+                                onChange={(value) => {
+                                    onVisitDateChange(
+                                        value ? value.format("YYYY-MM-DD") : undefined,
+                                    )
+                                }}
+                                format="DD.MM.YYYY"
+                            />
+                        ) : (
+                            <Space wrap style={{ width: "100%" }}>
+                                <Select
+                                    placeholder="Dzień tygodnia"
+                                    style={{ minWidth: 180 }}
+                                    value={dayOfWeek}
+                                    onChange={onDayOfWeekChange}
+                                    options={WEEKDAY_OPTIONS}
+                                />
+                                <DatePicker
+                                    placeholder="Dzień początkowy"
+                                    value={startDate ? dayjs(startDate) : undefined}
+                                    disabled={dayOfWeek === undefined}
+                                    disabledDate={disableWeeklyStartDate}
+                                    onChange={(value) => {
+                                        onStartDateChange(
+                                            value ? value.format("YYYY-MM-DD") : undefined,
+                                        )
+                                    }}
+                                    format="DD.MM.YYYY"
+                                />
+                            </Space>
                         )}
+
+                        <Space wrap style={{ width: "100%" }}>
+                            <Select
+                                allowClear
+                                showSearch
+                                optionFilterProp="label"
+                                placeholder="Terapeuta"
+                                style={{ minWidth: 260 }}
+                                value={therapistId}
+                                onChange={onTherapistChange}
+                                options={therapistOptions}
+                            />
+                            <Select
+                                allowClear
+                                showSearch
+                                optionFilterProp="label"
+                                placeholder="Lokalizacja / gabinet"
+                                style={{ minWidth: 280 }}
+                                value={officeId}
+                                onChange={onOfficeChange}
+                                options={officeOptions}
+                            />
+                        </Space>
+
+                        {dateFiltersReady && (
+                            loadingTimeOptions ? (
+                                <Flex align="center" gap={8}>
+                                    <Spin size="small" />
+                                    <Text type="secondary">Ładowanie dostępnych godzin…</Text>
+                                </Flex>
+                            ) : timeOptions.start_times.length === 0 ? (
+                                <Text type="secondary">
+                                    Brak wolnych godzin dla wybranych filtrów daty.
+                                </Text>
+                            ) : (
+                                <Space wrap style={{ width: "100%" }}>
+                                    <Select
+                                        allowClear
+                                        placeholder="Godzina od"
+                                        style={{ minWidth: 140 }}
+                                        value={timeFrom}
+                                        onChange={onTimeFromChange}
+                                        options={timeOptions.start_times.map((time) => ({
+                                            value: time,
+                                            label: time,
+                                        }))}
+                                    />
+                                    <Select
+                                        allowClear
+                                        placeholder="Godzina do"
+                                        style={{ minWidth: 140 }}
+                                        value={timeTo}
+                                        onChange={onTimeToChange}
+                                        disabled={validEndTimes.length === 0}
+                                        options={validEndTimes.map((time) => ({
+                                            value: time,
+                                            label: time,
+                                        }))}
+                                    />
+                                </Space>
+                            )
+                        )}
+
+                        <Button
+                            type="primary"
+                            onClick={onSearchSlots}
+                            disabled={!dateFiltersReady || loadingTimeOptions}
+                            loading={loadingSlots}
+                        >
+                            Szukaj terminów
+                        </Button>
+                    </Flex>
+                </Card>
+            )}
+
+            {appointmentTypeId && (
+                <Card title="5. Dostępne terminy">
+                    {loadingSlots ? (
+                        <Flex justify="center" style={{ padding: 24 }}>
+                            <Spin />
+                        </Flex>
+                    ) : bookableSlots.length === 0 ? (
+                        <Text type="secondary">
+                            {hasSearched
+                                ? "Brak dostępnych terminów dla wybranych filtrów."
+                                : "Ustaw filtry i kliknij „Szukaj terminów”, aby zobaczyć wolne terminy."}
+                        </Text>
+                    ) : (
+                        <Flex vertical gap={16}>
+                            <Radio.Group
+                                style={{ width: "100%" }}
+                                value={selectedSlotKey}
+                                onChange={(event) => {
+                                    onSlotSelect(event.target.value as string)
+                                }}
+                            >
+                                <Flex vertical gap={8}>
+                                    {bookableSlots.map((slot) => {
+                                        const key = slotKey(slot)
+                                        return (
+                                            <Radio key={key} value={key}>
+                                                <Space orientation="vertical" size={0}>
+                                                    <Text strong>
+                                                        {formatDatePl(slot.date)}, {formatTime(slot.start_time)}
+                                                        {" – "}
+                                                        {formatTime(slot.end_time)}
+                                                    </Text>
+                                                    <Text type="secondary">
+                                                        {slot.therapist_name}
+                                                    </Text>
+                                                    <OfficeLocationInfo office={slot.office} />
+                                                </Space>
+                                            </Radio>
+                                        )
+                                    })}
+                                </Flex>
+                            </Radio.Group>
+                            {slotsTotal > slotsPageSize && (
+                                <Pagination
+                                    current={slotsPage}
+                                    pageSize={slotsPageSize}
+                                    total={slotsTotal}
+                                    onChange={onSlotsPageChange}
+                                    showSizeChanger={false}
+                                    showTotal={(total) => `Łącznie ${total} terminów`}
+                                />
+                            )}
+                        </Flex>
+                    )}
+                </Card>
+            )}
+
+            {appointmentTypeId && selectedSlotKey && (
+                <Card title="6. Potwierdzenie">
+                    <Space orientation="vertical">
+                        <Text>
+                            Tryb: {bookingMode === "once" ? "jednorazowa" : "cykliczna (co tydzień)"}
+                        </Text>
                         <Button
                             type="primary"
                             size="large"

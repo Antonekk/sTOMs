@@ -18,6 +18,9 @@ from .engines.horizon import ensure_horizon
 
 from notifications.engine import NotificationEngine
 
+from offices.serializers import OfficeLocationSerializer
+from offices.location import serialize_office_location
+
 WEEKDAY_LABELS = [
     "poniedziałek",
     "wtorek",
@@ -277,3 +280,31 @@ class AppointmentStatusUpdateSerializer(serializers.Serializer):
 
 class AppointmentNoteSerializer(serializers.Serializer):
     notes = serializers.CharField(allow_blank=True)
+
+
+class BookableSlotSerializer(serializers.Serializer):
+    therapist_id = serializers.UUIDField()
+    therapist_name = serializers.CharField()
+    office_id = serializers.UUIDField(allow_null=True)
+    office = OfficeLocationSerializer(allow_null=True)
+    date = serializers.DateField()
+    start_time = serializers.TimeField(format="%H:%M")
+    end_time = serializers.TimeField(format="%H:%M")
+
+
+class BookableTimeOptionsSerializer(serializers.Serializer):
+    start_times = serializers.ListField(child=serializers.CharField())
+    end_times = serializers.ListField(child=serializers.CharField())
+
+
+class BookingTherapistSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="user.get_full_name", read_only=True)
+    office_id = serializers.UUIDField(source="office.id", read_only=True, allow_null=True)
+    office = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Therapist
+        fields = ("id", "full_name", "office_id", "office")
+
+    def get_office(self, obj):
+        return serialize_office_location(obj.office)

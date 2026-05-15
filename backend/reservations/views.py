@@ -1,12 +1,14 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import AppUser
 from users.permissions import IsClient, IsTherapist
 
+from therapist_availability.models import Therapist
 from therapist_availability.views import get_therapist_for_user
 
 from .models import Appointment, AppointmentSeries, AppointmentType
@@ -20,9 +22,81 @@ from .serializers import (
     AppointmentStatusUpdateSerializer,
     AppointmentTherapistSerializer,
     AppointmentTypeSerializer,
+    BookableSlotSerializer,
+    BookableTimeOptionsSerializer,
+    BookingTherapistSerializer,
 )
 from .engines.cancellation import CancellationEngine, CancellationWindowError
 from .engines.horizon import ensure_horizon, ensure_horizon_for_queryset
+from .engines.slots import BookableSlotsEngine
+from .slot_search import parse_slot_search_params
+
+
+class BookableSlotPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
+class TherapistListView(APIView):
+    permission_classes = [IsAuthenticated, IsClient]
+
+    def get(self, request):
+        therapists = (
+            Therapist.objects.select_related("user", "office", "office__localization")
+            .order_by("user__last_name", "user__first_name")
+        )
+        serializer = BookingTherapistSerializer(therapists, many=True)
+        return Response(serializer.data)
+
+
+class BookableSlotListView(APIView):
+    permission_classes = [IsAuthenticated, IsClient]
+    pagination_class = BookableSlotPagination
+
+    def get(self, request):
+        params = parse_slot_search_params(request.query_params)
+        slots = BookableSlotsEngine.list_slots(
+            appointment_type=params.appointment_type,
+            date_from=params.date_from,
+            date_to=params.date_to,
+            therapist_id=params.therapist_id,
+            office_id=params.office_id,
+            day_of_week=params.day_of_week,
+            time_from=params.time_from,
+            time_to=params.time_to,
+        )
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(slots, request, view=self)
+        serializer = BookableSlotSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
+class BookableTimeOptionsView(APIView):
+    permission_classes = [IsAuthenticated, IsClient]
+
+    def get(self, request):
+        params = parse_slot_search_params(
+            request.query_params,
+            include_time_filters=False,
+        )
+        slots = BookableSlotsEngine.list_slots(
+            appointment_type=params.appointment_type,
+            date_from=params.date_from,
+            date_to=params.date_to,
+            therapist_id=params.therapist_id,
+            office_id=params.office_id,
+            day_of_week=params.day_of_week,
+        )
+        start_times = sorted(
+            {slot["start_time"].strftime("%H:%M") for slot in slots}
+        )
+        end_times = sorted({slot["end_time"].strftime("%H:%M") for slot in slots})
+        serializer = BookableTimeOptionsSerializer(
+            {"start_times": start_times, "end_times": end_times}
+        )
+        return Response(serializer.data)
 
 
 class AppointmentTypeListView(APIView):

@@ -46,7 +46,7 @@ export const splitAvailabilityIntoBookableSlots = (
                     therapist_id: day.therapist_id,
                     therapist_name: day.therapist_name,
                     office_id: day.office_id,
-                    localization: day.localization,
+                    office: null,
                     date: day.date,
                     start_time: minutesToTime(cursor),
                     end_time: minutesToTime(cursor + duration),

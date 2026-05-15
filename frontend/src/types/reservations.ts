@@ -66,6 +66,14 @@ export interface AvailabilitySlot {
     end_time: string;
 }
 
+export interface OfficeLocation {
+    name: string;
+    city: string;
+    address: string;
+    postal_code: string;
+    room_number: string | null;
+}
+
 export interface AvailabilityDay {
     therapist_id: string;
     therapist_name: string;
@@ -79,8 +87,40 @@ export interface BookableSlot {
     therapist_id: string;
     therapist_name: string;
     office_id: string | null;
-    localization: string | null;
+    office: OfficeLocation | null;
     date: string;
     start_time: string;
     end_time: string;
+}
+
+export interface BookingTherapist {
+    id: string;
+    full_name: string;
+    office_id: string | null;
+    office: OfficeLocation | null;
+}
+
+export interface PaginatedBookableSlots {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: BookableSlot[];
+}
+
+export interface BookableTimeOptions {
+    start_times: string[];
+    end_times: string[];
+}
+
+export interface BookableSlotSearchParams {
+    appointment_type_id: string;
+    date_from?: string;
+    date_to?: string;
+    therapist_id?: string;
+    office_id?: string;
+    day_of_week?: number;
+    time_from?: string;
+    time_to?: string;
+    page?: number;
+    page_size?: number;
 }

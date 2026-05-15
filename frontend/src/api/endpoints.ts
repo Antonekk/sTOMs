@@ -24,6 +24,9 @@ export const PATIENT_ENDPOINTS = {
 
 export const RESERVATION_ENDPOINTS = {
     APPOINTMENT_TYPES: "/api/v1/appointment-types",
+    THERAPISTS: "/api/v1/therapists",
+    BOOKABLE_SLOTS: "/api/v1/reservations/slots",
+    BOOKABLE_SLOT_TIME_OPTIONS: "/api/v1/reservations/slots/time-options",
     RESERVATIONS: "/api/v1/reservations",
     RESERVATION: (id: string) => `/api/v1/reservations/${id}`,
 }

@@ -3,6 +3,14 @@ from rest_framework import serializers
 from .models import Localization, Office
 
 
+class OfficeLocationSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    city = serializers.CharField()
+    address = serializers.CharField()
+    postal_code = serializers.CharField()
+    room_number = serializers.CharField(allow_null=True)
+
+
 class OfficeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Office

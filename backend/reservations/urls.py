@@ -2,8 +2,11 @@ from django.urls import path
 
 from .views import (
     AppointmentTypeListView,
+    BookableSlotListView,
+    BookableTimeOptionsView,
     ReservationDetailView,
     ReservationListCreateView,
+    TherapistListView,
     VisitCancelView,
     VisitDetailView,
     VisitListView,
@@ -16,6 +19,21 @@ urlpatterns = [
         "v1/appointment-types",
         AppointmentTypeListView.as_view(),
         name="appointment-type-list",
+    ),
+    path(
+        "v1/therapists",
+        TherapistListView.as_view(),
+        name="booking-therapist-list",
+    ),
+    path(
+        "v1/reservations/slots/time-options",
+        BookableTimeOptionsView.as_view(),
+        name="bookable-time-options",
+    ),
+    path(
+        "v1/reservations/slots",
+        BookableSlotListView.as_view(),
+        name="bookable-slot-list",
     ),
     path("v1/reservations", ReservationListCreateView.as_view(), name="reservation-list"),
     path(
