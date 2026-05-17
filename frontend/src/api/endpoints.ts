@@ -39,8 +39,6 @@ export const VISIT_ENDPOINTS = {
     CANCEL: (id: string) => `/api/v1/visits/${id}/cancel`,
 }
 
-export const AVAILABILITY_ENDPOINT = "/api/availability"
-
 export const NOTIFICATION_ENDPOINTS = {
     NOTIFICATIONS: "/api/v1/notifications",
     NOTIFICATION: (id: string) => `/api/v1/notifications/${id}`,

@@ -26,6 +26,7 @@ export interface ReservationSeries {
     end_time: string;
     start_date: string;
     recurrence_display: string | null;
+    office: OfficeLocation | null;
 }
 
 export interface ReservationSeriesDetail extends ReservationSeries {
@@ -51,20 +52,11 @@ export interface Visit {
     appointment_type_name: string;
     start_time: string;
     end_time: string;
+    office: OfficeLocation | null;
     notes?: string | null;
 }
 
-export interface VisitDetail extends Visit {
-    patient_first_name?: string;
-    patient_last_name?: string;
-    therapist_first_name?: string;
-    therapist_last_name?: string;
-}
-
-export interface AvailabilitySlot {
-    start_time: string;
-    end_time: string;
-}
+export type VisitDetail = Visit;
 
 export interface OfficeLocation {
     name: string;
@@ -72,15 +64,6 @@ export interface OfficeLocation {
     address: string;
     postal_code: string;
     room_number: string | null;
-}
-
-export interface AvailabilityDay {
-    therapist_id: string;
-    therapist_name: string;
-    office_id: string | null;
-    localization: string | null;
-    date: string;
-    slots: AvailabilitySlot[];
 }
 
 export interface BookableSlot {

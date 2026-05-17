@@ -13,15 +13,15 @@ import {
 import dayjs from "dayjs"
 import type React from "react"
 import AppAlert from "../app_alert/app_alert"
+import OfficeLocationDisplay from "../office_location/office_location"
 import type { Patient } from "../../../types/patients"
 import type {
     AppointmentType,
     BookableSlot,
     BookableTimeOptions,
     BookingTherapist,
-    OfficeLocation,
 } from "../../../types/reservations"
-import { formatOfficeAddress, formatOfficeLocationShort } from "../../../utils/officeDisplay"
+import { formatOfficeLocationShort } from "../../../utils/officeDisplay"
 import { formatDatePl, formatTime } from "../../../utils/timeSlots"
 import PatientSelector from "../patient_selector/patient_selector"
 
@@ -90,19 +90,6 @@ export const slotKey = (slot: BookableSlot): string =>
 
 const djangoWeekdayFromDayjs = (value: { day: () => number }): number =>
     (value.day() + 6) % 7
-
-const OfficeLocationInfo: React.FC<{ office: OfficeLocation | null }> = ({ office }) => {
-    if (!office) return null
-
-    return (
-        <Space orientation="vertical" size={0}>
-            <Text type="secondary">{formatOfficeAddress(office)}</Text>
-            {office.room_number && (
-                <Text type="secondary">Pokój {office.room_number}</Text>
-            )}
-        </Space>
-    )
-}
 
 const ReservationBooking: React.FC<ReservationBookingProps> = ({
     patients,
@@ -378,7 +365,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                                                     <Text type="secondary">
                                                         {slot.therapist_name}
                                                     </Text>
-                                                    <OfficeLocationInfo office={slot.office} />
+                                                    <OfficeLocationDisplay office={slot.office} compact />
                                                 </Space>
                                             </Radio>
                                         )

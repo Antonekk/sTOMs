@@ -1,6 +1,7 @@
 import { Button, Card, Flex, Input, Space, Tag, Typography } from "antd"
 import type React from "react"
 import type { VisitDetail, VisitStatus } from "../../../types/reservations"
+import OfficeLocationDisplay from "../office_location/office_location"
 import { formatDatePl, formatTime } from "../../../utils/timeSlots"
 
 const { Title, Text } = Typography
@@ -26,6 +27,11 @@ export interface VisitDetailCardProps {
     canUpdateStatus?: boolean
 }
 
+const splitFullName = (fullName: string): [string, string] => {
+    const parts = fullName.split(" ")
+    return [parts[0] ?? "", parts.slice(1).join(" ")]
+}
+
 const VisitDetailCard: React.FC<VisitDetailCardProps> = ({
     visit,
     role,
@@ -38,7 +44,11 @@ const VisitDetailCard: React.FC<VisitDetailCardProps> = ({
     updatingStatus = false,
     canCancel = false,
     canUpdateStatus = false,
-}) => (
+}) => {
+    const [patientFirstName, patientLastName] = splitFullName(visit.patient_name)
+    const [therapistFirstName, therapistLastName] = splitFullName(visit.therapist_name)
+
+    return (
     <Card>
         <Flex vertical gap={16}>
             <Space align="center">
@@ -66,18 +76,18 @@ const VisitDetailCard: React.FC<VisitDetailCardProps> = ({
             <Space orientation="vertical" size={4}>
                 <Text strong>Pacjent</Text>
                 <Text>
-                    {visit.patient_first_name ?? visit.patient_name.split(" ")[0]}{" "}
-                    {visit.patient_last_name ?? visit.patient_name.split(" ").slice(1).join(" ")}
+                    {patientFirstName} {patientLastName}
                 </Text>
             </Space>
 
             <Space orientation="vertical" size={4}>
                 <Text strong>Terapeuta</Text>
                 <Text>
-                    {visit.therapist_first_name ?? visit.therapist_name.split(" ")[0]}{" "}
-                    {visit.therapist_last_name ?? visit.therapist_name.split(" ").slice(1).join(" ")}
+                    {therapistFirstName} {therapistLastName}
                 </Text>
             </Space>
+
+            <OfficeLocationDisplay office={visit.office} />
 
             {role === "THERAPIST" && (
                 <Space orientation="vertical" style={{ width: "100%" }}>
@@ -131,6 +141,7 @@ const VisitDetailCard: React.FC<VisitDetailCardProps> = ({
             )}
         </Flex>
     </Card>
-)
+    )
+}
 
 export default VisitDetailCard

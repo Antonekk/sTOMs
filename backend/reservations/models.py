@@ -54,10 +54,6 @@ class AppointmentSeries(models.Model):
         verbose_name = "appointment series"
         verbose_name_plural = "appointment series"
 
-    @property
-    def is_recurring(self) -> bool:
-        return self.is_weekly
-
 
 class Appointment(models.Model):
     class Status(models.TextChoices):

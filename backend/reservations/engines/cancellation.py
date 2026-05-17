@@ -119,7 +119,7 @@ class CancellationEngine:
         if scheduled_future:
             return
 
-        if not series.is_recurring:
+        if not series.is_weekly:
             has_canceled = series.appointments.filter(
                 status=Appointment.Status.CANCELED
             ).exists()
@@ -158,7 +158,7 @@ class CancellationEngine:
         if has_scheduled:
             return appointment
 
-        if not series.is_recurring:
+        if not series.is_weekly:
             series.status = AppointmentSeries.Status.ENDED
             series.save(update_fields=["status"])
             return appointment

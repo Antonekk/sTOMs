@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 from constance import config
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
@@ -14,6 +15,7 @@ from reservations.models import Appointment, AppointmentSeries, AppointmentType
 from reservations.engines.cancellation import CancellationEngine
 from reservations.engines.generation import AppointmentGenerationEngine
 from reservations.engines.horizon import ensure_horizon
+from reservations.tasks import extend_appointment_horizons
 
 User = get_user_model()
 
@@ -438,7 +440,7 @@ class ReservationAPITestCase(APITestCase):
             config.CANCELLATION_WINDOW_HOURS = original
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-    def test_visit_list_extends_horizon(self):
+    def test_visit_list_does_not_extend_horizon(self):
         target_date = self._future_monday()
         series = AppointmentSeries.objects.create(
             therapist=self.therapist,
@@ -465,7 +467,7 @@ class ReservationAPITestCase(APITestCase):
         finally:
             config.APPOINTMENT_GENERATION_DAYS = original
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreater(series.appointments.count(), 1)
+        self.assertEqual(series.appointments.count(), 1)
 
     def test_client_visit_payload_excludes_notes(self):
         target_date = self._future_monday()
@@ -490,6 +492,53 @@ class ReservationAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         payload = response.data[0]
         self.assertNotIn("notes", payload)
+        self.assertEqual(payload["office"]["city"], "Warszawa")
+
+    def test_reservation_detail_includes_office(self):
+        target_date = self._future_monday()
+        series = AppointmentSeries.objects.create(
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_type=self.one_time_type,
+            start_time=time(10, 0),
+            end_time=time(10, 30),
+            start_date=target_date,
+        )
+        Appointment.objects.create(
+            appointment_series=series,
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_date=target_date,
+            final_price=self.one_time_type.price,
+        )
+        self.api.force_authenticate(user=self.client_user)
+        response = self.api.get(f"/api/v1/reservations/{series.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["office"]["address"], "ul. Testowa 1")
+        self.assertEqual(response.data["office"]["room_number"], "101")
+
+    def test_visit_detail_includes_office(self):
+        target_date = self._future_monday()
+        series = AppointmentSeries.objects.create(
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_type=self.one_time_type,
+            start_time=time(10, 0),
+            end_time=time(10, 30),
+            start_date=target_date,
+        )
+        appointment = Appointment.objects.create(
+            appointment_series=series,
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_date=target_date,
+            final_price=self.one_time_type.price,
+        )
+        self.api.force_authenticate(user=self.client_user)
+        response = self.api.get(f"/api/v1/visits/{appointment.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["office"]["city"], "Warszawa")
+        self.assertEqual(response.data["office"]["room_number"], "101")
 
 
 class BookableSlotAPITestCase(APITestCase):
@@ -672,9 +721,10 @@ class HorizonTestCase(TestCase):
         _, therapist = create_therapist("horizon@test.com")
         _, patient = create_client("horizon-client@test.com")
         periodic_type, _ = create_appointment_types()
-        import recurrence
 
-        target_date = timezone.localdate() + timedelta(days=(0 - timezone.localdate().weekday()) % 7 or 7)
+        target_date = timezone.localdate() + timedelta(
+            days=(0 - timezone.localdate().weekday()) % 7 or 7
+        )
         series = AppointmentSeries.objects.create(
             therapist=therapist,
             patient=patient,
@@ -682,14 +732,49 @@ class HorizonTestCase(TestCase):
             start_time=time(10, 0),
             end_time=time(10, 50),
             start_date=target_date,
-            recurrence=recurrence.Recurrence(
-                rrules=[recurrence.Rule(recurrence.WEEKLY, byday=recurrence.MO)]
-            ),
+            is_weekly=True,
         )
         original = config.APPOINTMENT_GENERATION_DAYS
         config.APPOINTMENT_GENERATION_DAYS = 28
         try:
             ensure_horizon(series)
+        finally:
+            config.APPOINTMENT_GENERATION_DAYS = original
+        self.assertGreater(series.appointments.count(), 1)
+
+    def test_celery_beat_runs_daily(self):
+        schedule = settings.CELERY_BEAT_SCHEDULE["extend-appointment-horizons"]["schedule"]
+        self.assertEqual(schedule, timedelta(days=1))
+
+    def test_extend_appointment_horizons_task_generates_missing_appointments(self):
+        _, therapist = create_therapist("task-horizon@test.com")
+        _, patient = create_client("task-horizon-client@test.com")
+        periodic_type, _ = create_appointment_types()
+
+        target_date = timezone.localdate() + timedelta(
+            days=(0 - timezone.localdate().weekday()) % 7 or 7
+        )
+        series = AppointmentSeries.objects.create(
+            therapist=therapist,
+            patient=patient,
+            appointment_type=periodic_type,
+            start_time=time(10, 0),
+            end_time=time(10, 50),
+            start_date=target_date,
+            is_weekly=True,
+        )
+        Appointment.objects.create(
+            appointment_series=series,
+            therapist=therapist,
+            patient=patient,
+            appointment_date=target_date,
+            final_price=periodic_type.price,
+        )
+
+        original = config.APPOINTMENT_GENERATION_DAYS
+        config.APPOINTMENT_GENERATION_DAYS = 28
+        try:
+            extend_appointment_horizons()
         finally:
             config.APPOINTMENT_GENERATION_DAYS = original
         self.assertGreater(series.appointments.count(), 1)

@@ -1,24 +1,20 @@
 from datetime import datetime, timedelta
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .exceptions import ConflictError
-
+from notifications.engine import NotificationEngine
 from patients.models import Patient
 from therapist_availability.models import Therapist
 
+from .exceptions import ConflictError
 from .models import Appointment, AppointmentSeries, AppointmentType
 from .engines.booking import BookingEngine
 from .engines.collision import CollisionDetectionEngine
 from .engines.generation import AppointmentGenerationEngine
-from .engines.horizon import ensure_horizon
-
-from notifications.engine import NotificationEngine
-
-from offices.serializers import OfficeLocationSerializer
 from offices.location import serialize_office_location
 
 WEEKDAY_LABELS = [
@@ -30,6 +26,17 @@ WEEKDAY_LABELS = [
     "sobota",
     "niedziela",
 ]
+
+
+class PatientOfficeMixin(serializers.Serializer):
+    patient_name = serializers.SerializerMethodField()
+    office = serializers.SerializerMethodField()
+
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
+
+    def get_office(self, obj):
+        return serialize_office_location(obj.therapist.office)
 
 
 class AppointmentTypeSerializer(serializers.ModelSerializer):
@@ -50,9 +57,8 @@ class AppointmentSummarySerializer(serializers.ModelSerializer):
         fields = ("id", "appointment_date", "status", "final_price")
 
 
-class AppointmentSeriesListSerializer(serializers.ModelSerializer):
+class AppointmentSeriesListSerializer(PatientOfficeMixin, serializers.ModelSerializer):
     therapist_name = serializers.CharField(source="therapist.user.get_full_name", read_only=True)
-    patient_name = serializers.SerializerMethodField()
     appointment_type_name = serializers.CharField(source="appointment_type.name", read_only=True)
     recurrence_display = serializers.SerializerMethodField()
 
@@ -68,10 +74,8 @@ class AppointmentSeriesListSerializer(serializers.ModelSerializer):
             "end_time",
             "start_date",
             "recurrence_display",
+            "office",
         )
-
-    def get_patient_name(self, obj):
-        return f"{obj.patient.first_name} {obj.patient.last_name}"
 
     def get_recurrence_display(self, obj):
         if not obj.is_weekly:
@@ -95,18 +99,20 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
     start_date = serializers.DateField()
     is_weekly = serializers.BooleanField(default=False)
 
-    def _validate_occurrence(self, therapist, occurrence_date, start_time, end_time):
-        from django.core.exceptions import ValidationError as DjangoValidationError
+    @staticmethod
+    def _raise_validation_from_booking_error(exc):
+        message = str(exc.message or exc)
+        if "zajęty" in message or "koliduje" in message:
+            raise ConflictError() from exc
+        if hasattr(exc, "message_dict"):
+            raise ValidationError(exc.message_dict) from exc
+        raise ValidationError({"detail": message}) from exc
 
+    def _validate_occurrence(self, therapist, occurrence_date, start_time, end_time):
         try:
             BookingEngine.validate_slot(therapist, occurrence_date, start_time, end_time)
         except DjangoValidationError as exc:
-            message = str(exc.message or exc)
-            if "zajęty" in message or "koliduje" in message:
-                raise ConflictError() from exc
-            if hasattr(exc, "message_dict"):
-                raise ValidationError(exc.message_dict) from exc
-            raise ValidationError({"detail": message}) from exc
+            self._raise_validation_from_booking_error(exc)
 
     def validate(self, attrs):
         therapist = Therapist.objects.filter(id=attrs["therapist_id"]).first()
@@ -128,24 +134,32 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             raise ValidationError({"appointment_type_id": "Typ wizyty nie istnieje."})
 
         is_weekly = attrs.get("is_weekly", False)
-
         if is_weekly and not appointment_type.is_periodic:
             raise ValidationError(
                 {"appointment_type_id": "Ten typ wizyty nie obsługuje rezerwacji cyklicznej."}
             )
 
         start_time = attrs["start_time"]
+        start_date = attrs["start_date"]
         end_time = (
-            datetime.combine(attrs["start_date"], start_time)
+            datetime.combine(start_date, start_time)
             + timedelta(minutes=appointment_type.duration_time_minutes)
         ).time()
-        start_date = attrs["start_date"]
 
-        attrs["therapist"] = therapist
-        attrs["patient"] = patient
-        attrs["appointment_type"] = appointment_type
-        attrs["end_time"] = end_time
-        attrs["is_weekly"] = is_weekly
+        attrs.update(
+            {
+                "therapist": therapist,
+                "patient": patient,
+                "appointment_type": appointment_type,
+                "end_time": end_time,
+                "is_weekly": is_weekly,
+            }
+        )
+
+        try:
+            BookingEngine.validate_booking_date(start_date)
+        except Exception as exc:
+            raise ValidationError({"start_date": str(exc)}) from exc
 
         if not is_weekly:
             self._validate_occurrence(therapist, start_date, start_time, end_time)
@@ -153,8 +167,8 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
 
         temp_series = AppointmentSeries(
             therapist=therapist,
-            patient=attrs["patient"],
-            appointment_type=attrs["appointment_type"],
+            patient=patient,
+            appointment_type=appointment_type,
             start_time=start_time,
             end_time=end_time,
             start_date=start_date,
@@ -174,30 +188,14 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
                 therapist.id, occurrence_date, start_time, end_time
             ):
                 raise ConflictError()
-            if not self._slot_available_without_collision_check(
+            if not BookingEngine.slot_in_availability(
                 therapist, occurrence_date, start_time, end_time
             ):
                 raise ValidationError(
                     {"detail": "Wybrany termin jest niedostępny w grafiku terapeuty."}
                 )
 
-        self._validate_booking_window(start_date)
         return attrs
-
-    @staticmethod
-    def _validate_booking_window(start_date):
-        try:
-            BookingEngine.validate_booking_date(start_date)
-        except Exception as exc:
-            raise ValidationError({"start_date": str(exc)}) from exc
-
-    @staticmethod
-    def _slot_available_without_collision_check(
-        therapist, appointment_date, start_time, end_time
-    ):
-        return BookingEngine.slot_in_availability(
-            therapist, appointment_date, start_time, end_time
-        )
 
     @transaction.atomic
     def create(self, validated_data):
@@ -211,14 +209,12 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             is_weekly=validated_data["is_weekly"],
         )
         AppointmentGenerationEngine.generate(series)
-        ensure_horizon(series)
         NotificationEngine.notify_reservation_created(series)
         return series
 
 
-class AppointmentClientSerializer(serializers.ModelSerializer):
+class AppointmentClientSerializer(PatientOfficeMixin, serializers.ModelSerializer):
     therapist_name = serializers.CharField(source="therapist.user.get_full_name", read_only=True)
-    patient_name = serializers.SerializerMethodField()
     appointment_type_name = serializers.CharField(
         source="appointment_series.appointment_type.name", read_only=True
     )
@@ -239,34 +235,13 @@ class AppointmentClientSerializer(serializers.ModelSerializer):
             "appointment_type_name",
             "start_time",
             "end_time",
+            "office",
         )
-
-    def get_patient_name(self, obj):
-        return f"{obj.patient.first_name} {obj.patient.last_name}"
 
 
 class AppointmentTherapistSerializer(AppointmentClientSerializer):
     class Meta(AppointmentClientSerializer.Meta):
         fields = AppointmentClientSerializer.Meta.fields + ("notes",)
-
-
-class AppointmentDetailSerializer(AppointmentTherapistSerializer):
-    patient_first_name = serializers.CharField(source="patient.first_name", read_only=True)
-    patient_last_name = serializers.CharField(source="patient.last_name", read_only=True)
-    therapist_first_name = serializers.CharField(
-        source="therapist.user.first_name", read_only=True
-    )
-    therapist_last_name = serializers.CharField(
-        source="therapist.user.last_name", read_only=True
-    )
-
-    class Meta(AppointmentTherapistSerializer.Meta):
-        fields = AppointmentTherapistSerializer.Meta.fields + (
-            "patient_first_name",
-            "patient_last_name",
-            "therapist_first_name",
-            "therapist_last_name",
-        )
 
 
 class AppointmentStatusUpdateSerializer(serializers.Serializer):
@@ -286,7 +261,7 @@ class BookableSlotSerializer(serializers.Serializer):
     therapist_id = serializers.UUIDField()
     therapist_name = serializers.CharField()
     office_id = serializers.UUIDField(allow_null=True)
-    office = OfficeLocationSerializer(allow_null=True)
+    office = serializers.JSONField(allow_null=True)
     date = serializers.DateField()
     start_time = serializers.TimeField(format="%H:%M")
     end_time = serializers.TimeField(format="%H:%M")

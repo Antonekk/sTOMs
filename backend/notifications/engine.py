@@ -48,7 +48,7 @@ class NotificationEngine:
         start_time = format_time(series.start_time)
         patient_name = cls._patient_full_name(series)
 
-        if series.is_recurring:
+        if series.is_weekly:
             context = {
                 "appointment_type": appointment_type,
                 "start_time": start_time,

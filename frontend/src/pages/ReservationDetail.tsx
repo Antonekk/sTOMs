@@ -6,6 +6,7 @@ import { cancelReservation, getReservation } from "../api/reservations"
 import Loading from "../components/storybook_components/loading/loading"
 import { getApiErrorMessage } from "../utils/apiError"
 import { formatDatePl, formatTime } from "../utils/timeSlots"
+import OfficeLocationDisplay from "../components/storybook_components/office_location/office_location"
 import type { ReservationSeriesDetail, SeriesStatus, VisitStatus } from "../types/reservations"
 
 const { Title, Text } = Typography
@@ -85,6 +86,7 @@ const ReservationDetailPage: React.FC = () => {
                     </Space>
                     <Text>Pacjent: {reservation.patient_name}</Text>
                     <Text>Terapeuta: {reservation.therapist_name}</Text>
+                    <OfficeLocationDisplay office={reservation.office} />
                     <Text>
                         {formatDatePl(reservation.start_date)}, {formatTime(reservation.start_time)}
                         {" – "}

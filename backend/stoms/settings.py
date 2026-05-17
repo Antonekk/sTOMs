@@ -219,6 +219,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "notifications.tasks.send_appointment_reminders",
         "schedule": timedelta(hours=1),
     },
+    "extend-appointment-horizons": {
+        "task": "reservations.tasks.extend_appointment_horizons",
+        "schedule": timedelta(days=1),
+    },
 }
 
 # Set user used for auth

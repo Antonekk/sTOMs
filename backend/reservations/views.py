@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +13,6 @@ from therapist_availability.views import get_therapist_for_user
 from .models import Appointment, AppointmentSeries, AppointmentType
 from .serializers import (
     AppointmentClientSerializer,
-    AppointmentDetailSerializer,
     AppointmentNoteSerializer,
     AppointmentSeriesCreateSerializer,
     AppointmentSeriesDetailSerializer,
@@ -27,9 +25,22 @@ from .serializers import (
     BookingTherapistSerializer,
 )
 from .engines.cancellation import CancellationEngine, CancellationWindowError
-from .engines.horizon import ensure_horizon, ensure_horizon_for_queryset
 from .engines.slots import BookableSlotsEngine
 from .slot_search import parse_slot_search_params
+
+APPOINTMENT_SELECT_RELATED = (
+    "therapist__user",
+    "therapist__office__localization",
+    "patient",
+    "appointment_series__appointment_type",
+)
+
+SERIES_SELECT_RELATED = (
+    "therapist__user",
+    "therapist__office__localization",
+    "patient",
+    "appointment_type",
+)
 
 
 class BookableSlotPagination(PageNumberPagination):
@@ -38,16 +49,52 @@ class BookableSlotPagination(PageNumberPagination):
     max_page_size = 50
 
 
+def _appointments_for_user(user):
+    queryset = Appointment.objects.select_related(*APPOINTMENT_SELECT_RELATED)
+    if user.role == AppUser.Role.CLIENT:
+        return queryset.filter(patient__user=user)
+    if user.role == AppUser.Role.THERAPIST:
+        return queryset.filter(therapist=get_therapist_for_user(user))
+    return queryset.none()
+
+
+def _filter_appointments(queryset, request):
+    if request.query_params.get("include_canceled", "").lower() != "true":
+        queryset = queryset.exclude(status=Appointment.Status.CANCELED)
+    status_filter = request.query_params.get("status")
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    therapist_id = request.query_params.get("therapist_id")
+    if therapist_id:
+        queryset = queryset.filter(therapist_id=therapist_id)
+    return queryset.order_by("appointment_date", "appointment_series__start_time")
+
+
+def _list_bookable_slots(request, *, include_time_filters=True):
+    params = parse_slot_search_params(
+        request.query_params,
+        include_time_filters=include_time_filters,
+    )
+    return BookableSlotsEngine.list_slots(
+        appointment_type=params.appointment_type,
+        date_from=params.date_from,
+        date_to=params.date_to,
+        therapist_id=params.therapist_id,
+        office_id=params.office_id,
+        day_of_week=params.day_of_week,
+        time_from=params.time_from,
+        time_to=params.time_to,
+    )
+
+
 class TherapistListView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
     def get(self, request):
-        therapists = (
-            Therapist.objects.select_related("user", "office", "office__localization")
-            .order_by("user__last_name", "user__first_name")
-        )
-        serializer = BookingTherapistSerializer(therapists, many=True)
-        return Response(serializer.data)
+        therapists = Therapist.objects.select_related(
+            "user", "office", "office__localization"
+        ).order_by("user__last_name", "user__first_name")
+        return Response(BookingTherapistSerializer(therapists, many=True).data)
 
 
 class BookableSlotListView(APIView):
@@ -55,48 +102,26 @@ class BookableSlotListView(APIView):
     pagination_class = BookableSlotPagination
 
     def get(self, request):
-        params = parse_slot_search_params(request.query_params)
-        slots = BookableSlotsEngine.list_slots(
-            appointment_type=params.appointment_type,
-            date_from=params.date_from,
-            date_to=params.date_to,
-            therapist_id=params.therapist_id,
-            office_id=params.office_id,
-            day_of_week=params.day_of_week,
-            time_from=params.time_from,
-            time_to=params.time_to,
-        )
-
+        slots = _list_bookable_slots(request)
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(slots, request, view=self)
-        serializer = BookableSlotSerializer(page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+        return paginator.get_paginated_response(
+            BookableSlotSerializer(page, many=True).data
+        )
 
 
 class BookableTimeOptionsView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
     def get(self, request):
-        params = parse_slot_search_params(
-            request.query_params,
-            include_time_filters=False,
-        )
-        slots = BookableSlotsEngine.list_slots(
-            appointment_type=params.appointment_type,
-            date_from=params.date_from,
-            date_to=params.date_to,
-            therapist_id=params.therapist_id,
-            office_id=params.office_id,
-            day_of_week=params.day_of_week,
-        )
-        start_times = sorted(
-            {slot["start_time"].strftime("%H:%M") for slot in slots}
-        )
+        slots = _list_bookable_slots(request, include_time_filters=False)
+        start_times = sorted({slot["start_time"].strftime("%H:%M") for slot in slots})
         end_times = sorted({slot["end_time"].strftime("%H:%M") for slot in slots})
-        serializer = BookableTimeOptionsSerializer(
-            {"start_times": start_times, "end_times": end_times}
+        return Response(
+            BookableTimeOptionsSerializer(
+                {"start_times": start_times, "end_times": end_times}
+            ).data
         )
-        return Response(serializer.data)
 
 
 class AppointmentTypeListView(APIView):
@@ -104,30 +129,22 @@ class AppointmentTypeListView(APIView):
 
     def get(self, request):
         types = AppointmentType.objects.all().order_by("name")
-        serializer = AppointmentTypeSerializer(types, many=True)
-        return Response(serializer.data)
+        return Response(AppointmentTypeSerializer(types, many=True).data)
 
 
 class ReservationListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
-    def get_queryset(self):
+    def get(self, request):
         queryset = AppointmentSeries.objects.filter(
-            patient__user=self.request.user
-        ).select_related(
-            "therapist__user",
-            "patient",
-            "appointment_type",
-        )
-        status_filter = self.request.query_params.get("status")
+            patient__user=request.user
+        ).select_related(*SERIES_SELECT_RELATED)
+        status_filter = request.query_params.get("status")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        return queryset.order_by("-start_date")
-
-    def get(self, request):
-        queryset = self.get_queryset()
-        ensure_horizon_for_queryset(queryset)
-        serializer = AppointmentSeriesListSerializer(queryset, many=True)
+        serializer = AppointmentSeriesListSerializer(
+            queryset.order_by("-start_date"), many=True
+        )
         return Response(serializer.data)
 
     def post(self, request):
@@ -136,32 +153,31 @@ class ReservationListCreateView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         series = serializer.save()
-        ensure_horizon(series)
-        response_serializer = AppointmentSeriesDetailSerializer(series)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            AppointmentSeriesDetailSerializer(series).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ReservationDetailView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
-    def get_object(self, request, series_id):
-        series = get_object_or_404(
-            AppointmentSeries.objects.select_related(
-                "therapist__user", "patient", "appointment_type"
-            ).prefetch_related("appointments"),
+    def _get_series(self, request, series_id):
+        return get_object_or_404(
+            AppointmentSeries.objects.select_related(*SERIES_SELECT_RELATED).prefetch_related(
+                "appointments"
+            ),
             id=series_id,
             patient__user=request.user,
         )
-        ensure_horizon(series)
-        return series
 
     def get(self, request, series_id):
-        series = self.get_object(request, series_id)
-        serializer = AppointmentSeriesDetailSerializer(series)
-        return Response(serializer.data)
+        return Response(
+            AppointmentSeriesDetailSerializer(self._get_series(request, series_id)).data
+        )
 
     def patch(self, request, series_id):
-        series = self.get_object(request, series_id)
+        series = self._get_series(request, series_id)
         if request.data.get("status") != AppointmentSeries.Status.CANCELED:
             return Response(
                 {"detail": "Obsługiwane jest wyłącznie anulowanie rezerwacji."},
@@ -169,93 +185,41 @@ class ReservationDetailView(APIView):
             )
         CancellationEngine.cancel_series(series, canceled_by=AppUser.Role.CLIENT)
         series.refresh_from_db()
-        serializer = AppointmentSeriesDetailSerializer(series)
-        return Response(serializer.data)
+        return Response(AppointmentSeriesDetailSerializer(series).data)
 
 
 class VisitListView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = AppointmentClientSerializer
-
-    def get_queryset(self, request):
-        user = request.user
-        queryset = Appointment.objects.select_related(
-            "therapist__user",
-            "patient",
-            "appointment_series__appointment_type",
-        )
-
-        if user.role == AppUser.Role.CLIENT:
-            queryset = queryset.filter(patient__user=user)
-        elif user.role == AppUser.Role.THERAPIST:
-            therapist = get_therapist_for_user(user)
-            queryset = queryset.filter(therapist=therapist)
-        else:
-            queryset = queryset.none()
-
-        include_canceled = request.query_params.get("include_canceled", "").lower() == "true"
-        if not include_canceled:
-            queryset = queryset.exclude(status=Appointment.Status.CANCELED)
-
-        status_filter = request.query_params.get("status")
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-
-        therapist_id = request.query_params.get("therapist_id")
-        if therapist_id:
-            queryset = queryset.filter(therapist_id=therapist_id)
-
-        return queryset.order_by("appointment_date", "appointment_series__start_time")
-
-    def get_serializer_class(self):
-        request = getattr(self, "request", None)
-        if request and request.user.role == AppUser.Role.THERAPIST:
-            return AppointmentTherapistSerializer
-        return AppointmentClientSerializer
 
     def get(self, request):
         if request.user.role not in (AppUser.Role.CLIENT, AppUser.Role.THERAPIST):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.get_queryset(request)
-        series_ids = queryset.values_list("appointment_series_id", flat=True).distinct()
-        ensure_horizon_for_queryset(
-            AppointmentSeries.objects.filter(id__in=series_ids)
+        queryset = _filter_appointments(_appointments_for_user(request.user), request)
+        serializer_class = (
+            AppointmentTherapistSerializer
+            if request.user.role == AppUser.Role.THERAPIST
+            else AppointmentClientSerializer
         )
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer_class(queryset, many=True).data)
 
 
 class VisitDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, request, appointment_id):
-        queryset = Appointment.objects.select_related(
-            "therapist__user",
-            "patient",
-            "appointment_series__appointment_type",
-        )
-        if request.user.role == AppUser.Role.CLIENT:
-            queryset = queryset.filter(patient__user=request.user)
-        elif request.user.role == AppUser.Role.THERAPIST:
-            therapist = get_therapist_for_user(request.user)
-            queryset = queryset.filter(therapist=therapist)
-        else:
-            queryset = queryset.none()
-
-        return get_object_or_404(queryset, id=appointment_id)
-
     def get(self, request, appointment_id):
         if request.user.role not in (AppUser.Role.CLIENT, AppUser.Role.THERAPIST):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        appointment = self.get_object(request, appointment_id)
-        if request.user.role == AppUser.Role.THERAPIST:
-            serializer = AppointmentDetailSerializer(appointment)
-        else:
-            serializer = AppointmentClientSerializer(appointment)
-        return Response(serializer.data)
+        appointment = get_object_or_404(
+            _appointments_for_user(request.user), id=appointment_id
+        )
+        serializer_class = (
+            AppointmentTherapistSerializer
+            if request.user.role == AppUser.Role.THERAPIST
+            else AppointmentClientSerializer
+        )
+        return Response(serializer_class(appointment).data)
 
 
 class VisitStatusUpdateView(APIView):
@@ -264,9 +228,7 @@ class VisitStatusUpdateView(APIView):
     def patch(self, request, appointment_id):
         therapist = get_therapist_for_user(request.user)
         appointment = get_object_or_404(
-            Appointment,
-            id=appointment_id,
-            therapist=therapist,
+            Appointment, id=appointment_id, therapist=therapist
         )
 
         serializer = AppointmentStatusUpdateSerializer(data=request.data)
@@ -324,9 +286,7 @@ class VisitNoteUpdateView(APIView):
     def patch(self, request, appointment_id):
         therapist = get_therapist_for_user(request.user)
         appointment = get_object_or_404(
-            Appointment,
-            id=appointment_id,
-            therapist=therapist,
+            Appointment, id=appointment_id, therapist=therapist
         )
 
         serializer = AppointmentNoteSerializer(data=request.data)
