@@ -19,6 +19,7 @@ def has_overlapping_intervals(intervals):
 
 def merge_overlapping_intervals(intervals):
     """Merge overlapping or adjacent intervals into a minimal set."""
+    intervals = list(intervals)
     if not intervals:
         return []
 

@@ -89,21 +89,25 @@ class ScheduleEngine:
         ]
 
     @classmethod
-    def _intervals_for_type(cls, therapist, target_date, block_type, base_blocks):
-        override_blocks = AvailabilityBlock.objects.filter(
-            therapist=therapist,
-            type=block_type,
-            specific_date=target_date,
-        ).order_by("start_time")
+    def _raw_intervals_for_type(cls, therapist, target_date, block_type):
+        return [
+            {"start_time": block.start_time, "end_time": block.end_time}
+            for block in AvailabilityBlock.objects.filter(
+                therapist=therapist,
+                type=block_type,
+                specific_date=target_date,
+            ).order_by("start_time")
+        ]
 
-        intervals = []
-        for block in override_blocks:
-            interval = {"start_time": block.start_time, "end_time": block.end_time}
+    @classmethod
+    def _apply_base_constraints(cls, intervals, block_type, base_blocks):
+        result = []
+        for interval in intervals:
             if block_type == AvailabilityBlock.BlockType.INCLUSION:
-                intervals.extend(exclude_intervals([interval], base_blocks))
+                result.extend(exclude_intervals([interval], base_blocks))
             else:
-                intervals.extend(clip_interval_to_blocks(interval, base_blocks))
-        return merge_overlapping_intervals(intervals)
+                result.extend(clip_interval_to_blocks(interval, base_blocks))
+        return merge_overlapping_intervals(result)
 
     @staticmethod
     def _subtract_intervals(intervals, subtrahend):
@@ -142,39 +146,49 @@ class ScheduleEngine:
             specific_date=target_date,
         ).delete()
 
-        if intervals:
-            AvailabilityBlock.objects.bulk_create(
-                [
-                    AvailabilityBlock(
-                        therapist=therapist,
-                        type=block_type,
-                        specific_date=target_date,
-                        start_time=interval["start_time"],
-                        end_time=interval["end_time"],
-                    )
-                    for interval in intervals
-                ]
-            )
+        if not intervals:
+            return
+
+        AvailabilityBlock.objects.bulk_create(
+            [
+                AvailabilityBlock(
+                    therapist=therapist,
+                    type=block_type,
+                    specific_date=target_date,
+                    start_time=interval["start_time"],
+                    end_time=interval["end_time"],
+                )
+                for interval in intervals
+            ]
+        )
 
     @classmethod
     @transaction.atomic
     def normalize_overrides_for_date(cls, therapist, target_date, source_block=None):
         base_blocks = cls._base_blocks_for_date(therapist, target_date)
-        inclusions = cls._intervals_for_type(
+        raw_inclusions = cls._raw_intervals_for_type(
             therapist,
             target_date,
             AvailabilityBlock.BlockType.INCLUSION,
-            base_blocks,
         )
-        exclusions = cls._intervals_for_type(
+        raw_exclusions = cls._raw_intervals_for_type(
             therapist,
             target_date,
             AvailabilityBlock.BlockType.EXCLUSION,
-            base_blocks,
         )
         inclusions, exclusions = cls._resolve_cross_type_overrides(
+            raw_inclusions,
+            raw_exclusions,
+        )
+        inclusions = cls._apply_base_constraints(
             inclusions,
+            AvailabilityBlock.BlockType.INCLUSION,
+            base_blocks,
+        )
+        exclusions = cls._apply_base_constraints(
             exclusions,
+            AvailabilityBlock.BlockType.EXCLUSION,
+            base_blocks,
         )
 
         cls._save_intervals_if_changed(
