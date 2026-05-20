@@ -4,6 +4,7 @@ from constance import config
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -33,12 +34,25 @@ def get_therapist_for_user(user) -> Therapist:
     return therapist
 
 
+@extend_schema_view(
+    list=extend_schema(operation_id="therapists_list"),
+    retrieve=extend_schema(operation_id="therapists_retrieve"),
+)
 class TherapistViewSet(ReadOnlyModelViewSet):
     serializer_class = TherapistSerializer
     queryset = Therapist.objects.select_related("user", "office")
     permission_classes = [IsAuthenticated, IsTherapist]
 
 
+@extend_schema(
+    methods=["GET"],
+    responses=BaseScheduleResponseSerializer,
+)
+@extend_schema(
+    methods=["PUT"],
+    request=BaseScheduleSerializer,
+    responses={204: None},
+)
 class SelfScheduleView(APIView):
     permission_classes = [IsAuthenticated, IsTherapist]
 
@@ -75,6 +89,15 @@ class SelfScheduleView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    methods=["GET"],
+    responses=OverrideBlockSerializer(many=True),
+)
+@extend_schema(
+    methods=["POST"],
+    request=OverrideBlockSerializer,
+    responses={201: OverrideBlockSerializer},
+)
 class SelfScheduleOverrideView(APIView):
     permission_classes = [IsAuthenticated, IsTherapist]
 
@@ -125,6 +148,7 @@ class SelfScheduleOverrideView(APIView):
         )
 
 
+@extend_schema(responses={204: None})
 class SelfScheduleOverrideDetailView(APIView):
     permission_classes = [IsAuthenticated, IsTherapist]
 
@@ -143,6 +167,7 @@ class SelfScheduleOverrideDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(responses=AvailabilityDaySerializer(many=True))
 class AvailabilityListView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 

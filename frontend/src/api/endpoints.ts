@@ -1,25 +1,29 @@
 export const API_URL = import.meta.env.VITE_API_URL as string | undefined
 
 export const AUTH_ENDPOINTS = {
-    REGISTER: "/api/users/",
-    LOGIN: "/api/jwt/create/",
-    REFRESH: "/api/jwt/refresh/",
-    ACTIVATE: "/api/users/activation/",
-    RESET_PASSWORD: "/api/users/reset_password/",
-    RESET_PASSWORD_CONFIRM: "/api/users/reset_password_confirm/",
-    ME: "api/users/me/",
-    CONFIG: "/api/config/",
+    REGISTER: "/api/v1/users/",
+    LOGIN: "/api/v1/jwt/create/",
+    REFRESH: "/api/v1/jwt/refresh/",
+    ACTIVATE: "/api/v1/users/activation/",
+    RESET_PASSWORD: "/api/v1/users/reset_password/",
+    RESET_PASSWORD_CONFIRM: "/api/v1/users/reset_password_confirm/",
+    ME: "/api/v1/users/me/",
+    CONFIG: "/api/v1/config/",
 }
 
 export const THERAPIST_AVAILABILITY_ENDPOINTS = {
-    SELF_SCHEDULE: "api/therapists/self/schedule",
-    SELF_SCHEDULE_OVERRIDE: "api/therapists/self/schedule/override",
+    SELF_SCHEDULE: "/api/v1/therapists/self/schedule",
+    SELF_SCHEDULE_OVERRIDE: "/api/v1/therapists/self/schedule/override",
+}
+
+export const OFFICE_ENDPOINTS = {
+    LOCALIZATIONS: "/api/v1/localizations/",
 }
 
 export const PATIENT_ENDPOINTS = {
-    PATIENTS: "/api/patients/",
-    PATIENT: (id: string) => `/api/patients/${id}/`,
-    RESTORE_PATIENT: (id: string) => `/api/patients/${id}/restore/`,
+    PATIENTS: "/api/v1/patients/",
+    PATIENT: (id: string) => `/api/v1/patients/${id}/`,
+    RESTORE_PATIENT: (id: string) => `/api/v1/patients/${id}/restore/`,
 }
 
 export const RESERVATION_ENDPOINTS = {

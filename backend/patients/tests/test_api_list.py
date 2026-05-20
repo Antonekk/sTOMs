@@ -17,7 +17,7 @@ class PatientListAPITestCase(PatientAPITestCase):
         )
         self.authenticate(self.client_user)
 
-        response = self.client.get("/api/patients/")
+        response = self.client.get("/api/v1/patients/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
@@ -41,7 +41,7 @@ class PatientListAPITestCase(PatientAPITestCase):
         )
         self.authenticate(self.client_user)
 
-        response = self.client.get("/api/patients/", {"is_active": "false"})
+        response = self.client.get("/api/v1/patients/", {"is_active": "false"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)

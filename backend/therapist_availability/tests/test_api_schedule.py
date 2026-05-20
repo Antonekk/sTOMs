@@ -18,7 +18,7 @@ class ScheduleAPITestCase(APITestCase):
 
     def test_get_requires_therapist_role(self):
         self.api.force_authenticate(user=self.client_user)
-        response = self.api.get("/api/therapists/self/schedule")
+        response = self.api.get("/api/v1/therapists/self/schedule")
         self.assertEqual(response.status_code, 403)
 
     def test_put_replaces_existing_blocks(self):
@@ -31,7 +31,7 @@ class ScheduleAPITestCase(APITestCase):
             end_time=time(12, 0),
         )
         response = self.api.put(
-            "/api/therapists/self/schedule",
+            "/api/v1/therapists/self/schedule",
             {
                 "blocks": [
                     {"day_of_week": 1, "start_time": "09:00", "end_time": "17:00"},

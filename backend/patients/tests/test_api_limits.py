@@ -22,7 +22,7 @@ class PatientLimitAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            "/api/patients/",
+            "/api/v1/patients/",
             {
                 "first_name": "K",
                 "last_name": "X",
@@ -54,7 +54,7 @@ class PatientLimitAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            "/api/patients/",
+            "/api/v1/patients/",
             {
                 "first_name": "L",
                 "last_name": "X",
@@ -79,7 +79,7 @@ class PatientLimitAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            f"/api/patients/{self.child_patient.id}/restore/"
+            f"/api/v1/patients/{self.child_patient.id}/restore/"
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

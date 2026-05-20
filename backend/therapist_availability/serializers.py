@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .models import AvailabilityBlock, Therapist
@@ -14,6 +15,7 @@ class TherapistSerializer(serializers.ModelSerializer):
         fields = ("id", "full_name", "office")
         read_only_fields = ("id", "full_name", "office")
 
+    @extend_schema_field(serializers.CharField())
     def get_full_name(self, obj):
         return obj.user.get_full_name()
 

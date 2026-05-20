@@ -94,6 +94,10 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "sTOMs",
     "DESCRIPTION": "Speech therapy office management system",
     "VERSION": "1.0.0",
+    "ENUM_NAME_OVERRIDES": {
+        "AppointmentSeriesStatusEnum": "reservations.models.AppointmentSeries.Status",
+        "AppointmentStatusEnum": "reservations.models.Appointment.Status",
+    },
     "SWAGGER_UI_SETTINGS": {
         "persistAuthorization": True,
     },

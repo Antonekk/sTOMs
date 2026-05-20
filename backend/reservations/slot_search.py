@@ -94,7 +94,7 @@ def parse_slot_search_params(
         day_of_week = int(day_of_week)
         if day_of_week < 0 or day_of_week > 6:
             raise ValidationError(
-                {"day_of_week": "Dzień tygodnia musi być w zakresie 0–6."}
+                {"day_of_week": "Dzień tygodnia musi być w zakresie 0-6."}
             )
 
     return SlotSearchParams(

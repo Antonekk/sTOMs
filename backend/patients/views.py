@@ -12,6 +12,8 @@ from .serializers import PatientSerializer, PatientWriteSerializer
 
 class PatientViewSet(ModelViewSet):
     permission_classes = [IsClient]
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
 
     def get_serializer_class(self):
         if self.action in ("create", "update"):

@@ -10,7 +10,7 @@ class PatientCreateAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            "/api/patients/",
+            "/api/v1/patients/",
             {
                 "first_name": "F",
                 "last_name": "X",
@@ -38,7 +38,7 @@ class PatientCreateAPITestCase(PatientAPITestCase):
             "last_name": self.child_patient.last_name,
             "birthday": self.child_patient.date_of_birth.isoformat(),
         }
-        response = self.client.post("/api/patients/", payload, format="json")
+        response = self.client.post("/api/v1/patients/", payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("już istnieje", str(response.data))
@@ -49,7 +49,7 @@ class PatientCreateAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            "/api/patients/",
+            "/api/v1/patients/",
             {
                 "first_name": self.child_patient.first_name,
                 "last_name": self.child_patient.last_name,

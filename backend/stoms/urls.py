@@ -26,14 +26,14 @@ from drf_spectacular.views import (
 from .views import ConfigView
 
 urlpatterns = [
-    path("api/config/", ConfigView.as_view(), name="config"),
+    path("api/v1/config/", ConfigView.as_view(), name="config"),
     path("admin/", admin.site.urls),
-    path("api/", include("users.urls")),
-    path("api/", include("offices.urls")),
-    path("api/", include("patients.urls")),
-    path("api/", include("therapist_availability.urls")),
-    path("api/", include("reservations.urls")),
-    path("api/", include("notifications.urls")),
+    path("api/v1/", include("users.urls")),
+    path("api/v1/", include("offices.urls")),
+    path("api/v1/", include("patients.urls")),
+    path("api/v1/", include("therapist_availability.urls")),
+    path("api/v1/", include("reservations.urls")),
+    path("api/v1/", include("notifications.urls")),
     # Swagger
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Optional UI:

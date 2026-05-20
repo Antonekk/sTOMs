@@ -12,6 +12,28 @@ class AppointmentGenerationEngine:
     def default_horizon_date(cls) -> date:
         return timezone.localdate() + timedelta(days=config.APPOINTMENT_GENERATION_DAYS)
 
+
+    @staticmethod
+    def _occurrence_dates(
+        series: AppointmentSeries, range_start: date, horizon_date: date
+    ) -> list[date]:
+        if not series.is_weekly:
+            if series.start_date >= range_start and series.start_date <= horizon_date:
+                return [series.start_date]
+            return []
+
+        target_weekday = series.start_date.weekday()
+        days_ahead = (target_weekday - range_start.weekday()) % 7
+        cursor = range_start + timedelta(days=days_ahead)
+
+        dates = []
+        while cursor <= horizon_date:
+            if cursor >= series.start_date:
+                dates.append(cursor)
+            cursor += timedelta(days=7)
+
+        return dates
+
     @classmethod
     @transaction.atomic
     def generate(cls, series: AppointmentSeries, horizon_date: date | None = None) -> list[Appointment]:
@@ -43,24 +65,3 @@ class AppointmentGenerationEngine:
             existing_dates.add(occurrence_date)
 
         return created
-
-    @staticmethod
-    def _occurrence_dates(
-        series: AppointmentSeries, range_start: date, horizon_date: date
-    ) -> list[date]:
-        if not series.is_weekly:
-            if series.start_date >= range_start and series.start_date <= horizon_date:
-                return [series.start_date]
-            return []
-
-        target_weekday = series.start_date.weekday()
-        days_ahead = (target_weekday - range_start.weekday()) % 7
-        cursor = range_start + timedelta(days=days_ahead)
-
-        dates = []
-        while cursor <= horizon_date:
-            if cursor >= series.start_date:
-                dates.append(cursor)
-            cursor += timedelta(days=7)
-
-        return dates

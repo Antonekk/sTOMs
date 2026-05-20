@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from djoser.serializers import UserCreatePasswordRetypeSerializer, UserSerializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from patients.models import Patient
@@ -17,6 +18,7 @@ class AppUserSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ("patients", "role")
 
+    @extend_schema_field(PatientSerializer(many=True))
     def get_patients(self, user):
         active_patients = user.patients.filter(is_active=True)
         return PatientSerializer(active_patients, many=True).data

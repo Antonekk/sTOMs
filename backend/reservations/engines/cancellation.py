@@ -1,19 +1,14 @@
 from datetime import date, datetime, timedelta
 
 from constance import config
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from notifications.engine import NotificationEngine
-from rest_framework.exceptions import APIException
 
 from reservations.models import Appointment, AppointmentSeries
 from therapist_availability.engines.availability import AvailabilityEngine
 
-
-class CancellationWindowError(APIException):
-    status_code = 409
-    default_detail = "Anulowanie wizyty nie jest możliwe w wyznaczonym oknie czasowym."
-    default_code = "cancellation_window"
 
 
 class CancellationEngine:
@@ -34,7 +29,6 @@ class CancellationEngine:
     def cancel_appointment(
         cls,
         appointment: Appointment,
-        *,
         enforce_window: bool = True,
         canceled_by=None,
     ):
@@ -42,7 +36,7 @@ class CancellationEngine:
             return appointment
 
         if enforce_window and not cls._within_cancellation_window(appointment):
-            raise CancellationWindowError()
+            raise ValidationError("Anulowanie wizyty nie jest możliwe w wyznaczonym oknie czasowym.")
 
         appointment.status = Appointment.Status.CANCELED
         appointment.save(update_fields=["status"])
@@ -53,7 +47,7 @@ class CancellationEngine:
 
     @classmethod
     @transaction.atomic
-    def cancel_series(cls, series: AppointmentSeries, *, canceled_by=None):
+    def cancel_series(cls, series: AppointmentSeries, canceled_by=None):
         if series.status == AppointmentSeries.Status.CANCELED:
             return series
 

@@ -1,4 +1,6 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -24,7 +26,7 @@ from .serializers import (
     BookableTimeOptionsSerializer,
     BookingTherapistSerializer,
 )
-from .engines.cancellation import CancellationEngine, CancellationWindowError
+from .engines.cancellation import CancellationEngine
 from .engines.slots import BookableSlotsEngine
 from .slot_search import parse_slot_search_params
 
@@ -90,6 +92,10 @@ def _list_bookable_slots(request, *, include_time_filters=True):
 class TherapistListView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
+    @extend_schema(
+        operation_id="booking_therapists_list",
+        responses=BookingTherapistSerializer(many=True),
+    )
     def get(self, request):
         therapists = Therapist.objects.select_related(
             "user", "office", "office__localization"
@@ -97,6 +103,7 @@ class TherapistListView(APIView):
         return Response(BookingTherapistSerializer(therapists, many=True).data)
 
 
+@extend_schema(responses=BookableSlotSerializer(many=True))
 class BookableSlotListView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
     pagination_class = BookableSlotPagination
@@ -110,6 +117,7 @@ class BookableSlotListView(APIView):
         )
 
 
+@extend_schema(responses=BookableTimeOptionsSerializer)
 class BookableTimeOptionsView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
@@ -124,6 +132,7 @@ class BookableTimeOptionsView(APIView):
         )
 
 
+@extend_schema(responses=AppointmentTypeSerializer(many=True))
 class AppointmentTypeListView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
@@ -135,6 +144,10 @@ class AppointmentTypeListView(APIView):
 class ReservationListCreateView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
+    @extend_schema(
+        responses=AppointmentSeriesListSerializer(many=True),
+        operation_id="v1_reservations_list",
+    )
     def get(self, request):
         queryset = AppointmentSeries.objects.filter(
             patient__user=request.user
@@ -147,6 +160,10 @@ class ReservationListCreateView(APIView):
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        request=AppointmentSeriesCreateSerializer,
+        responses={201: AppointmentSeriesDetailSerializer},
+    )
     def post(self, request):
         serializer = AppointmentSeriesCreateSerializer(
             data=request.data, context={"request": request}
@@ -171,11 +188,19 @@ class ReservationDetailView(APIView):
             patient__user=request.user,
         )
 
+    @extend_schema(
+        responses=AppointmentSeriesDetailSerializer,
+        operation_id="v1_reservations_retrieve",
+    )
     def get(self, request, series_id):
         return Response(
             AppointmentSeriesDetailSerializer(self._get_series(request, series_id)).data
         )
 
+    @extend_schema(
+        request=None,
+        responses=AppointmentSeriesDetailSerializer,
+    )
     def patch(self, request, series_id):
         series = self._get_series(request, series_id)
         if request.data.get("status") != AppointmentSeries.Status.CANCELED:
@@ -191,6 +216,10 @@ class ReservationDetailView(APIView):
 class VisitListView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses=AppointmentTherapistSerializer(many=True),
+        operation_id="v1_visits_list",
+    )
     def get(self, request):
         if request.user.role not in (AppUser.Role.CLIENT, AppUser.Role.THERAPIST):
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -207,6 +236,10 @@ class VisitListView(APIView):
 class VisitDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses=AppointmentTherapistSerializer,
+        operation_id="v1_visits_retrieve",
+    )
     def get(self, request, appointment_id):
         if request.user.role not in (AppUser.Role.CLIENT, AppUser.Role.THERAPIST):
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -222,6 +255,10 @@ class VisitDetailView(APIView):
         return Response(serializer_class(appointment).data)
 
 
+@extend_schema(
+    request=AppointmentStatusUpdateSerializer,
+    responses=AppointmentTherapistSerializer,
+)
 class VisitStatusUpdateView(APIView):
     permission_classes = [IsAuthenticated, IsTherapist]
 
@@ -250,13 +287,20 @@ class VisitStatusUpdateView(APIView):
                     enforce_window=True,
                     canceled_by=AppUser.Role.THERAPIST,
                 )
-        except CancellationWindowError as exc:
-            return Response({"detail": str(exc.detail)}, status=exc.status_code)
+        except DjangoValidationError as exc:
+            return Response(
+                {"detail": exc.messages[0]},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         appointment.refresh_from_db()
         return Response(AppointmentTherapistSerializer(appointment).data)
 
 
+@extend_schema(
+    request=None,
+    responses=AppointmentClientSerializer,
+)
 class VisitCancelView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
@@ -273,13 +317,20 @@ class VisitCancelView(APIView):
                 enforce_window=True,
                 canceled_by=AppUser.Role.CLIENT,
             )
-        except CancellationWindowError as exc:
-            return Response({"detail": str(exc.detail)}, status=exc.status_code)
+        except DjangoValidationError as exc:
+            return Response(
+                {"detail": exc.messages[0]},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         appointment.refresh_from_db()
         return Response(AppointmentClientSerializer(appointment).data)
 
 
+@extend_schema(
+    request=AppointmentNoteSerializer,
+    responses=AppointmentTherapistSerializer,
+)
 class VisitNoteUpdateView(APIView):
     permission_classes = [IsAuthenticated, IsTherapist]
 

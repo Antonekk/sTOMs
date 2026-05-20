@@ -4,376 +4,6 @@ info:
   version: 1.0.0
   description: Speech therapy office management system
 paths:
-  /api/availability:
-    get:
-      operationId: availability_retrieve
-      tags:
-      - availability
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/config/:
-    get:
-      operationId: config_retrieve
-      tags:
-      - config
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/jwt/create/:
-    post:
-      operationId: jwt_create_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
-      tags:
-      - jwt
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenObtainPair'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenObtainPair'
-          description: ''
-  /api/jwt/refresh/:
-    post:
-      operationId: jwt_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
-      tags:
-      - jwt
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenRefresh'
-          description: ''
-  /api/jwt/verify/:
-    post:
-      operationId: jwt_verify_create
-      description: |-
-        Takes a token and indicates if it is valid.  This view provides no
-        information about a token's fitness for a particular use.
-      tags:
-      - jwt
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenVerify'
-          description: ''
-  /api/localizations/:
-    get:
-      operationId: localizations_list
-      tags:
-      - localizations
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Localization'
-          description: ''
-  /api/localizations/{id}/:
-    get:
-      operationId: localizations_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this localization.
-        required: true
-      tags:
-      - localizations
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Localization'
-          description: ''
-  /api/offices/:
-    get:
-      operationId: offices_list
-      tags:
-      - offices
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Office'
-          description: ''
-  /api/offices/{id}/:
-    get:
-      operationId: offices_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this office.
-        required: true
-      tags:
-      - offices
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Office'
-          description: ''
-  /api/patients/:
-    get:
-      operationId: patients_list
-      tags:
-      - patients
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Patient'
-          description: ''
-    post:
-      operationId: patients_create
-      tags:
-      - patients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-        required: true
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PatientWrite'
-          description: ''
-  /api/patients/{id}/:
-    get:
-      operationId: patients_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Patient'
-          description: ''
-    put:
-      operationId: patients_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatientWrite'
-        required: true
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PatientWrite'
-          description: ''
-    patch:
-      operationId: patients_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPatient'
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Patient'
-          description: ''
-    delete:
-      operationId: patients_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/patients/{id}/restore/:
-    post:
-      operationId: patients_restore_create
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - patients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Patient'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Patient'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Patient'
-        required: true
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Patient'
-          description: ''
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -521,11 +151,647 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
-  /api/therapists/:
+  /api/v1/appointment-types:
+    get:
+      operationId: v1_appointment_types_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentType'
+          description: ''
+  /api/v1/availability:
+    get:
+      operationId: v1_availability_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityDay'
+          description: ''
+  /api/v1/config/:
+    get:
+      operationId: v1_config_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+          description: ''
+  /api/v1/jwt/create/:
+    post:
+      operationId: v1_jwt_create_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/v1/jwt/refresh/:
+    post:
+      operationId: v1_jwt_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/jwt/verify/:
+    post:
+      operationId: v1_jwt_verify_create
+      description: |-
+        Takes a token and indicates if it is valid.  This view provides no
+        information about a token's fitness for a particular use.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
+  /api/v1/localizations/:
+    get:
+      operationId: v1_localizations_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Localization'
+          description: ''
+  /api/v1/localizations/{id}/:
+    get:
+      operationId: v1_localizations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this localization.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Localization'
+          description: ''
+  /api/v1/notifications:
+    get:
+      operationId: v1_notifications_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{notification_id}:
+    get:
+      operationId: v1_notifications_retrieve
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/{notification_id}/read:
+    patch:
+      operationId: v1_notifications_mark_read
+      parameters:
+      - in: path
+        name: notification_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/read:
+    patch:
+      operationId: v1_notifications_mark_all_read
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/offices/:
+    get:
+      operationId: v1_offices_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Office'
+          description: ''
+  /api/v1/offices/{id}/:
+    get:
+      operationId: v1_offices_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this office.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Office'
+          description: ''
+  /api/v1/patients/:
+    get:
+      operationId: v1_patients_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Patient'
+          description: ''
+    post:
+      operationId: v1_patients_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientWrite'
+          description: ''
+  /api/v1/patients/{id}/:
+    get:
+      operationId: v1_patients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Pacjent.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+    put:
+      operationId: v1_patients_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Pacjent.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatientWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientWrite'
+          description: ''
+    patch:
+      operationId: v1_patients_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Pacjent.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPatient'
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+    delete:
+      operationId: v1_patients_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Pacjent.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/patients/{id}/restore/:
+    post:
+      operationId: v1_patients_restore_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Pacjent.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Patient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Patient'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /api/v1/reservations:
+    get:
+      operationId: v1_reservations_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentSeriesList'
+          description: ''
+    post:
+      operationId: v1_reservations_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeriesCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeriesCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointmentSeriesCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeriesDetail'
+          description: ''
+  /api/v1/reservations/{series_id}:
+    get:
+      operationId: v1_reservations_retrieve
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeriesDetail'
+          description: ''
+    patch:
+      operationId: v1_reservations_partial_update
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentSeriesDetail'
+          description: ''
+  /api/v1/reservations/slots:
+    get:
+      operationId: v1_reservations_slots_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookableSlotList'
+          description: ''
+  /api/v1/reservations/slots/time-options:
+    get:
+      operationId: v1_reservations_slots_time_options_retrieve
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookableTimeOptions'
+          description: ''
+  /api/v1/therapists:
+    get:
+      operationId: booking_therapists_list
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookingTherapist'
+          description: ''
+  /api/v1/therapists/:
     get:
       operationId: therapists_list
       tags:
-      - therapists
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -538,7 +804,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Therapist'
           description: ''
-  /api/therapists/{id}/:
+  /api/v1/therapists/{id}/:
     get:
       operationId: therapists_retrieve
       parameters:
@@ -550,7 +816,7 @@ paths:
         description: A UUID string identifying this Terapeuta.
         required: true
       tags:
-      - therapists
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -561,51 +827,89 @@ paths:
               schema:
                 $ref: '#/components/schemas/Therapist'
           description: ''
-  /api/therapists/self/schedule:
+  /api/v1/therapists/self/schedule:
     get:
-      operationId: therapists_self_schedule_retrieve
+      operationId: v1_therapists_self_schedule_retrieve
       tags:
-      - therapists
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseScheduleResponse'
+          description: ''
     put:
-      operationId: therapists_self_schedule_update
+      operationId: v1_therapists_self_schedule_update
       tags:
-      - therapists
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseSchedule'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BaseSchedule'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BaseSchedule'
+        required: true
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
-        '200':
+        '204':
           description: No response body
-  /api/therapists/self/schedule/override:
+  /api/v1/therapists/self/schedule/override:
     get:
-      operationId: therapists_self_schedule_override_retrieve
+      operationId: v1_therapists_self_schedule_override_list
       tags:
-      - therapists
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OverrideBlock'
+          description: ''
     post:
-      operationId: therapists_self_schedule_override_create
+      operationId: v1_therapists_self_schedule_override_create
       tags:
-      - therapists
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OverrideBlock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OverrideBlock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OverrideBlock'
+        required: true
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
-        '200':
-          description: No response body
-  /api/therapists/self/schedule/override/{block_id}:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverrideBlock'
+          description: ''
+  /api/v1/therapists/self/schedule/override/{block_id}:
     delete:
-      operationId: therapists_self_schedule_override_destroy
+      operationId: v1_therapists_self_schedule_override_destroy
       parameters:
       - in: path
         name: block_id
@@ -614,18 +918,18 @@ paths:
           format: uuid
         required: true
       tags:
-      - therapists
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/users/:
+  /api/v1/users/:
     get:
-      operationId: users_list
+      operationId: v1_users_list
       tags:
-      - users
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -639,9 +943,9 @@ paths:
                   $ref: '#/components/schemas/AppUser'
           description: ''
     post:
-      operationId: users_create
+      operationId: v1_users_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -665,9 +969,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppUserCreatePasswordRetype'
           description: ''
-  /api/users/{id}/:
+  /api/v1/users/{id}/:
     get:
-      operationId: users_retrieve
+      operationId: v1_users_retrieve
       parameters:
       - in: path
         name: id
@@ -677,7 +981,7 @@ paths:
         description: A UUID string identifying this Użytkownik.
         required: true
       tags:
-      - users
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -689,7 +993,7 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     put:
-      operationId: users_update
+      operationId: v1_users_update
       parameters:
       - in: path
         name: id
@@ -699,7 +1003,7 @@ paths:
         description: A UUID string identifying this Użytkownik.
         required: true
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -723,7 +1027,7 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     patch:
-      operationId: users_partial_update
+      operationId: v1_users_partial_update
       parameters:
       - in: path
         name: id
@@ -733,7 +1037,7 @@ paths:
         description: A UUID string identifying this Użytkownik.
         required: true
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -756,7 +1060,7 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     delete:
-      operationId: users_destroy
+      operationId: v1_users_destroy
       parameters:
       - in: path
         name: id
@@ -766,18 +1070,18 @@ paths:
         description: A UUID string identifying this Użytkownik.
         required: true
       tags:
-      - users
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/users/activation/:
+  /api/v1/users/activation/:
     post:
-      operationId: users_activation_create
+      operationId: v1_users_activation_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -801,11 +1105,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Activation'
           description: ''
-  /api/users/me/:
+  /api/v1/users/me/:
     get:
-      operationId: users_me_retrieve
+      operationId: v1_users_me_retrieve
       tags:
-      - users
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
@@ -817,9 +1121,9 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     put:
-      operationId: users_me_update
+      operationId: v1_users_me_update
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -843,9 +1147,9 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     patch:
-      operationId: users_me_partial_update
+      operationId: v1_users_me_partial_update
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -868,20 +1172,20 @@ paths:
                 $ref: '#/components/schemas/AppUser'
           description: ''
     delete:
-      operationId: users_me_destroy
+      operationId: v1_users_me_destroy
       tags:
-      - users
+      - v1
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/users/resend_activation/:
+  /api/v1/users/resend_activation/:
     post:
-      operationId: users_resend_activation_create
+      operationId: v1_users_resend_activation_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -905,11 +1209,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /api/users/reset_email/:
+  /api/v1/users/reset_email/:
     post:
-      operationId: users_reset_email_create
+      operationId: v1_users_reset_email_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -933,11 +1237,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /api/users/reset_email_confirm/:
+  /api/v1/users/reset_email_confirm/:
     post:
-      operationId: users_reset_email_confirm_create
+      operationId: v1_users_reset_email_confirm_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -961,11 +1265,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsernameResetConfirm'
           description: ''
-  /api/users/reset_password/:
+  /api/v1/users/reset_password/:
     post:
-      operationId: users_reset_password_create
+      operationId: v1_users_reset_password_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -989,11 +1293,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SendEmailReset'
           description: ''
-  /api/users/reset_password_confirm/:
+  /api/v1/users/reset_password_confirm/:
     post:
-      operationId: users_reset_password_confirm_create
+      operationId: v1_users_reset_password_confirm_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -1017,11 +1321,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/PasswordResetConfirmRetype'
           description: ''
-  /api/users/set_email/:
+  /api/v1/users/set_email/:
     post:
-      operationId: users_set_email_create
+      operationId: v1_users_set_email_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -1044,11 +1348,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/SetUsername'
           description: ''
-  /api/users/set_password/:
+  /api/v1/users/set_password/:
     post:
-      operationId: users_set_password_create
+      operationId: v1_users_set_password_create
       tags:
-      - users
+      - v1
       requestBody:
         content:
           application/json:
@@ -1071,134 +1375,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/SetPasswordRetype'
           description: ''
-  /api/v1/appointment-types:
-    get:
-      operationId: v1_appointment_types_retrieve
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/notifications:
-    get:
-      operationId: v1_notifications_retrieve
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/notifications/{notification_id}:
-    get:
-      operationId: v1_notifications_retrieve_2
-      parameters:
-      - in: path
-        name: notification_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/notifications/{notification_id}/read:
-    patch:
-      operationId: v1_notifications_read_partial_update_2
-      parameters:
-      - in: path
-        name: notification_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/notifications/read:
-    patch:
-      operationId: v1_notifications_read_partial_update
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/reservations:
-    get:
-      operationId: v1_reservations_retrieve
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-    post:
-      operationId: v1_reservations_create
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/v1/reservations/{series_id}:
-    get:
-      operationId: v1_reservations_retrieve_2
-      parameters:
-      - in: path
-        name: series_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-    patch:
-      operationId: v1_reservations_partial_update
-      parameters:
-      - in: path
-        name: series_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - v1
-      security:
-      - jwtAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
   /api/v1/visits:
     get:
-      operationId: v1_visits_retrieve
+      operationId: v1_visits_list
       tags:
       - v1
       security:
@@ -1206,10 +1385,16 @@ paths:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentTherapist'
+          description: ''
   /api/v1/visits/{appointment_id}:
     get:
-      operationId: v1_visits_retrieve_2
+      operationId: v1_visits_retrieve
       parameters:
       - in: path
         name: appointment_id
@@ -1224,7 +1409,11 @@ paths:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentTherapist'
+          description: ''
   /api/v1/visits/{appointment_id}/cancel:
     patch:
       operationId: v1_visits_cancel_partial_update
@@ -1242,7 +1431,11 @@ paths:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentClient'
+          description: ''
   /api/v1/visits/{appointment_id}/note:
     patch:
       operationId: v1_visits_note_partial_update
@@ -1255,12 +1448,27 @@ paths:
         required: true
       tags:
       - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentNote'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentNote'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentNote'
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentTherapist'
+          description: ''
   /api/v1/visits/{appointment_id}/status:
     patch:
       operationId: v1_visits_status_partial_update
@@ -1273,12 +1481,27 @@ paths:
         required: true
       tags:
       - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointmentStatusUpdate'
       security:
       - jwtAuth: []
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentTherapist'
+          description: ''
 components:
   schemas:
     Activation:
@@ -1317,7 +1540,9 @@ components:
           readOnly: true
           title: Adres email
         patients:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
           readOnly: true
         role:
           allOf:
@@ -1373,6 +1598,452 @@ components:
       - password
       - phone_number
       - re_password
+    AppointmentClient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/AppointmentStatusEnum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        therapist_name:
+          type: string
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        appointment_type_name:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+          readOnly: true
+        end_time:
+          type: string
+          format: time
+          readOnly: true
+        office:
+          nullable: true
+          readOnly: true
+      required:
+      - appointment_date
+      - appointment_type_name
+      - end_time
+      - final_price
+      - id
+      - office
+      - patient_name
+      - start_time
+      - therapist_name
+    AppointmentSeriesCreate:
+      type: object
+      properties:
+        therapist_id:
+          type: string
+          format: uuid
+        patient_id:
+          type: string
+          format: uuid
+        appointment_type_id:
+          type: string
+          format: uuid
+        start_time:
+          type: string
+          format: time
+        start_date:
+          type: string
+          format: date
+        is_weekly:
+          type: boolean
+          default: false
+      required:
+      - appointment_type_id
+      - patient_id
+      - start_date
+      - start_time
+      - therapist_id
+    AppointmentSeriesDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/AppointmentSeriesStatusEnum'
+        therapist_name:
+          type: string
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        appointment_type_name:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+        start_date:
+          type: string
+          format: date
+        recurrence_display:
+          type: string
+          nullable: true
+          readOnly: true
+        office:
+          nullable: true
+          readOnly: true
+        appointments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppointmentSummary'
+          readOnly: true
+      required:
+      - appointment_type_name
+      - appointments
+      - end_time
+      - id
+      - office
+      - patient_name
+      - recurrence_display
+      - start_date
+      - start_time
+      - therapist_name
+    AppointmentSeriesList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/AppointmentSeriesStatusEnum'
+        therapist_name:
+          type: string
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        appointment_type_name:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+        start_date:
+          type: string
+          format: date
+        recurrence_display:
+          type: string
+          nullable: true
+          readOnly: true
+        office:
+          nullable: true
+          readOnly: true
+      required:
+      - appointment_type_name
+      - end_time
+      - id
+      - office
+      - patient_name
+      - recurrence_display
+      - start_date
+      - start_time
+      - therapist_name
+    AppointmentSeriesStatusEnum:
+      enum:
+      - ACTIVE
+      - ENDED
+      - CANCELED
+      type: string
+      description: |-
+        * `ACTIVE` - Aktywna
+        * `ENDED` - Zakończona
+        * `CANCELED` - Anulowana
+    AppointmentStatusEnum:
+      enum:
+      - SCHEDULED
+      - COMPLETED
+      - CANCELED
+      type: string
+      description: |-
+        * `SCHEDULED` - Zaplanowana
+        * `COMPLETED` - Zakończona
+        * `CANCELED` - Anulowana
+    AppointmentStatusUpdateStatusEnum:
+      enum:
+      - COMPLETED
+      - CANCELED
+      type: string
+      description: |-
+        * `COMPLETED` - COMPLETED
+        * `CANCELED` - CANCELED
+    AppointmentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/AppointmentStatusEnum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+      required:
+      - appointment_date
+      - final_price
+      - id
+    AppointmentTherapist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        appointment_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/AppointmentStatusEnum'
+        final_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        therapist_name:
+          type: string
+          readOnly: true
+        patient_name:
+          type: string
+          readOnly: true
+        appointment_type_name:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: time
+          readOnly: true
+        end_time:
+          type: string
+          format: time
+          readOnly: true
+        office:
+          nullable: true
+          readOnly: true
+        notes:
+          type: string
+          nullable: true
+      required:
+      - appointment_date
+      - appointment_type_name
+      - end_time
+      - final_price
+      - id
+      - office
+      - patient_name
+      - start_time
+      - therapist_name
+    AppointmentType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        duration_time_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        is_periodic:
+          type: boolean
+      required:
+      - duration_time_minutes
+      - id
+      - name
+      - price
+    AvailabilityDay:
+      type: object
+      properties:
+        therapist_id:
+          type: string
+          format: uuid
+        therapist_name:
+          type: string
+        office_id:
+          type: string
+          format: uuid
+          nullable: true
+        localization:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilitySlot'
+      required:
+      - date
+      - localization
+      - office_id
+      - slots
+      - therapist_id
+      - therapist_name
+    AvailabilitySlot:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - end_time
+      - start_time
+    BaseSchedule:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseScheduleBlock'
+      required:
+      - blocks
+    BaseScheduleBlock:
+      type: object
+      properties:
+        day_of_week:
+          type: integer
+          maximum: 6
+          minimum: 0
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - day_of_week
+      - end_time
+      - start_time
+    BaseScheduleResponse:
+      type: object
+      properties:
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseScheduleBlock'
+      required:
+      - blocks
+    BookableSlot:
+      type: object
+      properties:
+        therapist_id:
+          type: string
+          format: uuid
+        therapist_name:
+          type: string
+        office_id:
+          type: string
+          format: uuid
+          nullable: true
+        office:
+          nullable: true
+        date:
+          type: string
+          format: date
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - date
+      - end_time
+      - office
+      - office_id
+      - start_time
+      - therapist_id
+      - therapist_name
+    BookableTimeOptions:
+      type: object
+      properties:
+        start_times:
+          type: array
+          items:
+            type: string
+        end_times:
+          type: array
+          items:
+            type: string
+      required:
+      - end_times
+      - start_times
+    BookingTherapist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        office_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        office:
+          nullable: true
+          readOnly: true
+      required:
+      - full_name
+      - id
+      - office
+      - office_id
+    Config:
+      type: object
+      properties:
+        appointment_generation_days:
+          type: integer
+        appointment_booking_days:
+          type: integer
+        cancellation_window_hours:
+          type: integer
+      required:
+      - appointment_booking_days
+      - appointment_generation_days
+      - cancellation_window_hours
     Localization:
       type: object
       properties:
@@ -1404,6 +2075,32 @@ components:
       - name
       - offices
       - postal_code
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        creation_timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+      required:
+      - creation_timestamp
+      - description
+      - id
+      - is_read
+      - title
     Office:
       type: object
       properties:
@@ -1418,6 +2115,76 @@ components:
       required:
       - id
       - room_number
+    OverrideBlock:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        specific_date:
+          type: string
+          format: date
+          nullable: true
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - end_time
+      - id
+      - start_time
+      - type
+    PaginatedBookableSlotList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookableSlot'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
     PasswordResetConfirmRetype:
       type: object
       properties:
@@ -1460,12 +2227,24 @@ components:
           readOnly: true
           title: Adres email
         patients:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
           readOnly: true
         role:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           title: Rola
+    PatchedAppointmentNote:
+      type: object
+      properties:
+        notes:
+          type: string
+    PatchedAppointmentStatusUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AppointmentStatusUpdateStatusEnum'
     PatchedPatient:
       type: object
       properties:
@@ -1654,6 +2433,14 @@ components:
           writeOnly: true
       required:
       - token
+    TypeEnum:
+      enum:
+      - INCLUSION
+      - EXCLUSION
+      type: string
+      description: |-
+        * `INCLUSION` - INCLUSION
+        * `EXCLUSION` - EXCLUSION
     UsernameResetConfirm:
       type: object
       properties:

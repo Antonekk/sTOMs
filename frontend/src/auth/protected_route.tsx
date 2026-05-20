@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { useState, useEffect } from "react";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants";
 import api from "../api/api"
+import { AUTH_ENDPOINTS } from "../api/endpoints"
 import Loading from "../components/storybook_components/loading/loading";
 
 interface ProtectedRouteProps {
@@ -30,7 +31,7 @@ const ProtectedRoute : React.FC<ProtectedRouteProps> = ({ children }) => {
     const refreshToken = async () => {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
         try{
-            const res = await api.post<JwtPayload>("/api/token/refresh", {refresh: refreshToken});
+            const res = await api.post<JwtPayload>(AUTH_ENDPOINTS.REFRESH, {refresh: refreshToken});
 
             if(res.status === 200){
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);

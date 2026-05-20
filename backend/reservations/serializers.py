@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -10,7 +11,6 @@ from notifications.engine import NotificationEngine
 from patients.models import Patient
 from therapist_availability.models import Therapist
 
-from .exceptions import ConflictError
 from .models import Appointment, AppointmentSeries, AppointmentType
 from .engines.booking import BookingEngine
 from .engines.collision import CollisionDetectionEngine
@@ -32,9 +32,11 @@ class PatientOfficeMixin(serializers.Serializer):
     patient_name = serializers.SerializerMethodField()
     office = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.CharField())
     def get_patient_name(self, obj):
         return f"{obj.patient.first_name} {obj.patient.last_name}"
 
+    @extend_schema_field(serializers.JSONField(allow_null=True))
     def get_office(self, obj):
         return serialize_office_location(obj.therapist.office)
 
@@ -77,6 +79,7 @@ class AppointmentSeriesListSerializer(PatientOfficeMixin, serializers.ModelSeria
             "office",
         )
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_recurrence_display(self, obj):
         if not obj.is_weekly:
             return None
@@ -103,7 +106,9 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
     def _raise_validation_from_booking_error(exc):
         message = str(exc.message or exc)
         if "zajęty" in message or "koliduje" in message:
-            raise ConflictError() from exc
+            raise ValidationError(
+                {"detail": "Wybrany termin koliduje z istniejącą wizytą."}
+            ) from exc
         if hasattr(exc, "message_dict"):
             raise ValidationError(exc.message_dict) from exc
         raise ValidationError({"detail": message}) from exc
@@ -187,7 +192,9 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             if CollisionDetectionEngine.check(
                 therapist.id, occurrence_date, start_time, end_time
             ):
-                raise ConflictError()
+                raise ValidationError(
+                    {"detail": "Wybrany termin koliduje z istniejącą wizytą."}
+                )
             if not BookingEngine.slot_in_availability(
                 therapist, occurrence_date, start_time, end_time
             ):
@@ -281,5 +288,6 @@ class BookingTherapistSerializer(serializers.ModelSerializer):
         model = Therapist
         fields = ("id", "full_name", "office_id", "office")
 
+    @extend_schema_field(serializers.JSONField(allow_null=True))
     def get_office(self, obj):
         return serialize_office_location(obj.office)

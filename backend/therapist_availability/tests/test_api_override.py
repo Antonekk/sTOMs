@@ -28,7 +28,7 @@ class ScheduleOverrideAPITestCase(APITestCase):
 
     def test_create_exclusion(self):
         response = self.api.post(
-            "/api/therapists/self/schedule/override",
+            "/api/v1/therapists/self/schedule/override",
             {
                 "type": "EXCLUSION",
                 "specific_date": self.monday.isoformat(),
@@ -41,7 +41,7 @@ class ScheduleOverrideAPITestCase(APITestCase):
 
     def test_create_override_past_date_returns_400(self):
         response = self.api.post(
-            "/api/therapists/self/schedule/override",
+            "/api/v1/therapists/self/schedule/override",
             {
                 "type": "EXCLUSION",
                 "specific_date": (timezone.localdate() - timedelta(days=1)).isoformat(),
@@ -61,6 +61,6 @@ class ScheduleOverrideAPITestCase(APITestCase):
             end_time=time(12, 0),
         )
         response = self.api.delete(
-            f"/api/therapists/self/schedule/override/{exclusion.id}"
+            f"/api/v1/therapists/self/schedule/override/{exclusion.id}"
         )
         self.assertEqual(response.status_code, 404)

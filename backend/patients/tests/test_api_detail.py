@@ -11,7 +11,7 @@ class PatientDetailAPITestCase(PatientAPITestCase):
     def test_retrieve_own_patient(self):
         self.authenticate(self.client_user)
 
-        response = self.client.get(f"/api/patients/{self.child_patient.id}/")
+        response = self.client.get(f"/api/v1/patients/{self.child_patient.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["first_name"], "B")
@@ -21,17 +21,17 @@ class PatientDetailAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         for method, url, data in [
-            ("get", f"/api/patients/{self.other_patient.id}/", None),
+            ("get", f"/api/v1/patients/{self.other_patient.id}/", None),
             (
                 "put",
-                f"/api/patients/{self.other_patient.id}/",
+                f"/api/v1/patients/{self.other_patient.id}/",
                 {
                     "first_name": "Z",
                     "last_name": "X",
                     "birthday": "2000-01-01",
                 },
             ),
-            ("delete", f"/api/patients/{self.other_patient.id}/", None),
+            ("delete", f"/api/v1/patients/{self.other_patient.id}/", None),
         ]:
             if method == "get":
                 response = self.client.get(url)
@@ -50,7 +50,7 @@ class PatientDetailAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.put(
-            f"/api/patients/{self.child_patient.id}/",
+            f"/api/v1/patients/{self.child_patient.id}/",
             {
                 "first_name": "G",
                 "last_name": "X",
@@ -67,7 +67,7 @@ class PatientDetailAPITestCase(PatientAPITestCase):
     def test_soft_delete_sets_inactive(self):
         self.authenticate(self.client_user)
 
-        response = self.client.delete(f"/api/patients/{self.child_patient.id}/")
+        response = self.client.delete(f"/api/v1/patients/{self.child_patient.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.child_patient.refresh_from_db()
@@ -79,14 +79,14 @@ class PatientDetailAPITestCase(PatientAPITestCase):
         self.child_patient.save()
         self.authenticate(self.client_user)
 
-        response = self.client.get(f"/api/patients/{self.child_patient.id}/")
+        response = self.client.get(f"/api/v1/patients/{self.child_patient.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_cannot_delete_primary_patient(self):
         self.authenticate(self.client_user)
 
-        response = self.client.delete(f"/api/patients/{self.primary_patient.id}/")
+        response = self.client.delete(f"/api/v1/patients/{self.primary_patient.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.primary_patient.refresh_from_db()
@@ -95,6 +95,6 @@ class PatientDetailAPITestCase(PatientAPITestCase):
     def test_therapist_cannot_access_patients_endpoint(self):
         self.authenticate(self.therapist)
 
-        response = self.client.get("/api/patients/")
+        response = self.client.get("/api/v1/patients/")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

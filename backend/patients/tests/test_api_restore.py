@@ -10,7 +10,7 @@ class PatientRestoreAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            f"/api/patients/{self.child_patient.id}/restore/"
+            f"/api/v1/patients/{self.child_patient.id}/restore/"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -22,7 +22,7 @@ class PatientRestoreAPITestCase(PatientAPITestCase):
         self.authenticate(self.client_user)
 
         response = self.client.post(
-            f"/api/patients/{self.child_patient.id}/restore/"
+            f"/api/v1/patients/{self.child_patient.id}/restore/"
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
