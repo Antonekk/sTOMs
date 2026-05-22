@@ -1,63 +1,64 @@
-# Dev: docker compose up
+# Prod: docker compose -f docker-compose.prod.yml up
 services:
   db:
     image: postgres:16
-    env_file: .env.dev
-    ports:
-      - "5432:5432"
+    env_file: .env.prod
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
 
   backend:
     build: ./backend
-    env_file: .env.dev
+    env_file:
+      - .env.prod
+      - .env
     environment:
-      SEED_IF_EMPTY: "1"
-    ports:
-      - "8000:8000"
+      COLLECT_STATIC: "1"
     volumes:
-      - ./backend:/app
-    command: python manage.py runserver 0.0.0.0:8000
+      - static_volume:/app/staticfiles
     depends_on:
       - db
       - redis
 
   celery:
     build: ./backend
-    env_file: .env.dev
+    env_file:
+      - .env.prod
+      - .env
     environment:
       SKIP_STARTUP: "1"
     command: celery -A stoms worker --loglevel=info
-    volumes:
-      - ./backend:/app
     depends_on:
       - db
       - redis
 
   celery-beat:
     build: ./backend
-    env_file: .env.dev
+    env_file:
+      - .env.prod
+      - .env
     environment:
       SKIP_STARTUP: "1"
     command: celery -A stoms beat --loglevel=info
-    volumes:
-      - ./backend:/app
     depends_on:
       - db
       - redis
 
-  frontend:
-    build: ./frontend
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
     ports:
-      - "5173:5173"
+      - "80:80"
+    depends_on:
+      - backend
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - static_volume:/static:ro
 
 volumes:
   pgdata:
+  static_volume:

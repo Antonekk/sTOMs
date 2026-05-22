@@ -14,3 +14,4 @@ django-constance[redis]
 django-recurrence
 celery[redis]
 redis
+gunicorn

@@ -4,8 +4,11 @@ import axios, {
     type InternalAxiosRequestConfig,
 } from "axios";
 import { getAccessToken, getRefreshToken, clearTokens, setAccessToken } from "./token";
-import { API_URL} from "./endpoints";
+import { API_URL, AUTH_ENDPOINTS } from "./endpoints";
 import { tokenRefresh } from "./auth";
+
+const isRefreshRequest = (config: InternalAxiosRequestConfig) =>
+    config.url?.includes(AUTH_ENDPOINTS.REFRESH) ?? false;
 
 declare module "axios" {
     interface AxiosRequestConfig {
@@ -49,24 +52,32 @@ api.interceptors.response.use(
     async (error: AxiosError): Promise<AxiosResponse> => {
         const baseRequest = error.config;
 
-        // Check for Unauthorized and set retry flag
-        if (error.response?.status === 401 && baseRequest && !baseRequest._retry) {
-            baseRequest._retry = true;
-
-            try {
-                const refresh = getRefreshToken();
-                if (!refresh) {
-                    throw new Error("No refresh token available");
-                }
-                const { data } = await tokenRefresh({refresh});
-
-                setAccessToken(data.access);
-                baseRequest.headers.Authorization = `Bearer ${data.access}`;
-                return await api(baseRequest);
-            } catch  {
+        if (error.response?.status === 401 && baseRequest) {
+            if (isRefreshRequest(baseRequest)) {
                 clearTokens();
                 return Promise.reject(error);
             }
+
+            if (!baseRequest._retry) {
+                baseRequest._retry = true;
+
+                try {
+                    const refresh = getRefreshToken();
+                    if (!refresh) {
+                        throw new Error("No refresh token available");
+                    }
+                    const { data } = await tokenRefresh({ refresh });
+
+                    setAccessToken(data.access);
+                    baseRequest.headers.Authorization = `Bearer ${data.access}`;
+                    return await api(baseRequest);
+                } catch {
+                    clearTokens();
+                    return Promise.reject(error);
+                }
+            }
+
+            clearTokens();
         }
 
         //Remove in prod
