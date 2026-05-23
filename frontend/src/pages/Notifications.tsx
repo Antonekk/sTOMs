@@ -1,13 +1,13 @@
 import { Button, Flex, Typography, message } from "antd"
-import AppAlert from "../components/storybook_components/app_alert/app_alert"
+import AppAlert from "../components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import {
     listNotifications,
     markAllNotificationsRead,
     markNotificationRead,
 } from "../api/notifications"
-import NotificationList from "../components/storybook_components/notification_list/notification_list"
-import Loading from "../components/storybook_components/loading/loading"
+import NotificationList from "../components/notification_list/notification_list"
+import Loading from "../components/loading/loading"
 import { useNotifications } from "../notifications/NotificationsProvider"
 import { getApiErrorMessage } from "../utils/apiError"
 import type { Notification } from "../types/notifications"

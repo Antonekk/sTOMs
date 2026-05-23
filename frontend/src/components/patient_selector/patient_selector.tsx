@@ -1,6 +1,6 @@
 import { Select } from "antd";
 import type React from "react";
-import type { Patient } from "../../../types/patients";
+import type { Patient } from "../../types/patients";
 
 export interface PatientSelectorProps {
     patients: Patient[];

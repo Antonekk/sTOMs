@@ -1,9 +1,9 @@
 import { Flex, message } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
+import AppAlert from "../components/app_alert/app_alert";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import UserProfile from "../components/storybook_components/user_profile/user_profile";
-import type { PatientListAction } from "../components/storybook_components/user_profile/patient_list";
+import UserProfile from "../components/user_profile/user_profile";
+import type { PatientListAction } from "../components/user_profile/patient_list";
 import { useAuthentication } from "../auth/AuthProvider";
 import { deletePatient } from "../api/patients";
 import { getApiErrorMessage } from "../utils/apiError";

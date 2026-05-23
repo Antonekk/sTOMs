@@ -1,5 +1,5 @@
 import { Button, Flex, message } from "antd"
-import AppAlert from "../components/storybook_components/app_alert/app_alert"
+import AppAlert from "../components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import {
@@ -8,8 +8,8 @@ import {
     updateVisitNote,
     updateVisitStatus,
 } from "../api/visits"
-import VisitDetailCard from "../components/storybook_components/visit_detail/visit_detail"
-import Loading from "../components/storybook_components/loading/loading"
+import VisitDetailCard from "../components/visit_detail/visit_detail"
+import Loading from "../components/loading/loading"
 import { useAuthentication } from "../auth/AuthProvider"
 import { useAppConfig } from "../config/ConfigProvider"
 import { getApiErrorMessage } from "../utils/apiError"

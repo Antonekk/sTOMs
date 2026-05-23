@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flex, Typography } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
+import AppAlert from "../components/app_alert/app_alert";
 import { requestPasswordReset } from "../api/auth";
-import ForgotPasswordForm from "../components/storybook_components/forgot_password_form/forgot_password_form";
-import type { ForgotPasswordFormValues } from "../components/storybook_components/forgot_password_form/forgot_password_form";
+import ForgotPasswordForm from "../components/forgot_password_form/forgot_password_form";
+import type { ForgotPasswordFormValues } from "../components/forgot_password_form/forgot_password_form";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const ForgotPassword: React.FC = () => {

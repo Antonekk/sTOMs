@@ -1,7 +1,7 @@
 import { Space, Typography } from "antd"
 import type React from "react"
-import type { OfficeLocation } from "../../../types/reservations"
-import { formatOfficeAddress } from "../../../utils/officeDisplay"
+import type { OfficeLocation } from "../../types/reservations"
+import { formatOfficeAddress } from "../../utils/officeDisplay"
 
 const { Text } = Typography
 

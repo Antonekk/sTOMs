@@ -31,6 +31,7 @@ services:
       SKIP_STARTUP: "1"
     command: celery -A stoms worker --loglevel=info
     depends_on:
+      - backend
       - db
       - redis
 
@@ -43,6 +44,7 @@ services:
       SKIP_STARTUP: "1"
     command: celery -A stoms beat --loglevel=info
     depends_on:
+      - backend
       - db
       - redis
 

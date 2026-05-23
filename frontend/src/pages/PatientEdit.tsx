@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Flex, Typography } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
-import PatientForm from "../components/storybook_components/patient_form/patient_form";
+import AppAlert from "../components/app_alert/app_alert";
+import PatientForm from "../components/patient_form/patient_form";
 import { getPatient, updatePatient } from "../api/patients";
 import { useAuthentication } from "../auth/AuthProvider";
-import Loading from "../components/storybook_components/loading/loading";
+import Loading from "../components/loading/loading";
 import { getApiErrorMessage } from "../utils/apiError";
 import type { Patient, PatientWrite } from "../types/patients";
 

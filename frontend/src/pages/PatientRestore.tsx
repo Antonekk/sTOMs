@@ -1,8 +1,8 @@
 import { Flex, Spin, message } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
+import AppAlert from "../components/app_alert/app_alert";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PatientList, { type PatientListAction } from "../components/storybook_components/user_profile/patient_list";
+import PatientList, { type PatientListAction } from "../components/user_profile/patient_list";
 import { listPatients, restorePatient } from "../api/patients";
 import { useAuthentication } from "../auth/AuthProvider";
 import { getApiErrorMessage } from "../utils/apiError";

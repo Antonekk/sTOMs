@@ -2,8 +2,8 @@ import React from "react";
 import { Button, Card, DatePicker, Form, Input } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import type { PatientWrite } from "../../../types/patients";
-import { ONLY_LETTERS_PATTERN } from "../../../utils/validation";
+import type { PatientWrite } from "../../types/patients";
+import { ONLY_LETTERS_PATTERN } from "../../utils/validation";
 
 export interface PatientFormValues {
     first_name: string;

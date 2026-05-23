@@ -12,12 +12,12 @@ import {
 } from "../api/reservations"
 import ReservationBooking, {
     slotKey,
-} from "../components/storybook_components/reservation_booking/reservation_booking"
+} from "../components/reservation_booking/reservation_booking"
 import { useAuthentication } from "../auth/AuthProvider"
 import { useAppConfig } from "../config/ConfigProvider"
 import { getApiErrorDisplay } from "../utils/apiError"
 import { formatOfficeLocation } from "../utils/officeDisplay"
-import type { OfficeOption } from "../components/storybook_components/reservation_booking/reservation_booking"
+import type { OfficeOption } from "../components/reservation_booking/reservation_booking"
 import type {
     AppointmentType,
     BookableSlot,

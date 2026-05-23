@@ -1,3 +1,5 @@
+# https://docs.djangoproject.com/en/6.0/howto/custom-management-commands/
+
 from datetime import date
 
 from django.contrib.auth import get_user_model

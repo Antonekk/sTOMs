@@ -1,8 +1,8 @@
 import { Button, Card, Flex, Input, Space, Tag, Typography } from "antd"
 import type React from "react"
-import type { VisitDetail, VisitStatus } from "../../../types/reservations"
+import type { VisitDetail, VisitStatus } from "../../types/reservations"
 import OfficeLocationDisplay from "../office_location/office_location"
-import { formatDatePl, formatTime } from "../../../utils/timeSlots"
+import { formatDatePl, formatTime } from "../../utils/timeSlots"
 
 const { Title, Text } = Typography
 const { TextArea } = Input

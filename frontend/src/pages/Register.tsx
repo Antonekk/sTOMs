@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flex } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
+import AppAlert from "../components/app_alert/app_alert";
 import axios from "axios";
-import SignUpForm from "../components/storybook_components/sign_up_form/sign_up_form";
-import type { SignUpFormValues } from "../components/storybook_components/sign_up_form/sign_up_form";
+import SignUpForm from "../components/sign_up_form/sign_up_form";
+import type { SignUpFormValues } from "../components/sign_up_form/sign_up_form";
 import {register} from "../api/auth";
 
 

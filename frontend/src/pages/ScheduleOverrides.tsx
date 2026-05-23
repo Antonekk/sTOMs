@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Flex, message, Space, Typography } from "antd";
-import ScheduleOverrider from "../components/storybook_components/schedule_overrider/schedule_overrider";
-import type { BaseBlock, ScheduleOverride } from "../components/storybook_components/schedule_overrider/types";
+import ScheduleOverrider from "../components/schedule_overrider/schedule_overrider";
+import type { BaseBlock, ScheduleOverride } from "../components/schedule_overrider/types";
 import type { ScheduleOverrideResponse, ScheduleOverrideRequest } from "../types/therapistAvailability";
 import {
     getScheduleOverrides,
@@ -11,7 +11,7 @@ import {
 } from "../api/therapistAvailability";
 import type { BaseScheduleBlock } from "../types/therapistAvailability";
 import { djangoWeekdayFromDate, timeRangesOverlap } from "../utils/timeSlots";
-import Loading from "../components/storybook_components/loading/loading";
+import Loading from "../components/loading/loading";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const { Title } = Typography;

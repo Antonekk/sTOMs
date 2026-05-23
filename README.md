@@ -44,6 +44,31 @@ Przy uruchomieniu aplikacji w trybie prod nie występuje już seedowanie, dane n
 docker compose -f docker-compose.prod.yml exec backend python manage.py createsuperuser
 ```
 
+## Testy
+
+### Backend (Django)
+
+Przy uruchomionym stacku dev:
+
+```bash
+docker compose exec backend python manage.py test
+```
+
+Wybrane moduły:
+
+```bash
+docker compose exec backend python manage.py test users
+```
+
+Lokalnie bez dockera:
+
+```bash
+cd backend
+pip install -r requirements.txt
+python manage.py test
+```
+
+Django tworzy osobną bazę testową — dane dev nie są nadpisywane.
 ## References
 
 - Logo (https://logoipsum.com/)

@@ -6,7 +6,7 @@ import {
     formatPhoneNumber,
     PHONE_PREFIX,
     phoneLocalFormRules,
-} from "../../../utils/phone";
+} from "../../utils/phone";
 
 
 export interface SignUpFormValues {

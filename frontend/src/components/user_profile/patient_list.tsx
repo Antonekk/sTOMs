@@ -6,7 +6,7 @@ import {
     UndoOutlined,
 } from "@ant-design/icons";
 import type React from "react";
-import type { Patient } from "../../../types/patients";
+import type { Patient } from "../../types/patients";
 
 export type PatientListVariant = "active" | "inactive";
 export type PatientListAction = "delete" | "restore";

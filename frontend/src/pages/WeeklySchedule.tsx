@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Button, Flex, message, Space, Typography } from "antd";
-import WeeklyScheduleEditor from "../components/storybook_components/weekly_scheduler/weekly_schedule_editor";
-import type { WeeklyAvailabilityBlock } from "../components/storybook_components/weekly_scheduler/types";
+import WeeklyScheduleEditor from "../components/weekly_scheduler/weekly_schedule_editor";
+import type { WeeklyAvailabilityBlock } from "../components/weekly_scheduler/types";
 import type { BaseScheduleRequest, BaseScheduleResponse } from "../types/therapistAvailability";
 import { getWeeklySchedule, saveWeeklySchedule } from "../api/therapistAvailability";
-import Loading from "../components/storybook_components/loading/loading";
+import Loading from "../components/loading/loading";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const { Title } = Typography;

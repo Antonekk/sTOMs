@@ -1,7 +1,7 @@
 import { Badge, Button, Card, Empty, List, Space, Typography } from "antd"
 import type React from "react"
-import type { Notification } from "../../../types/notifications"
-import { formatDateTimePl } from "../../../utils/timeSlots"
+import type { Notification } from "../../types/notifications"
+import { formatDateTimePl } from "../../utils/timeSlots"
 
 const { Text, Paragraph } = Typography
 

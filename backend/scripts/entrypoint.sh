@@ -2,9 +2,12 @@
 set -e
 
 python manage.py wait_for_db
-python manage.py migrate
 
-if [ "$SKIP_STARTUP" != "1" ]; then
+if [ "$SKIP_STARTUP" = "1" ]; then
+  python manage.py wait_for_migrations
+else
+  python manage.py migrate
+
   if [ "$SEED_IF_EMPTY" = "1" ]; then
     python manage.py seed_if_empty
   fi

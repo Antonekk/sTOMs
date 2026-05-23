@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuthentication } from "../auth/AuthProvider";
-import Template from "../components/storybook_components/template/template";
+import Template from "../components/template/template";
 import { useNotifications } from "../notifications/NotificationsProvider";
 
 

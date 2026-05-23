@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuthentication } from "./AuthProvider";
 import type { Role } from "../types/auth";
-import Loading from "../components/storybook_components/loading/loading";
+import Loading from "../components/loading/loading";
 
 
 // Protect routes for authenticated users

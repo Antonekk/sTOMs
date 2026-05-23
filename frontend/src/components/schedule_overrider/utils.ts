@@ -1,4 +1,4 @@
-import { djangoWeekdayFromDate } from "../../../utils/timeSlots";
+import { djangoWeekdayFromDate } from "../../utils/timeSlots";
 import type { BaseBlock, DayBlock, ScheduleOverride } from "./types";
 
 export const TIMELINE_START_MINUTES = 6 * 60;

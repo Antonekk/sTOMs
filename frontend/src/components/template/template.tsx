@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react';
 import {Badge, Layout, Menu } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import type { Role } from '../../../types/auth';
+import type { Role } from '../../types/auth';
 
 const { Header, Content, Footer } = Layout;
 

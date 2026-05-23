@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {ACCESS_TOKEN, REFRESH_TOKEN} from "../constants";
 import api from "../api/api"
 import { AUTH_ENDPOINTS } from "../api/endpoints"
-import Loading from "../components/storybook_components/loading/loading";
+import Loading from "../components/loading/loading";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;

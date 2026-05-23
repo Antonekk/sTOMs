@@ -1,12 +1,12 @@
 import { Button, Card, Flex, Space, Table, Tag, Typography, message } from "antd"
-import AppAlert from "../components/storybook_components/app_alert/app_alert"
+import AppAlert from "../components/app_alert/app_alert"
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { cancelReservation, getReservation } from "../api/reservations"
-import Loading from "../components/storybook_components/loading/loading"
+import Loading from "../components/loading/loading"
 import { getApiErrorMessage } from "../utils/apiError"
 import { formatDatePl, formatTime } from "../utils/timeSlots"
-import OfficeLocationDisplay from "../components/storybook_components/office_location/office_location"
+import OfficeLocationDisplay from "../components/office_location/office_location"
 import type { ReservationSeriesDetail, SeriesStatus, VisitStatus } from "../types/reservations"
 
 const { Title, Text } = Typography

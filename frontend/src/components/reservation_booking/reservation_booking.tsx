@@ -14,15 +14,15 @@ import dayjs from "dayjs"
 import type React from "react"
 import AppAlert from "../app_alert/app_alert"
 import OfficeLocationDisplay from "../office_location/office_location"
-import type { Patient } from "../../../types/patients"
+import type { Patient } from "../../types/patients"
 import type {
     AppointmentType,
     BookableSlot,
     BookableTimeOptions,
     BookingTherapist,
-} from "../../../types/reservations"
-import { formatOfficeLocationShort } from "../../../utils/officeDisplay"
-import { formatDatePl, formatTime } from "../../../utils/timeSlots"
+} from "../../types/reservations"
+import { formatOfficeLocationShort } from "../../utils/officeDisplay"
+import { formatDatePl, formatTime } from "../../utils/timeSlots"
 import PatientSelector from "../patient_selector/patient_selector"
 
 const { Text } = Typography

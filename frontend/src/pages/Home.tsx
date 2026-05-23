@@ -1,8 +1,8 @@
 import { CalendarOutlined, FormOutlined } from "@ant-design/icons"
 import { Col, Flex, Row } from "antd"
 import { useNavigate } from "react-router-dom"
-import ActionCard from "../components/storybook_components/action_card/action_card"
-import WelcomeScreen from "../components/storybook_components/welcome_screen/welcome_screen"
+import ActionCard from "../components/action_card/action_card"
+import WelcomeScreen from "../components/welcome_screen/welcome_screen"
 import { useAuthentication } from "../auth/AuthProvider"
 
 const Home: React.FC = () => {

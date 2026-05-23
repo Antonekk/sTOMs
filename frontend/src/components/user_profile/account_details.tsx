@@ -1,7 +1,7 @@
 import { Card, Descriptions, Tag } from "antd";
 import type { DescriptionsProps } from "antd";
 import type React from "react";
-import type { Role, User } from "../../../types/auth";
+import type { Role, User } from "../../types/auth";
 
 const roleLabels: Record<Role, string> = {
     ADMIN: "Administrator",

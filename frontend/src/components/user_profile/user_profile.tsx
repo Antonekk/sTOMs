@@ -1,7 +1,7 @@
 import { Card, Space, Typography } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import type React from "react";
-import type { User } from "../../../types/auth";
+import type { User } from "../../types/auth";
 import AccountDetails from "./account_details";
 import PatientList, { type PatientListAction } from "./patient_list";
 

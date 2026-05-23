@@ -36,6 +36,7 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
+      - backend
       - db
       - redis
 
@@ -48,6 +49,7 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
+      - backend
       - db
       - redis
 
@@ -58,6 +60,15 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+
+  storybook:
+    build: ./frontend
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: yarn storybook
 
 volumes:
   pgdata:

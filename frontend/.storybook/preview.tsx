@@ -1,23 +1,24 @@
 import type { Preview } from '@storybook/react-vite';
 import { ConfigProvider } from 'antd';
-import 'antd/dist/reset.css';
-import '../src/dayjsSetup';
+import { MemoryRouter } from 'react-router-dom';
 
 const preview: Preview = {
   decorators: [
     (Story) => (
-      <ConfigProvider
-        theme={{
-          components: {
-            Input: {
-              controlHeightLG: 64,
-              fontSizeLG: 28,
+      <MemoryRouter>
+        <ConfigProvider
+          theme={{
+            components: {
+              Input: {
+                controlHeightLG: 64,
+                fontSizeLG: 28,
+              },
             },
-          },
-        }}
-      >
-        <Story />
-      </ConfigProvider>
+          }}
+        >
+          <Story />
+        </ConfigProvider>
+      </MemoryRouter>
     ),
   ],
 

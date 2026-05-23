@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Flex } from "antd";
-import AppAlert from "../components/storybook_components/app_alert/app_alert";
+import AppAlert from "../components/app_alert/app_alert";
 import { confirmPasswordReset } from "../api/auth";
-import AccountActivation from "../components/storybook_components/account_activation/account_activation";
-import ResetPasswordForm from "../components/storybook_components/reset_password_form/reset_password_form";
-import type { ResetPasswordFormValues } from "../components/storybook_components/reset_password_form/reset_password_form";
+import AccountActivation from "../components/account_activation/account_activation";
+import ResetPasswordForm from "../components/reset_password_form/reset_password_form";
+import type { ResetPasswordFormValues } from "../components/reset_password_form/reset_password_form";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const ResetPassword: React.FC = () => {
