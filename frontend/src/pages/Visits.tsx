@@ -106,7 +106,7 @@ const Visits: React.FC = () => {
             {config && tab === "upcoming" && !isTherapist && (
                 <AppAlert
                     type="info"
-                    title={`Anulowanie możliwe najpóźniej ${config.cancellation_window_hours} godzin przed wizytą.`}
+                    title={`Anulowanie możliwe najpóźniej ${String(config.cancellation_window_hours)} godzin przed wizytą.`}
                 />
             )}
 

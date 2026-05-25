@@ -79,9 +79,9 @@ const PatientList: React.FC<PatientListProps> = ({
                                                   description="Profil zostanie ponownie widoczny na liście pacjentów."
                                                   okText="Przywróć"
                                                   cancelText="Anuluj"
-                                                  onConfirm={() =>
-                                                      onAction("restore", patient.id)
-                                                  }
+                                                  onConfirm={() => {
+                                                      void onAction("restore", patient.id);
+                                                  }}
                                               >
                                                   <Button
                                                       type="link"
@@ -113,9 +113,9 @@ const PatientList: React.FC<PatientListProps> = ({
                                                   description="Profil zostanie ukryty, ale historia wizyt pozostanie zachowana."
                                                   okText="Usuń"
                                                   cancelText="Anuluj"
-                                                  onConfirm={() =>
-                                                      onAction("delete", patient.id)
-                                                  }
+                                                  onConfirm={() => {
+                                                      void onAction("delete", patient.id);
+                                                  }}
                                               >
                                                   <Button
                                                       type="link"

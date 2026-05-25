@@ -46,7 +46,7 @@ export const InactivePatients: Story = {
     args: {
         variant: "inactive",
         onNavigate: (path) => { alert(`Nawiguj do ${path}`); },
-        onAction: async (action, id) => { alert(`${action} pacjenta ${id}`); },
+        onAction: (action, id) => { alert(`${action} pacjenta ${id}`); },
         patients: [
             {
                 id: "57a67de4-4a18-4dcb-acbd-18c977d0b455",

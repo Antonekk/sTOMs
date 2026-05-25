@@ -60,7 +60,7 @@ export const blockPositionStyle = (
   }
 
   return {
-    left: `${((start - TIMELINE_START_MINUTES) / range) * 100}%`,
-    width: `${((end - start) / range) * 100}%`,
+    left: `${String(((start - TIMELINE_START_MINUTES) / range) * 100)}%`,
+    width: `${String(((end - start) / range) * 100)}%`,
   };
 };

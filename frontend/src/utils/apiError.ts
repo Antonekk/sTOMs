@@ -86,7 +86,7 @@ export const getApiErrorMessage = (
     }
 
     const status = err.response?.status;
-    const data = err.response?.data;
+    const data: unknown = err.response?.data;
 
     if (data === undefined || data === null || data === "") {
         if (status && STATUS_MESSAGES[status]) {

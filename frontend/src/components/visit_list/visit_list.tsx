@@ -79,7 +79,7 @@ const VisitList: React.FC<VisitListProps> = ({
         columns.push({
             title: "Notatka",
             dataIndex: "notes",
-            render: (notes?: string | null) => notes || "—",
+            render: (notes?: string | null) => notes ?? "—",
             ellipsis: true,
         })
     }

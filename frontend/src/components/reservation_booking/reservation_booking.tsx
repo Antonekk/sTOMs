@@ -141,7 +141,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
     const therapistOptions = therapists.map((therapist) => ({
         value: therapist.id,
         label: therapist.office
-            ? `${therapist.full_name} · ${formatOfficeLocationShort(therapist.office)}`
+            ? `${therapist.full_name} · ${formatOfficeLocationShort(therapist.office) ?? ""}`
             : therapist.full_name,
     }))
 
@@ -188,7 +188,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                     onChange={onAppointmentTypeChange}
                     options={appointmentTypes.map((type) => ({
                         value: type.id,
-                        label: `${type.name} (${type.duration_time_minutes} min, ${type.price} zł)`,
+                        label: `${type.name} (${String(type.duration_time_minutes)} min, ${type.price} zł)`,
                     }))}
                 />
             </Card>
@@ -259,8 +259,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                         <Space wrap style={{ width: "100%" }}>
                             <Select
                                 allowClear
-                                showSearch
-                                optionFilterProp="label"
+                                showSearch={{ optionFilterProp: "label" }}
                                 placeholder="Terapeuta"
                                 style={{ minWidth: 260 }}
                                 value={therapistId}
@@ -269,8 +268,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                             />
                             <Select
                                 allowClear
-                                showSearch
-                                optionFilterProp="label"
+                                showSearch={{ optionFilterProp: "label" }}
                                 placeholder="Lokalizacja / gabinet"
                                 style={{ minWidth: 280 }}
                                 value={officeId}
@@ -379,7 +377,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                                     total={slotsTotal}
                                     onChange={onSlotsPageChange}
                                     showSizeChanger={false}
-                                    showTotal={(total) => `Łącznie ${total} terminów`}
+                                    showTotal={(total) => `Łącznie ${String(total)} terminów`}
                                 />
                             )}
                         </Flex>

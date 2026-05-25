@@ -16,4 +16,4 @@ export const markNotificationRead = (id: string) =>
     api.patch<Notification>(NOTIFICATION_ENDPOINTS.NOTIFICATION_READ(id))
 
 export const markAllNotificationsRead = () =>
-    api.patch<void>(NOTIFICATION_ENDPOINTS.NOTIFICATIONS_READ_ALL)
+    api.patch(NOTIFICATION_ENDPOINTS.NOTIFICATIONS_READ_ALL)

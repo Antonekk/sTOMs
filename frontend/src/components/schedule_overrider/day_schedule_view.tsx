@@ -85,7 +85,7 @@ const DayScheduleView: React.FC<DayScheduleViewProps> = ({
 
                       return (
                         <div
-                          key={`${kind}-${block.startTime}-${block.endTime}-${index}`}
+                          key={`${kind}-${block.startTime}-${block.endTime}-${String(index)}`}
                           title={`${block.startTime} – ${block.endTime}`}
                           style={{
                             position: "absolute",

@@ -37,7 +37,7 @@ api.interceptors.request.use(
             url: config.url,
             method: config.method,
             headers: config.headers,
-            data: config.data,
+            data: config.data as unknown,
         });
         return config;
     },
