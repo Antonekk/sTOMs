@@ -69,6 +69,6 @@ python manage.py test
 ```
 
 Django tworzy osobną bazę testową — dane dev nie są nadpisywane.
-## References
 
+## References
 - Logo (https://logoipsum.com/)
