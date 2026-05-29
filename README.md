@@ -15,6 +15,7 @@ docker compose up --build
 | Serwis | URL |
 |--------|-----|
 | Frontend | http://localhost:5173 |
+| Storybook | http://localhost:6006 |
 | Backend API | http://localhost:8000/api/v1/ |
 | Admin Django | http://localhost:8000/admin/ |
 
@@ -60,7 +61,13 @@ Wybrane moduły:
 docker compose exec backend python manage.py test users
 ```
 
-Lokalnie bez dockera:
+Django tworzy osobną bazę testową — dane dev nie są nadpisywane.
+
+## Storybook
+
+Storybook służy do izolowanego podglądu i testów komponentów. Uruchamia się przy setupie dev pod http://localhost:6006.
+
+### Uruchomienie lokalne (bez Dockera)
 
 ```bash
 cd backend
