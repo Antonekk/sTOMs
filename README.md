@@ -4,7 +4,8 @@ Speech Therapy Office Management System
 
 ## Uruchomienie
 
-Wymagania: Docker + Docker Compose v2.
+Wymagania: Docker + Docker Compose (V2).
+(Testowane pod Ubuntu (24.04))
 
 ### Dev
 
@@ -27,19 +28,19 @@ Przy pierwszym starcie (pusta baza) tworzone są konta testowe:
 | Terapeuta | `terapeuta@stoms.local` | `dev123456` |
 | Klient | `klient@stoms.local` | `dev123456` |
 
-Żeby dokonać ponownego seedowania należy: `docker compose down -v` i ponownie `docker compose up --build`.
+Żeby ponownie wykonać proces seedowania należy wykonać: `docker compose down -v` i ponownie `docker compose up --build`.
 
 ### Prod
 
-Uzupełnij `.env.prod` i `.env` (m.in. `SECRET_KEY`, `ALLOWED_HOSTS`, dane SMTP), nstępnie:
+Uzupełnij `.env.prod` i `.env` (m.in. `SECRET_KEY`, `ALLOWED_HOSTS`, dane SMTP) a nstępnie wykonaj:
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-Aplikacja pod http://localhost (nginx, port 80).
+Aplikacja odpalona zostanie pod http://localhost (nginx, port 80).
 
-Przy uruchomieniu aplikacji w trybie prod nie występuje już seedowanie, dane należy dodać ręcznie a superusera utworzyć bezpośrednio w kontenerze:
+Przy uruchomieniu aplikacji w trybie produkcyjnym pomijane jest seedowanie, dane należy dodać ręcznie a superusera utworzyć bezpośrednio w kontenerze przy pomocy:
 
 ```bash
 docker compose -f docker-compose.prod.yml exec backend python manage.py createsuperuser
@@ -49,25 +50,17 @@ docker compose -f docker-compose.prod.yml exec backend python manage.py createsu
 
 ### Backend (Django)
 
-Przy uruchomionym stacku dev:
+Przy uruchomieniu wersji dev:
 
 ```bash
 docker compose exec backend python manage.py test
 ```
 
-Wybrane moduły:
+Można testować również pojedyńcze moduły:
 
 ```bash
 docker compose exec backend python manage.py test users
 ```
-
-Django tworzy osobną bazę testową — dane dev nie są nadpisywane.
-
-## Storybook
-
-Storybook służy do izolowanego podglądu i testów komponentów. Uruchamia się przy setupie dev pod http://localhost:6006.
-
-### Uruchomienie lokalne (bez Dockera)
 
 ```bash
 cd backend
@@ -75,7 +68,15 @@ pip install -r requirements.txt
 python manage.py test
 ```
 
-Django tworzy osobną bazę testową — dane dev nie są nadpisywane.
+Django tworzy osobną bazę testową, więc dane testowe nie są trwale zapisywane.
+
+## Storybook
+
+Storybook służy do izolowanego podglądu i testów komponentów. Uruchamia się przy setupie dev pod http://localhost:6006.
+
+## Uruchomienie lokalne (bez Dockera)
+
+
 
 ## References
 - Logo (https://logoipsum.com/)
