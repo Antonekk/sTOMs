@@ -47,7 +47,12 @@ class CancellationEngine:
 
     @classmethod
     @transaction.atomic
-    def cancel_series(cls, series: AppointmentSeries, canceled_by=None):
+    def cancel_series(
+        cls,
+        series: AppointmentSeries,
+        canceled_by=None,
+        enforce_window: bool = True,
+    ):
         if series.status == AppointmentSeries.Status.CANCELED:
             return series
 
@@ -55,14 +60,20 @@ class CancellationEngine:
         future_appointments = series.appointments.filter(
             status=Appointment.Status.SCHEDULED,
             appointment_date__gte=today,
-        )
-        future_appointments.update(status=Appointment.Status.CANCELED)
+        ).select_related("appointment_series")
+
+        for appointment in future_appointments:
+            if enforce_window and not cls._within_cancellation_window(appointment):
+                continue
+            appointment.status = Appointment.Status.CANCELED
+            appointment.save(update_fields=["status"])
 
         series.status = AppointmentSeries.Status.CANCELED
         series.save(update_fields=["status"])
 
         if canceled_by is not None:
             NotificationEngine.notify_series_canceled(series, canceled_by)
+
         return series
 
     @classmethod
@@ -73,27 +84,78 @@ class CancellationEngine:
         )
 
     @classmethod
+    def _series_check_date(cls, series: AppointmentSeries) -> date | None:
+        today = timezone.localdate()
+        if not series.is_weekly:
+            if series.start_date < today:
+                return None
+            return series.start_date
+
+        if series.start_date > today:
+            return series.start_date
+
+        target_weekday = series.start_date.weekday()
+        days_ahead = (target_weekday - today.weekday()) % 7
+        return today + timedelta(days=days_ahead)
+
+    @classmethod
+    def _series_fits_schedule(cls, therapist, series: AppointmentSeries) -> bool:
+        check_date = cls._series_check_date(series)
+        if check_date is None:
+            return True
+
+        slots = AvailabilityEngine.get_slots(therapist, check_date)
+        return cls._appointment_fits(slots, series.start_time, series.end_time)
+
+    @classmethod
     @transaction.atomic
     def cancel_conflicting_appointments(cls, therapist, target_date: date | None = None):
+        today = timezone.localdate()
+        canceled = []
+
+        if target_date is None:
+            active_series = AppointmentSeries.objects.filter(
+                therapist=therapist,
+                status=AppointmentSeries.Status.ACTIVE,
+            )
+            for series in active_series:
+                if cls._series_fits_schedule(therapist, series):
+                    continue
+                scheduled_ids = set(
+                    series.appointments.filter(
+                        status=Appointment.Status.SCHEDULED,
+                        appointment_date__gte=today,
+                    ).values_list("id", flat=True)
+                )
+                cls.cancel_series(series, enforce_window=True)
+                canceled.extend(
+                    Appointment.objects.filter(
+                        id__in=scheduled_ids,
+                        status=Appointment.Status.CANCELED,
+                    )
+                )
+
         appointments = Appointment.objects.filter(
             therapist=therapist,
             appointment_series__status=AppointmentSeries.Status.ACTIVE,
             status=Appointment.Status.SCHEDULED,
-            appointment_date__gte=timezone.localdate(),
+            appointment_date__gte=today,
         ).select_related("appointment_series")
 
         if target_date is not None:
             appointments = appointments.filter(appointment_date=target_date)
 
-        canceled = []
         for appointment in appointments:
             series = appointment.appointment_series
             slots = AvailabilityEngine.get_slots(therapist, appointment.appointment_date)
-            if not cls._appointment_fits(slots, series.start_time, series.end_time):
-                appointment.status = Appointment.Status.CANCELED
-                appointment.save(update_fields=["status"])
-                canceled.append(appointment)
-                cls._update_series_after_appointment_change(series)
+            if cls._appointment_fits(slots, series.start_time, series.end_time):
+                continue
+            if not cls._within_cancellation_window(appointment):
+                continue
+            appointment.status = Appointment.Status.CANCELED
+            appointment.save(update_fields=["status"])
+            canceled.append(appointment)
+            cls._update_series_after_appointment_change(series)
 
         if canceled:
             NotificationEngine.notify_appointments_canceled_bulk(canceled, therapist)
@@ -122,17 +184,6 @@ class CancellationEngine:
             ).exists():
                 series.status = AppointmentSeries.Status.CANCELED
                 series.save(update_fields=["status"])
-            return
-
-        all_completed = (
-            series.appointments.exists()
-            and not series.appointments.exclude(
-                status=Appointment.Status.COMPLETED
-            ).exists()
-        )
-        if all_completed:
-            series.status = AppointmentSeries.Status.ENDED
-            series.save(update_fields=["status"])
 
     @classmethod
     def mark_completed(cls, appointment: Appointment):

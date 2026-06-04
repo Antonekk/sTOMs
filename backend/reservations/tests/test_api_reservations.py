@@ -1,5 +1,7 @@
 from datetime import time, timedelta
 
+from constance import config
+from django.utils import timezone
 from rest_framework import status
 
 from reservations.models import Appointment, AppointmentSeries
@@ -68,3 +70,49 @@ class ReservationDetailAPITestCase(ReservationAPITestCase):
         self.assertEqual(series.status, AppointmentSeries.Status.CANCELED)
         self.assertEqual(past.status, Appointment.Status.COMPLETED)
         self.assertEqual(future.status, Appointment.Status.CANCELED)
+
+    def test_cancel_series_leaves_visit_within_cancellation_window(self):
+        target_date = timezone.localdate()
+        series = create_series(
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_type=self.periodic_type,
+            start_date=target_date,
+            start_time=time(23, 0),
+            end_time=time(23, 50),
+            is_weekly=True,
+        )
+        within_window = create_appointment(
+            series=series,
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_date=target_date,
+            status=Appointment.Status.SCHEDULED,
+        )
+        cancelable = create_appointment(
+            series=series,
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_date=target_date + timedelta(days=7),
+            status=Appointment.Status.SCHEDULED,
+        )
+
+        self.api.force_authenticate(user=self.client_user)
+        original = config.CANCELLATION_WINDOW_HOURS
+        config.CANCELLATION_WINDOW_HOURS = 24
+        try:
+            response = self.api.patch(
+                f"/api/v1/reservations/{series.id}",
+                {"status": "CANCELED"},
+                format="json",
+            )
+        finally:
+            config.CANCELLATION_WINDOW_HOURS = original
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        series.refresh_from_db()
+        within_window.refresh_from_db()
+        cancelable.refresh_from_db()
+        self.assertEqual(series.status, AppointmentSeries.Status.CANCELED)
+        self.assertEqual(within_window.status, Appointment.Status.SCHEDULED)
+        self.assertEqual(cancelable.status, Appointment.Status.CANCELED)
