@@ -1,18 +1,13 @@
 from datetime import date, timedelta
 
-from constance import config
 from django.db import transaction
 from django.utils import timezone
 
+from reservations.engines.horizon import HorizonEngine
 from reservations.models import Appointment, AppointmentSeries
 
 
 class AppointmentGenerationEngine:
-    @classmethod
-    def default_horizon_date(cls) -> date:
-        return timezone.localdate() + timedelta(days=config.APPOINTMENT_GENERATION_DAYS)
-
-
     @staticmethod
     def _occurrence_dates(
         series: AppointmentSeries, range_start: date, horizon_date: date
@@ -40,7 +35,8 @@ class AppointmentGenerationEngine:
         if series.status != AppointmentSeries.Status.ACTIVE:
             return []
 
-        horizon_date = horizon_date or cls.default_horizon_date()
+        if horizon_date is None:
+            horizon_date = HorizonEngine.default_horizon_date()
         range_start = max(series.start_date, timezone.localdate())
         if range_start > horizon_date:
             return []

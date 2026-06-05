@@ -8,6 +8,7 @@ from notifications.engine import NotificationEngine
 
 from reservations.models import Appointment, AppointmentSeries
 from therapist_availability.engines.availability import AvailabilityEngine
+from reservations.engines.horizon import HorizonEngine
 
 
 
@@ -208,9 +209,8 @@ class CancellationEngine:
             series.save(update_fields=["status"])
             return appointment
 
-        from reservations.engines.generation import AppointmentGenerationEngine
 
-        horizon_date = AppointmentGenerationEngine.default_horizon_date()
+        horizon_date = HorizonEngine.default_horizon_date()
         latest_date = (
             series.appointments.order_by("-appointment_date")
             .values_list("appointment_date", flat=True)

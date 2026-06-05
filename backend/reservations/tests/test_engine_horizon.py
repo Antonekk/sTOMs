@@ -3,7 +3,7 @@ from datetime import time
 from constance import config
 from django.test import TestCase
 
-from reservations.engines.horizon import ensure_horizon
+from reservations.engines.horizon import HorizonEngine
 from reservations.tasks import extend_appointment_horizons
 
 from .helpers import (
@@ -35,7 +35,7 @@ class HorizonEngineTestCase(TestCase):
         original = config.APPOINTMENT_GENERATION_DAYS
         config.APPOINTMENT_GENERATION_DAYS = 28
         try:
-            ensure_horizon(series)
+            HorizonEngine.ensure(series)
         finally:
             config.APPOINTMENT_GENERATION_DAYS = original
         self.assertGreater(series.appointments.count(), 1)

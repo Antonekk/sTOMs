@@ -15,6 +15,7 @@ from .models import Appointment, AppointmentSeries, AppointmentType
 from .engines.booking import BookingEngine
 from .engines.collision import CollisionDetectionEngine
 from .engines.generation import AppointmentGenerationEngine
+from .engines.horizon import HorizonEngine
 from offices.location import serialize_office_location
 
 WEEKDAY_LABELS = [
@@ -179,7 +180,7 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
             start_date=start_date,
             is_weekly=True,
         )
-        horizon_date = AppointmentGenerationEngine.default_horizon_date()
+        horizon_date = HorizonEngine.default_horizon_date()
         occurrence_dates = AppointmentGenerationEngine._occurrence_dates(
             temp_series, max(start_date, timezone.localdate()), horizon_date
         )

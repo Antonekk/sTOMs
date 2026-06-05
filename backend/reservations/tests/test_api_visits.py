@@ -5,8 +5,8 @@ from constance import config
 from django.utils import timezone
 from rest_framework import status
 
-from reservations.engines.generation import AppointmentGenerationEngine
-from reservations.models import Appointment, AppointmentSeries
+from reservations.engines.horizon import HorizonEngine
+from reservations.models import AppointmentSeries
 
 from .base import ReservationAPITestCase
 from .helpers import (
@@ -238,7 +238,7 @@ class VisitAPITestCase(ReservationAPITestCase):
             appointment_date=target_date,
         )
         with patch.object(
-            AppointmentGenerationEngine,
+            HorizonEngine,
             "default_horizon_date",
             return_value=target_date,
         ):

@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from reservations.engines.generation import AppointmentGenerationEngine
+from reservations.engines.horizon import HorizonEngine
 from reservations.models import AppointmentSeries
 
 from .base import ReservationAPITestCase
@@ -70,7 +71,7 @@ class ReservationCreateAPITestCase(ReservationAPITestCase):
             AppointmentGenerationEngine._occurrence_dates(
                 series,
                 max(series.start_date, timezone.localdate()),
-                AppointmentGenerationEngine.default_horizon_date(),
+                HorizonEngine.default_horizon_date(),
             )
         )
         self.assertEqual(series.appointments.count(), expected_count)
