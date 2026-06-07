@@ -1,3 +1,5 @@
+# https://docs.djangoproject.com/en/6.0/howto/custom-management-commands/
+
 import time
 
 from django.core.management.base import BaseCommand

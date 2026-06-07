@@ -10,7 +10,6 @@ class CollisionDetectionEngine:
         appointment_date: date,
         start_time: time,
         end_time: time,
-        *,
         exclude_appointment_id=None,
     ) -> bool:
         queryset = Appointment.objects.filter(

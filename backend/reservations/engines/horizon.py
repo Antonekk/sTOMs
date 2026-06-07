@@ -5,6 +5,8 @@ from django.utils import timezone
 
 from reservations.models import AppointmentSeries
 
+from reservations.engines.generation import AppointmentGenerationEngine
+
 
 class HorizonEngine:
     @classmethod
@@ -22,8 +24,6 @@ class HorizonEngine:
             .first()
         )
         if latest is None or latest < horizon_date:
-            from reservations.engines.generation import AppointmentGenerationEngine
-
             AppointmentGenerationEngine.generate(series, horizon_date)
 
     @classmethod
