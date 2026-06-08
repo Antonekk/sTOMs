@@ -1,13 +1,15 @@
+from datetime import time
+
 from constance import config
 from django.utils import timezone
 from rest_framework import status
 
 from reservations.engines.generation import AppointmentGenerationEngine
 from reservations.engines.horizon import HorizonEngine
-from reservations.models import AppointmentSeries
+from reservations.models import Appointment, AppointmentSeries
 
 from .base import ReservationAPITestCase
-from .helpers import future_monday
+from .helpers import create_appointment, create_series, future_monday
 
 
 class ReservationCreateAPITestCase(ReservationAPITestCase):
@@ -44,6 +46,42 @@ class ReservationCreateAPITestCase(ReservationAPITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_periodic_reservation_rejected_when_active_series_has_canceled_visits(self):
+        target_date = future_monday()
+        series = create_series(
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_type=self.periodic_type,
+            start_date=target_date,
+            start_time=time(10, 0),
+            end_time=time(10, 30),
+            is_weekly=True,
+        )
+        create_appointment(
+            series=series,
+            therapist=self.therapist,
+            patient=self.patient,
+            appointment_date=target_date,
+            status=Appointment.Status.CANCELED,
+        )
+
+        self.api.force_authenticate(user=self.client_user)
+        response = self.api.post(
+            "/api/v1/reservations",
+            {
+                "therapist_id": str(self.therapist.id),
+                "patient_id": str(self.patient.id),
+                "appointment_type_id": str(self.periodic_type.id),
+                "start_time": "10:00",
+                "start_date": target_date.isoformat(),
+                "is_weekly": True,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("koliduje", str(response.data).lower())
 
     def test_periodic_reservation_generates_appointments_to_horizon(self):
         target_date = future_monday()

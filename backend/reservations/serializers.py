@@ -189,6 +189,13 @@ class AppointmentSeriesCreateSerializer(serializers.Serializer):
                 {"is_weekly": "Brak terminów w wybranym okresie rezerwacji."}
             )
 
+        if CollisionDetectionEngine.has_active_weekly_series_conflict(
+            therapist.id, start_date.weekday(), start_time, end_time
+        ):
+            raise ValidationError(
+                {"detail": "Wybrany termin koliduje z istniejącą wizytą."}
+            )
+
         for occurrence_date in occurrence_dates:
             if CollisionDetectionEngine.check(
                 therapist.id, occurrence_date, start_time, end_time
