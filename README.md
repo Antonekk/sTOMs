@@ -80,3 +80,4 @@ Storybook służy do izolowanego podglądu i testów komponentów. Uruchamia si�
 
 ## References
 - Logo (https://logoipsum.com/)
+- Frontend React + JWT + AXIOS + React Router: setup (https://dev.to/sanjayttg/jwt-authentication-in-react-with-react-router-1d03)

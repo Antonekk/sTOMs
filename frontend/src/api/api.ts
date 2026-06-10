@@ -32,13 +32,6 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        // Remove in prod
-        console.log('Request:', {
-            url: config.url,
-            method: config.method,
-            headers: config.headers,
-            data: config.data as unknown,
-        });
         return config;
     },
 );
@@ -80,8 +73,6 @@ api.interceptors.response.use(
             clearTokens();
         }
 
-        //Remove in prod
-        console.error('Response error:', error.response ?? error);
         return Promise.reject(error);
     },
 );
