@@ -187,6 +187,7 @@ class CancellationEngine:
                 series.save(update_fields=["status"])
 
     @classmethod
+    @transaction.atomic
     def mark_completed(cls, appointment: Appointment):
         if appointment.status != Appointment.Status.SCHEDULED:
             return appointment

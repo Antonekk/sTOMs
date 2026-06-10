@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from constance import config
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -82,10 +83,11 @@ class SelfScheduleView(APIView):
         serializer.is_valid(raise_exception=True)
 
         therapist = get_therapist_for_user(request.user)
-        ScheduleEngine.replace_base_schedule(
-            therapist, serializer.validated_data["blocks"]
-        )
-        CancellationEngine.cancel_conflicting_appointments(therapist)
+        with transaction.atomic():
+            ScheduleEngine.replace_base_schedule(
+                therapist, serializer.validated_data["blocks"]
+            )
+            CancellationEngine.cancel_conflicting_appointments(therapist)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -126,21 +128,21 @@ class SelfScheduleOverrideView(APIView):
             if hasattr(exc, "message_dict"):
                 raise ValidationError(exc.message_dict) from exc
             raise ValidationError({"detail": str(exc.message or exc)}) from exc
-        block.save()
 
-        block = (
-            ScheduleEngine.normalize_overrides_for_date(
-                therapist,
-                block.specific_date,
-                source_block=block,
+        with transaction.atomic():
+            block.save()
+            block = (
+                ScheduleEngine.normalize_overrides_for_date(
+                    therapist,
+                    block.specific_date,
+                    source_block=block,
+                )
+                or block
             )
-            or block
-        )
-
-        if block.type == AvailabilityBlock.BlockType.EXCLUSION:
-            CancellationEngine.cancel_conflicting_appointments(
-                therapist, target_date=block.specific_date
-            )
+            if block.type == AvailabilityBlock.BlockType.EXCLUSION:
+                CancellationEngine.cancel_conflicting_appointments(
+                    therapist, target_date=block.specific_date
+                )
 
         return Response(
             OverrideBlockSerializer(block).data,
