@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import date, datetime, time
 from unittest.mock import patch
 
 from django.utils import timezone
@@ -101,7 +101,7 @@ class BookableSlotAPITestCase(ReservationAPITestCase):
 
     @patch("reservations.engines.booking.timezone.now")
     def test_bookable_slots_excludes_past_times_today(self, mock_now):
-        today = timezone.localdate()
+        today = date.today()
         mock_now.return_value = timezone.make_aware(
             datetime.combine(today, time(14, 0))
         )

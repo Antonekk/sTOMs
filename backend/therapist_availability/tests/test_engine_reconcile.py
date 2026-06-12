@@ -1,6 +1,7 @@
 from datetime import time, timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 
 from therapist_availability.engines import AvailabilityEngine, ScheduleEngine
 from therapist_availability.models import AvailabilityBlock
@@ -147,7 +148,9 @@ class ReconcileOverridesTestCase(TestCase):
         self.assertEqual(exclusion.end_time, time(11, 0))
 
     def test_past_overrides_are_not_reconciled(self):
-        past_friday = self.friday - timedelta(days=7)
+        past_friday = timezone.localdate() - timedelta(days=14)
+        while past_friday.weekday() != 4:
+            past_friday -= timedelta(days=1)
         AvailabilityBlock.objects.create(
             therapist=self.therapist,
             type=AvailabilityBlock.BlockType.BASE,

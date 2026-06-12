@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import date, datetime, time
 from unittest.mock import patch
 
 from constance import config
@@ -16,7 +16,7 @@ from .helpers import create_appointment, create_series, future_monday
 class ReservationCreateAPITestCase(ReservationAPITestCase):
     @patch("reservations.engines.booking.timezone.now")
     def test_booking_past_time_today_returns_400(self, mock_now):
-        today = timezone.localdate()
+        today = date.today()
         mock_now.return_value = timezone.make_aware(
             datetime.combine(today, time(14, 0))
         )
