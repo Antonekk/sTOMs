@@ -42,6 +42,8 @@ export interface OfficeOption {
     label: string
 }
 
+export type LocationFilterMode = "therapist" | "office"
+
 export interface ReservationBookingProps {
     patients: Patient[]
     appointmentTypes: AppointmentType[]
@@ -64,6 +66,7 @@ export interface ReservationBookingProps {
     visitDate?: string
     dayOfWeek?: number
     startDate?: string
+    locationFilterMode: LocationFilterMode
     therapistId?: string
     officeId?: string
     timeFrom?: string
@@ -75,6 +78,7 @@ export interface ReservationBookingProps {
     onVisitDateChange: (date: string | undefined) => void
     onDayOfWeekChange: (day: number | undefined) => void
     onStartDateChange: (date: string | undefined) => void
+    onLocationFilterModeChange: (mode: LocationFilterMode) => void
     onTherapistChange: (therapistId: string | undefined) => void
     onOfficeChange: (officeId: string | undefined) => void
     onTimeFromChange: (time: string | undefined) => void
@@ -113,6 +117,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
     visitDate,
     dayOfWeek,
     startDate,
+    locationFilterMode,
     therapistId,
     officeId,
     timeFrom,
@@ -124,6 +129,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
     onVisitDateChange,
     onDayOfWeekChange,
     onStartDateChange,
+    onLocationFilterModeChange,
     onTherapistChange,
     onOfficeChange,
     onTimeFromChange,
@@ -140,10 +146,13 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
 
     const therapistOptions = therapists.map((therapist) => ({
         value: therapist.id,
-        label: therapist.office
-            ? `${therapist.full_name} · ${formatOfficeLocationShort(therapist.office) ?? ""}`
-            : therapist.full_name,
+        label: therapist.full_name,
     }))
+
+    const selectedTherapist = therapists.find((therapist) => therapist.id === therapistId)
+    const therapistForOffice = officeId
+        ? therapists.find((therapist) => therapist.office_id === officeId)
+        : undefined
 
     const dateFiltersReady =
         bookingMode === "once"
@@ -256,26 +265,56 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                             </Space>
                         )}
 
-                        <Space wrap style={{ width: "100%" }}>
-                            <Select
-                                allowClear
-                                showSearch={{ optionFilterProp: "label" }}
-                                placeholder="Terapeuta"
-                                style={{ minWidth: 260 }}
-                                value={therapistId}
-                                onChange={onTherapistChange}
-                                options={therapistOptions}
-                            />
-                            <Select
-                                allowClear
-                                showSearch={{ optionFilterProp: "label" }}
-                                placeholder="Lokalizacja / gabinet"
-                                style={{ minWidth: 280 }}
-                                value={officeId}
-                                onChange={onOfficeChange}
-                                options={officeOptions}
-                            />
-                        </Space>
+                        <Flex vertical gap={8} style={{ width: "100%" }}>
+                            <Radio.Group
+                                value={locationFilterMode}
+                                onChange={(event) => {
+                                    onLocationFilterModeChange(
+                                        event.target.value as LocationFilterMode,
+                                    )
+                                }}
+                            >
+                                <Radio value="therapist">Terapeuta</Radio>
+                                <Radio value="office">Lokalizacja</Radio>
+                            </Radio.Group>
+
+                            {locationFilterMode === "therapist" ? (
+                                <Flex vertical gap={4}>
+                                    <Select
+                                        allowClear
+                                        showSearch={{ optionFilterProp: "label" }}
+                                        placeholder="Wybierz terapeutę"
+                                        style={{ minWidth: 280 }}
+                                        value={therapistId}
+                                        onChange={onTherapistChange}
+                                        options={therapistOptions}
+                                    />
+                                    {selectedTherapist?.office && (
+                                        <Text type="secondary">
+                                            Gabinet:{" "}
+                                            {formatOfficeLocationShort(selectedTherapist.office)}
+                                        </Text>
+                                    )}
+                                </Flex>
+                            ) : (
+                                <Flex vertical gap={4}>
+                                    <Select
+                                        allowClear
+                                        showSearch={{ optionFilterProp: "label" }}
+                                        placeholder="Wybierz lokalizację / gabinet"
+                                        style={{ minWidth: 280 }}
+                                        value={officeId}
+                                        onChange={onOfficeChange}
+                                        options={officeOptions}
+                                    />
+                                    {therapistForOffice && (
+                                        <Text type="secondary">
+                                            Terapeuta: {therapistForOffice.full_name}
+                                        </Text>
+                                    )}
+                                </Flex>
+                            )}
+                        </Flex>
 
                         {dateFiltersReady && (
                             loadingTimeOptions ? (

@@ -49,6 +49,13 @@ export const isUpcomingVisit = (appointmentDate: string): boolean => {
     return visitDate >= today
 }
 
+export const isPastVisit = (appointmentDate: string, endTime: string): boolean => {
+    const [hours, minutes] = endTime.slice(0, 5).split(":").map(Number)
+    const end = new Date(`${appointmentDate}T12:00:00`)
+    end.setHours(hours, minutes, 0, 0)
+    return Date.now() > end.getTime()
+}
+
 export const canCancelByWindow = (
     appointmentDate: string,
     startTime: string,

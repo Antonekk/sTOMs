@@ -3,7 +3,6 @@ import type { ApiErrorDisplay } from "../utils/apiError"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { listAppointmentTypes } from "../api/appointmentTypes"
-import { listLocalizations } from "../api/offices"
 import {
     createReservation,
     getBookableTimeOptions,
@@ -17,7 +16,10 @@ import { useAuthentication } from "../auth/AuthProvider"
 import { useAppConfig } from "../config/ConfigProvider"
 import { getApiErrorDisplay } from "../utils/apiError"
 import { formatOfficeLocation } from "../utils/officeDisplay"
-import type { OfficeOption } from "../components/reservation_booking/reservation_booking"
+import type {
+    LocationFilterMode,
+    OfficeOption,
+} from "../components/reservation_booking/reservation_booking"
 import type {
     AppointmentType,
     BookableSlot,
@@ -39,7 +41,6 @@ const ReservationNew: React.FC = () => {
 
     const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([])
     const [therapists, setTherapists] = useState<BookingTherapist[]>([])
-    const [officeOptions, setOfficeOptions] = useState<OfficeOption[]>([])
     const [bookableSlots, setBookableSlots] = useState<BookableSlot[]>([])
     const [timeOptions, setTimeOptions] = useState<BookableTimeOptions>(EMPTY_TIME_OPTIONS)
     const [slotsTotal, setSlotsTotal] = useState(0)
@@ -55,6 +56,8 @@ const ReservationNew: React.FC = () => {
     const [visitDate, setVisitDate] = useState<string>()
     const [dayOfWeek, setDayOfWeek] = useState<number>()
     const [startDate, setStartDate] = useState<string>()
+    const [locationFilterMode, setLocationFilterMode] =
+        useState<LocationFilterMode>("therapist")
     const [therapistId, setTherapistId] = useState<string>()
     const [officeId, setOfficeId] = useState<string>()
     const [timeFrom, setTimeFrom] = useState<string>()
@@ -76,6 +79,24 @@ const ReservationNew: React.FC = () => {
 
     const selectedType = appointmentTypes.find((type) => type.id === appointmentTypeId)
 
+    const officeOptions = useMemo<OfficeOption[]>(() => {
+        const seen = new Set<string>()
+        return therapists
+            .filter((therapist) => therapist.office_id && therapist.office)
+            .filter((therapist) => {
+                if (!therapist.office_id || seen.has(therapist.office_id)) {
+                    return false
+                }
+                seen.add(therapist.office_id)
+                return true
+            })
+            .map((therapist) => ({
+                value: therapist.office_id!,
+                label:
+                    formatOfficeLocation(therapist.office!) ?? therapist.office!.name,
+            }))
+    }, [therapists])
+
     const dateSearchParams = useMemo(() => {
         if (bookingMode === "once") {
             if (!visitDate) return null
@@ -95,28 +116,12 @@ const ReservationNew: React.FC = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const [typesResponse, therapistsResponse, localizationsResponse] =
-                    await Promise.all([
-                        listAppointmentTypes(),
-                        listBookingTherapists(),
-                        listLocalizations(),
-                    ])
+                const [typesResponse, therapistsResponse] = await Promise.all([
+                    listAppointmentTypes(),
+                    listBookingTherapists(),
+                ])
                 setAppointmentTypes(typesResponse.data)
                 setTherapists(therapistsResponse.data)
-                setOfficeOptions(
-                    localizationsResponse.data.flatMap((localization) =>
-                        localization.offices.map((office) => ({
-                            value: office.id,
-                            label: formatOfficeLocation({
-                                name: localization.name,
-                                city: localization.city,
-                                address: localization.address,
-                                postal_code: localization.postal_code,
-                                room_number: office.room_number,
-                            }) ?? localization.name,
-                        })),
-                    ),
-                )
             } catch (err) {
                 setError(
                     getApiErrorDisplay(err, {
@@ -192,20 +197,34 @@ const ReservationNew: React.FC = () => {
         [resetSlotSearch],
     )
 
-    const handleTherapistChange = useCallback(
-        (value: string | undefined) => {
-            setTherapistId(value)
+    const handleLocationFilterModeChange = useCallback(
+        (mode: LocationFilterMode) => {
+            setLocationFilterMode(mode)
+            setTherapistId(undefined)
+            setOfficeId(undefined)
             resetSlotSearch()
         },
         [resetSlotSearch],
     )
 
-    const handleOfficeChange = useCallback(
+    const handleTherapistChange = useCallback(
         (value: string | undefined) => {
-            setOfficeId(value)
+            const therapist = therapists.find((item) => item.id === value)
+            setTherapistId(value)
+            setOfficeId(therapist?.office_id ?? undefined)
             resetSlotSearch()
         },
-        [resetSlotSearch],
+        [therapists, resetSlotSearch],
+    )
+
+    const handleOfficeChange = useCallback(
+        (value: string | undefined) => {
+            const therapist = therapists.find((item) => item.office_id === value)
+            setOfficeId(value)
+            setTherapistId(therapist?.id ?? undefined)
+            resetSlotSearch()
+        },
+        [therapists, resetSlotSearch],
     )
 
     const handleTimeFromChange = useCallback(
@@ -381,6 +400,7 @@ const ReservationNew: React.FC = () => {
                 visitDate={visitDate}
                 dayOfWeek={dayOfWeek}
                 startDate={startDate}
+                locationFilterMode={locationFilterMode}
                 therapistId={therapistId}
                 officeId={officeId}
                 timeFrom={timeFrom}
@@ -392,6 +412,7 @@ const ReservationNew: React.FC = () => {
                 onVisitDateChange={handleVisitDateChange}
                 onDayOfWeekChange={handleDayOfWeekChange}
                 onStartDateChange={handleStartDateChange}
+                onLocationFilterModeChange={handleLocationFilterModeChange}
                 onTherapistChange={handleTherapistChange}
                 onOfficeChange={handleOfficeChange}
                 onTimeFromChange={handleTimeFromChange}

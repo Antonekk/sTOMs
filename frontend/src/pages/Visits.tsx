@@ -33,7 +33,7 @@ const Visits: React.FC = () => {
         setError(null)
         try {
             const response = await listVisits({
-                include_canceled: includeCanceled || tab === "history",
+                include_canceled: includeCanceled,
             })
             setVisits(response.data)
         } catch (err) {
@@ -41,7 +41,7 @@ const Visits: React.FC = () => {
         } finally {
             setLoading(false)
         }
-    }, [includeCanceled, tab])
+    }, [includeCanceled])
 
     useEffect(() => {
         void loadVisits()

@@ -3,6 +3,7 @@ import Login from "../pages/Login"
 import Register from "../pages/Register"
 import NotFound from "../pages/NotFound"
 import Home from "../pages/Home"
+import Panel from "../pages/Panel"
 import WeeklySchedule from "../pages/WeeklySchedule";
 import ActivateAccount from "../pages/ActivateAccount"
 import ForgotPassword from "../pages/ForgotPassword"
@@ -84,7 +85,7 @@ const Router: React.FC = () => {
                         path='/panel'
                         element={
                             <AuthenticatedRoute>
-                                <Home />
+                                <Panel />
                             </AuthenticatedRoute>
                         }
                     />

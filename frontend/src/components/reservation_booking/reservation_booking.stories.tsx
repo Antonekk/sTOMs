@@ -21,12 +21,20 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const mockOffice: OfficeLocation = {
+const mockOffice1: OfficeLocation = {
     name: "Centrum Terapii",
     city: "Warszawa",
     address: "ul. Przykładowa 1",
     postal_code: "00-001",
     room_number: "12",
+};
+
+const mockOffice2: OfficeLocation = {
+    name: "Gabinet Mokotów",
+    city: "Warszawa",
+    address: "ul. Przykładowa 10",
+    postal_code: "00-002",
+    room_number: "5",
 };
 
 const patients: Patient[] = [
@@ -70,20 +78,24 @@ const therapists: BookingTherapist[] = [
         id: "therapist-1",
         full_name: "Maria Nowak",
         office_id: "office-1",
-        office: mockOffice,
+        office: mockOffice1,
     },
     {
         id: "therapist-2",
         full_name: "Piotr Wiśniewski",
-        office_id: "office-1",
-        office: mockOffice,
+        office_id: "office-2",
+        office: mockOffice2,
     },
 ];
 
 const officeOptions: OfficeOption[] = [
     {
         value: "office-1",
-        label: "Centrum Terapii · Warszawa, ul. Przykładowa 1",
+        label: "Centrum Terapii · Warszawa, ul. Przykładowa 1 · pokój 12",
+    },
+    {
+        value: "office-2",
+        label: "Gabinet Mokotów · Warszawa, ul. Przykładowa 10 · pokój 5",
     },
 ];
 
@@ -97,7 +109,7 @@ const bookableSlots: BookableSlot[] = [
         therapist_id: "therapist-1",
         therapist_name: "Maria Nowak",
         office_id: "office-1",
-        office: mockOffice,
+        office: mockOffice1,
         date: "2026-06-10",
         start_time: "09:00:00",
         end_time: "10:00:00",
@@ -105,8 +117,8 @@ const bookableSlots: BookableSlot[] = [
     {
         therapist_id: "therapist-2",
         therapist_name: "Piotr Wiśniewski",
-        office_id: "office-1",
-        office: mockOffice,
+        office_id: "office-2",
+        office: mockOffice2,
         date: "2026-06-10",
         start_time: "14:00:00",
         end_time: "15:00:00",
@@ -136,6 +148,9 @@ const ReservationBookingWithState = (
     const [startDate, setStartDate] = useState<string | undefined>(
         overrides.startDate,
     );
+    const [locationFilterMode, setLocationFilterMode] = useState<
+        "therapist" | "office"
+    >(overrides.locationFilterMode ?? "therapist");
     const [therapistId, setTherapistId] = useState<string | undefined>(
         overrides.therapistId,
     );
@@ -175,6 +190,7 @@ const ReservationBookingWithState = (
             visitDate={visitDate}
             dayOfWeek={dayOfWeek}
             startDate={startDate}
+            locationFilterMode={locationFilterMode}
             therapistId={therapistId}
             officeId={officeId}
             timeFrom={timeFrom}
@@ -186,8 +202,17 @@ const ReservationBookingWithState = (
             onVisitDateChange={setVisitDate}
             onDayOfWeekChange={setDayOfWeek}
             onStartDateChange={setStartDate}
-            onTherapistChange={setTherapistId}
-            onOfficeChange={setOfficeId}
+            onLocationFilterModeChange={setLocationFilterMode}
+            onTherapistChange={(value) => {
+                const therapist = therapists.find((item) => item.id === value);
+                setTherapistId(value);
+                setOfficeId(therapist?.office_id ?? undefined);
+            }}
+            onOfficeChange={(value) => {
+                const therapist = therapists.find((item) => item.office_id === value);
+                setOfficeId(value);
+                setTherapistId(therapist?.id ?? undefined);
+            }}
             onTimeFromChange={setTimeFrom}
             onTimeToChange={setTimeTo}
             onSlotSelect={setSelectedSlotKey}

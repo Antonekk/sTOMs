@@ -1,5 +1,7 @@
 export const API_URL = import.meta.env.VITE_API_URL as string | undefined
 
+export const ADMIN_URL = API_URL ? `${API_URL}/admin/` : "/admin/"
+
 export const AUTH_ENDPOINTS = {
     REGISTER: "/api/v1/users/",
     LOGIN: "/api/v1/jwt/create/",

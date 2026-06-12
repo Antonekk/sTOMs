@@ -1,6 +1,7 @@
 import React, { type ReactNode } from 'react';
 import {Badge, Layout, Menu } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import { ADMIN_URL } from '../../api/endpoints';
 import type { Role } from '../../types/auth';
 
 const { Header, Content, Footer } = Layout;
@@ -35,7 +36,7 @@ const Template: React.FC<TemplateProps> = ({
           style={{ flex: 1 }}
         >
           {isAuthenticated && 
-            <Menu.Item key="panel" onClick={() => {onNavigate("/")}} >
+            <Menu.Item key="panel" onClick={() => {onNavigate("/panel")}} >
               Panel  
             </Menu.Item>
           }
@@ -64,6 +65,21 @@ const Template: React.FC<TemplateProps> = ({
               Wyjątki
             </Menu.Item>
           }
+          {isAuthenticated && role === "ADMIN" &&
+            <Menu.Item key="admin" onClick={() => { window.location.href = ADMIN_URL; }}>
+              Panel admina
+            </Menu.Item>
+          }
+          {!isAuthenticated && (
+            <>
+              <Menu.Item key="login" onClick={() => { onNavigate("/login"); }} style={{ marginLeft: 'auto' }}>
+                Zaloguj się
+              </Menu.Item>
+              <Menu.Item key="register" onClick={() => { onNavigate("/rejestracja"); }}>
+                Zarejestruj się
+              </Menu.Item>
+            </>
+          )}
           {isAuthenticated && (
             <Menu.SubMenu
               key="profile"

@@ -13,7 +13,7 @@ import Loading from "../components/loading/loading"
 import { useAuthentication } from "../auth/AuthProvider"
 import { useAppConfig } from "../config/ConfigProvider"
 import { getApiErrorMessage } from "../utils/apiError"
-import { canCancelByWindow } from "../utils/timeSlots"
+import { canCancelByWindow, isPastVisit } from "../utils/timeSlots"
 import type { VisitDetail } from "../types/reservations"
 
 const VisitDetailPage: React.FC = () => {
@@ -60,6 +60,12 @@ const VisitDetailPage: React.FC = () => {
             visit.start_time,
             config.cancellation_window_hours,
         ),
+    )
+
+    const canComplete = Boolean(
+        visit
+        && visit.status === "SCHEDULED"
+        && isPastVisit(visit.appointment_date, visit.end_time),
     )
 
     const handleSaveNote = async () => {
@@ -134,7 +140,7 @@ const VisitDetailPage: React.FC = () => {
                 savingNote={savingNote}
                 updatingStatus={updatingStatus}
                 canCancel={canCancel}
-                canUpdateStatus={canCancel}
+                canUpdateStatus={canComplete}
             />
         </Flex>
     )

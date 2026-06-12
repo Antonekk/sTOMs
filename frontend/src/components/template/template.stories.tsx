@@ -45,3 +45,14 @@ export const Therapist: Story = {
   },
 };
 
+export const Admin: Story = {
+  args: {
+    isAuthenticated: true,
+    role: "ADMIN",
+    userName: "Admin",
+    onLogoutClick: () => {alert("Wyloguj")},
+    onNavigate: (path) => {alert(`Nawiguj do ${path}`)},
+    children: <div>Admin dashboard</div>,
+  },
+};
+
