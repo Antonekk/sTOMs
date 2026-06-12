@@ -1,6 +1,7 @@
 from datetime import date, time, timedelta
 
 from constance import config
+from django.utils import timezone
 from offices.location import serialize_office_location
 from therapist_availability.models import Therapist
 
@@ -39,7 +40,7 @@ class BookableSlotsEngine:
 
         slots: list[dict] = []
         current = date_from
-        today = date.today()
+        today = timezone.localdate()
         max_date = today + timedelta(days=config.APPOINTMENT_BOOKING_DAYS)
 
         while current <= date_to:
@@ -66,6 +67,9 @@ class BookableSlotsEngine:
                             continue
                         if time_to is not None and slot_end > time_to:
                             break
+                        if BookingEngine.is_past_slot(current, slot_start):
+                            cursor += duration
+                            continue
 
                         office = therapist.office
 

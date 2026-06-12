@@ -1,5 +1,7 @@
-from datetime import time
+from datetime import datetime, time
+from unittest.mock import patch
 
+from django.utils import timezone
 from rest_framework import status
 
 from .base import ReservationAPITestCase
@@ -96,6 +98,23 @@ class BookableSlotAPITestCase(ReservationAPITestCase):
         self.assertEqual(slot["office"]["city"], "City")
         self.assertEqual(slot["office"]["address"], "Addr")
         self.assertEqual(slot["office"]["room_number"], "101")
+
+    @patch("reservations.engines.booking.timezone.now")
+    def test_bookable_slots_excludes_past_times_today(self, mock_now):
+        today = timezone.localdate()
+        mock_now.return_value = timezone.make_aware(
+            datetime.combine(today, time(14, 0))
+        )
+        self.api.force_authenticate(user=self.client_user)
+        url, params = self._slots_url(
+            date_from=today.isoformat(),
+            date_to=today.isoformat(),
+            page_size=100,
+        )
+        response = self.api.get(url, params)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for slot in response.data["results"]:
+            self.assertGreaterEqual(slot["start_time"], "14:00")
 
     def test_time_options_returns_available_hours(self):
         target_date = future_monday()

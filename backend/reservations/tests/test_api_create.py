@@ -1,4 +1,5 @@
-from datetime import time
+from datetime import datetime, time
+from unittest.mock import patch
 
 from constance import config
 from django.utils import timezone
@@ -13,6 +14,28 @@ from .helpers import create_appointment, create_series, future_monday
 
 
 class ReservationCreateAPITestCase(ReservationAPITestCase):
+    @patch("reservations.engines.booking.timezone.now")
+    def test_booking_past_time_today_returns_400(self, mock_now):
+        today = timezone.localdate()
+        mock_now.return_value = timezone.make_aware(
+            datetime.combine(today, time(14, 0))
+        )
+        self.api.force_authenticate(user=self.client_user)
+        response = self.api.post(
+            "/api/v1/reservations",
+            {
+                "therapist_id": str(self.therapist.id),
+                "patient_id": str(self.patient.id),
+                "appointment_type_id": str(self.one_time_type.id),
+                "start_time": "10:00",
+                "start_date": today.isoformat(),
+                "is_weekly": False,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("przeszłości", str(response.data).lower())
+
     def test_duplicate_booking_is_rejected(self):
         target_date = future_monday()
         self.api.force_authenticate(user=self.client_user)
