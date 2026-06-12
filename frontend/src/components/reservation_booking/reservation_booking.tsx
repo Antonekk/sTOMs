@@ -396,7 +396,7 @@ const ReservationBooking: React.FC<ReservationBookingProps> = ({
                                                 <Space orientation="vertical" size={0}>
                                                     <Text strong>
                                                         {formatDatePl(slot.date)}, {formatTime(slot.start_time)}
-                                                        {" – "}
+                                                        {" - "}
                                                         {formatTime(slot.end_time)}
                                                     </Text>
                                                     <Text type="secondary">

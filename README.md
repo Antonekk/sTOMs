@@ -88,6 +88,13 @@ pip install -r requirements.txt
 python manage.py test
 ```
 
+## Weryfikacja celery
+
+```bash
+docker compose exec celery celery -A stoms status
+docker compose exec celery celery -A stoms inspect registered
+```
+
 ## References
 - Logo (https://logoipsum.com/)
 - Frontend React + JWT + AXIOS + React Router: setup (https://dev.to/sanjayttg/jwt-authentication-in-react-with-react-router-1d03)
