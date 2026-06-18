@@ -51,7 +51,12 @@ DJOSER = {
     },
 }
 
-CONSTANCE_BACKEND = "constance.backends.memory.MemoryBackend"
+_redis_url = os.environ.get("REDIS_URL") or os.environ.get(
+    "CELERY_BROKER_URL", "redis://redis:6379/0"
+)
+
+CONSTANCE_BACKEND = "constance.backends.redisd.RedisBackend"
+CONSTANCE_REDIS_CONNECTION = _redis_url
 CONSTANCE_CONFIG = {
     "APPOINTMENT_GENERATION_DAYS": (14, "Ile dni w przód generować wizyty"),
     "APPOINTMENT_BOOKING_DAYS": (7, "Ile dni w przód można rezerwować"),
@@ -178,9 +183,6 @@ TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 USE_TZ = True
 
-_redis_url = os.environ.get("REDIS_URL") or os.environ.get(
-    "CELERY_BROKER_URL", "redis://redis:6379/0"
-)
 CELERY_BROKER_URL = _redis_url
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", _redis_url)
 CELERY_TIMEZONE = TIME_ZONE
